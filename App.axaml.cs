@@ -20,10 +20,6 @@ public partial class App : Application
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            var mainWindow = new MainWindow();
-            desktop.MainWindow = mainWindow;
-            mainWindow.Hide();
-
             ShowLoginWindow(desktop);
         }
 
@@ -37,8 +33,8 @@ public partial class App : Application
 
         loginVm.LoginSucceeded += () =>
         {
-            loginView.Close();
             ShowMainWindow(desktop);
+            loginView.Close();
         };
 
         loginVm.GoToRegisterRequested += () =>
@@ -57,8 +53,8 @@ public partial class App : Application
 
         registerVm.RegisterSucceeded += (email, emailAddressId) =>
         {
-            registerView.Close();
             ShowMainWindow(desktop);
+            registerView.Close();
         };
 
         registerVm.GoToLoginRequested += () =>
@@ -75,9 +71,12 @@ public partial class App : Application
         var email = _authService.CurrentUser?.Email ?? "user@example.com";
         var aiService = new MockAiService();
         var mainVm = new MainViewModel(aiService, email);
-        if (desktop.MainWindow is MainWindow mainWindow)
-            mainWindow.DataContext = mainVm;
-        desktop.MainWindow?.Show();
+        var mainWindow = new MainWindow
+        {
+            DataContext = mainVm,
+        };
+        desktop.MainWindow = mainWindow;
+        mainWindow.Show();
     }
 
     private void ShowVerifyEmailWindow(IClassicDesktopStyleApplicationLifetime desktop, string email, string emailAddressId)
