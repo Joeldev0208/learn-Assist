@@ -1,0 +1,63 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:learn_Assist.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="500"
+        x:Class="learn_Assist.Views.LoginView"
+        x:DataType="vm:LoginViewModel"
+        Icon="/Assets/avalonia-logo.ico"
+        Title="learn_Assist - Login"
+        WindowStartupLocation="CenterScreen"
+        CanResize="False"
+        Width="800" Height="500">
+
+  <Grid ColumnDefinitions="*,*">
+    <Border Background="#FFFFFF" Grid.Column="0">
+      <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="14" MaxWidth="320" Margin="48">
+          <TextBlock Text="Welcome back!" FontSize="26" FontWeight="Bold" HorizontalAlignment="Center" />
+          <TextBlock Text="learning that's everything - all in one place" FontSize="13" Foreground="#777" HorizontalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center" Margin="0,0,0,4" />
+
+          <Button Content="Sign in with Google" HorizontalAlignment="Stretch" Padding="12,10" Background="White" BorderBrush="#D0D0D0" BorderThickness="1" CornerRadius="22" Foreground="#333" />
+          <Button Content="Sign in with Apple" HorizontalAlignment="Stretch" Padding="12,10" Background="White" BorderBrush="#D0D0D0" BorderThickness="1" CornerRadius="22" Foreground="#333" />
+
+          <Grid ColumnDefinitions="*,Auto,*" Margin="0,4">
+            <Border Height="1" Background="#DDD" VerticalAlignment="Center" Grid.Column="0" />
+            <TextBlock Text="Or" Grid.Column="1" Margin="14,0" Foreground="#999" FontSize="12" VerticalAlignment="Center" />
+            <Border Height="1" Background="#DDD" VerticalAlignment="Center" Grid.Column="2" />
+          </Grid>
+
+          <TextBlock Text="Email" FontSize="12" FontWeight="SemiBold" Foreground="#555" Margin="0,4,0,0" />
+          <TextBox PlaceholderText="Enter your email" Text="{Binding Email}" />
+
+          <TextBlock Text="Password" FontSize="12" FontWeight="SemiBold" Foreground="#555" />
+          <TextBox PlaceholderText="Enter your password" Text="{Binding Password}" PasswordChar="*" />
+
+          <TextBlock Text="{Binding ErrorMessage}" Foreground="#E53935" FontSize="12" IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+          <Button Command="{Binding LoginCommand}" HorizontalAlignment="Stretch" Padding="12,10" Background="#1A1A1A" Foreground="White" CornerRadius="22" Margin="0,4,0,0">
+            <Button.Styles>
+              <Style Selector="Button">
+                <Setter Property="Content" Value="Sign in with the email" />
+              </Style>
+              <Style Selector="Button:disabled">
+                <Setter Property="Content" Value="Signing in..." />
+              </Style>
+            </Button.Styles>
+          </Button>
+
+          <Button Content="Don't have an account? Sign up" Command="{Binding GoToRegisterCommand}" Background="Transparent" Foreground="#777" HorizontalAlignment="Center" FontSize="13" />
+        </StackPanel>
+      </ScrollViewer>
+    </Border>
+
+    <Border Background="#7C7168" Grid.Column="1">
+      <Panel VerticalAlignment="Center" HorizontalAlignment="Center">
+        <Ellipse Width="90" Height="90" Fill="#6A5F58" Opacity="0.4" />
+        <Ellipse Width="50" Height="50" Fill="#5A4F48" Opacity="0.6" />
+        <Ellipse Width="20" Height="20" Fill="#4A3F38" Opacity="0.8" />
+      </Panel>
+    </Border>
+  </Grid>
+</Window>
