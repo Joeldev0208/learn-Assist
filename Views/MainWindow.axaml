@@ -19,157 +19,224 @@
     <conv:ContentTypeToEmojiConverter x:Key="TypeToEmoji" />
   </Window.Resources>
 
-  <Grid ColumnDefinitions="260,1,*,1,200">
-    <!-- ===== Left Panel - Sessions ===== -->
-    <Border Background="#F4F4F5" Grid.Column="0">
-      <DockPanel LastChildFill="True">
-        <Border DockPanel.Dock="Top" Padding="16,16,16,8">
-          <StackPanel Spacing="6">
-            <TextBlock Text="Chat History" FontSize="16" FontWeight="Bold" Foreground="#1A1A1A" />
-            <Border Height="1" Background="#E0E0E0" Margin="0,2,0,0" />
-          </StackPanel>
-        </Border>
+  <Grid>
+    <!-- ===== Main Content ===== -->
+    <Grid ColumnDefinitions="260,1,*,1,200">
+      <Border Background="#F4F4F5" Grid.Column="0">
+        <DockPanel LastChildFill="True">
+          <Border DockPanel.Dock="Top" Padding="16,16,16,8">
+            <StackPanel Spacing="6">
+              <TextBlock Text="Chat History" FontSize="16" FontWeight="Bold" Foreground="#1A1A1A" />
+              <Border Height="1" Background="#E0E0E0" Margin="0,2,0,0" />
+            </StackPanel>
+          </Border>
 
-        <Border DockPanel.Dock="Bottom" Padding="14,12" BorderBrush="#E0E0E0" BorderThickness="0,1,0,0">
-          <TextBlock Text="{Binding SessionList.CurrentUserEmail}" FontSize="12" Foreground="#888" />
-        </Border>
+          <Border DockPanel.Dock="Bottom" Padding="14,12" BorderBrush="#E0E0E0" BorderThickness="0,1,0,0">
+            <TextBlock Text="{Binding SessionList.CurrentUserEmail}" FontSize="12" Foreground="#888" />
+          </Border>
 
-        <ScrollViewer Padding="8,0">
-          <ListBox ItemsSource="{Binding SessionList.Sessions}"
-                   SelectedItem="{Binding SessionList.ActiveSession}"
-                   Background="Transparent"
-                   BorderThickness="0">
-            <ListBox.ItemTemplate>
-              <DataTemplate DataType="models:ChatSession">
-                <Border Padding="12,10" Margin="0,2" CornerRadius="8"
-                        Background="Transparent"
-                        BorderThickness="0">
-                  <TextBlock Text="{Binding Title}" FontSize="13" Foreground="#333" TextWrapping="Wrap" />
-                </Border>
-              </DataTemplate>
-            </ListBox.ItemTemplate>
-            <ListBox.Styles>
-              <Style Selector="ListBoxItem">
-                <Setter Property="Padding" Value="0" />
-                <Setter Property="Background" Value="Transparent" />
-              </Style>
-              <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
-                <Setter Property="Background" Value="#E0E0E2" />
-                <Setter Property="CornerRadius" Value="8" />
-              </Style>
-              <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter">
-                <Setter Property="Background" Value="#E8E8EA" />
-                <Setter Property="CornerRadius" Value="8" />
-              </Style>
-            </ListBox.Styles>
-          </ListBox>
-        </ScrollViewer>
-      </DockPanel>
-    </Border>
-
-    <!-- Divider 1 -->
-    <Border Background="#E8E8E8" Grid.Column="1" />
-
-    <!-- ===== Center Panel - Chat ===== -->
-    <Grid Grid.Column="2" RowDefinitions="Auto,*,Auto">
-      <Border Padding="20,14" BorderBrush="#E8E8E8" BorderThickness="0,0,0,1" Background="White">
-        <TextBlock Text="Learn-Assist" FontSize="15" FontWeight="SemiBold" Foreground="#333" />
+          <ScrollViewer Padding="8,0">
+            <ListBox ItemsSource="{Binding SessionList.Sessions}"
+                     SelectedItem="{Binding SessionList.ActiveSession}"
+                     Background="Transparent"
+                     BorderThickness="0">
+              <ListBox.ItemTemplate>
+                <DataTemplate DataType="models:ChatSession">
+                  <Border Padding="12,10" Margin="0,2" CornerRadius="8" Background="Transparent" BorderThickness="0">
+                    <TextBlock Text="{Binding Title}" FontSize="13" Foreground="#333" TextWrapping="Wrap" />
+                  </Border>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+              <ListBox.Styles>
+                <Style Selector="ListBoxItem">
+                  <Setter Property="Padding" Value="0" />
+                  <Setter Property="Background" Value="Transparent" />
+                </Style>
+                <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+                  <Setter Property="Background" Value="#E0E0E2" />
+                  <Setter Property="CornerRadius" Value="8" />
+                </Style>
+                <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter">
+                  <Setter Property="Background" Value="#E8E8EA" />
+                  <Setter Property="CornerRadius" Value="8" />
+                </Style>
+              </ListBox.Styles>
+            </ListBox>
+          </ScrollViewer>
+        </DockPanel>
       </Border>
 
-      <ScrollViewer Grid.Row="1" Padding="24,16" x:Name="MessagesScroll" Background="White">
-        <ItemsControl ItemsSource="{Binding Chat.Messages}">
-          <ItemsControl.ItemTemplate>
-            <DataTemplate DataType="models:ChatMessage">
-              <Border Margin="0,0,0,16" MaxWidth="680"
-                      HorizontalAlignment="{Binding Role, Converter={StaticResource RoleToAlignment}}"
-                      Padding="14,12"
-                      CornerRadius="12"
-                      Background="{Binding Role, Converter={StaticResource RoleToBubble}}"
-                      BorderBrush="#E8E8E8"
-                      BorderThickness="1">
-                <TextBlock Text="{Binding Content}" FontSize="14" Foreground="#1A1A1A"
-                           TextWrapping="Wrap" LineHeight="22" />
-              </Border>
-            </DataTemplate>
-          </ItemsControl.ItemTemplate>
-        </ItemsControl>
-      </ScrollViewer>
+      <Border Background="#E8E8E8" Grid.Column="1" />
 
-      <Border Grid.Row="2" Padding="20,12" BorderBrush="#E8E8E8" BorderThickness="0,1,0,0" Background="White">
+      <Grid Grid.Column="2" RowDefinitions="Auto,*,Auto">
+        <Border Padding="20,14" BorderBrush="#E8E8E8" BorderThickness="0,0,0,1" Background="White">
+          <TextBlock Text="Learn-Assist" FontSize="15" FontWeight="SemiBold" Foreground="#333" />
+        </Border>
+
+        <ScrollViewer Grid.Row="1" Padding="24,16" x:Name="MessagesScroll" Background="White">
+          <ItemsControl ItemsSource="{Binding Chat.Messages}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate DataType="models:ChatMessage">
+                <Border Margin="0,0,0,16" MaxWidth="680"
+                        HorizontalAlignment="{Binding Role, Converter={StaticResource RoleToAlignment}}"
+                        Padding="14,12" CornerRadius="12"
+                        Background="{Binding Role, Converter={StaticResource RoleToBubble}}"
+                        BorderBrush="#E8E8E8" BorderThickness="1">
+                  <TextBlock Text="{Binding Content}" FontSize="14" Foreground="#1A1A1A"
+                             TextWrapping="Wrap" LineHeight="22" />
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </ScrollViewer>
+
+        <Border Grid.Row="2" Padding="20,12" BorderBrush="#E8E8E8" BorderThickness="0,1,0,0" Background="White">
+          <DockPanel LastChildFill="True">
+            <Button DockPanel.Dock="Right" Width="38" Height="38" Margin="10,0,0,0"
+                    Command="{Binding Chat.SendMessageCommand}"
+                    Background="#F0F0F0" CornerRadius="19" BorderThickness="0"
+                    HorizontalAlignment="Center" VerticalAlignment="Center" Padding="0">
+              <TextBlock Text="→" FontSize="18" Foreground="#555" HorizontalAlignment="Center" VerticalAlignment="Center" />
+            </Button>
+            <TextBox Text="{Binding Chat.MessageText}"
+                     PlaceholderText="What's up with the learning?"
+                     FontSize="14" Padding="14,9" CornerRadius="22"
+                     BorderBrush="#D0D0D0" BorderThickness="1" />
+          </DockPanel>
+        </Border>
+      </Grid>
+
+      <Border Background="#E8E8E8" Grid.Column="3" />
+
+      <Border Background="#F4F4F5" Grid.Column="4">
         <DockPanel LastChildFill="True">
-          <Button DockPanel.Dock="Right" Width="38" Height="38" Margin="10,0,0,0"
-                  Command="{Binding Chat.SendMessageCommand}"
-                  Background="#F0F0F0" CornerRadius="19"
-                  BorderThickness="0"
-                  HorizontalAlignment="Center" VerticalAlignment="Center"
-                  Padding="0">
-            <TextBlock Text="→" FontSize="18" Foreground="#555" HorizontalAlignment="Center" VerticalAlignment="Center" />
-          </Button>
-          <TextBox Text="{Binding Chat.MessageText}"
-                   PlaceholderText="What's up with the learning?"
-                   FontSize="14"
-                   Padding="14,9"
-                   CornerRadius="22"
-                   BorderBrush="#D0D0D0"
-                   BorderThickness="1" />
+          <Border DockPanel.Dock="Top" Padding="14,16,14,8">
+            <StackPanel Spacing="6">
+              <DockPanel LastChildFill="True">
+                <Button DockPanel.Dock="Right" Width="28" Height="28"
+                        Command="{Binding DocumentList.ShowImportDialogCommand}"
+                        Background="#E0E0E0" CornerRadius="14" BorderThickness="0"
+                        FontSize="16" Foreground="#555" Padding="0"
+                        HorizontalAlignment="Center" VerticalAlignment="Center">
+                  <TextBlock Text="+" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                </Button>
+                <TextBlock Text="Resources" FontSize="15" FontWeight="Bold" Foreground="#1A1A1A" VerticalAlignment="Center" />
+              </DockPanel>
+              <Border Height="1" Background="#E0E0E0" Margin="0,2,0,0" />
+            </StackPanel>
+          </Border>
+
+          <ScrollViewer Padding="8,0">
+            <ListBox ItemsSource="{Binding DocumentList.Documents}"
+                     Background="Transparent" BorderThickness="0">
+              <ListBox.ItemTemplate>
+                <DataTemplate DataType="models:UserDocument">
+                  <Border Padding="8,6" Margin="0,1" CornerRadius="6">
+                    <DockPanel LastChildFill="True">
+                      <TextBlock DockPanel.Dock="Left" FontSize="14" Margin="0,0,8,0" VerticalAlignment="Center"
+                                 Text="{Binding ContentType, Converter={StaticResource TypeToEmoji}}" />
+                      <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="{Binding Name}" FontSize="12" Foreground="#444" TextWrapping="Wrap" />
+                      </StackPanel>
+                    </DockPanel>
+                  </Border>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+              <ListBox.Styles>
+                <Style Selector="ListBoxItem">
+                  <Setter Property="Padding" Value="0" />
+                  <Setter Property="Background" Value="Transparent" />
+                </Style>
+                <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter">
+                  <Setter Property="Background" Value="#E8E8EA" />
+                  <Setter Property="CornerRadius" Value="6" />
+                </Style>
+              </ListBox.Styles>
+            </ListBox>
+          </ScrollViewer>
         </DockPanel>
       </Border>
     </Grid>
 
-    <!-- Divider 2 -->
-    <Border Background="#E8E8E8" Grid.Column="3" />
-
-    <!-- ===== Right Panel - Documents ===== -->
-    <Border Background="#F4F4F5" Grid.Column="4">
-      <DockPanel LastChildFill="True">
-        <Border DockPanel.Dock="Top" Padding="14,16,14,8">
-          <StackPanel Spacing="6">
-            <DockPanel LastChildFill="True">
-              <Button DockPanel.Dock="Right" Width="28" Height="28"
-                      Command="{Binding DocumentList.ShowImportDialogCommand}"
-                      Background="#E0E0E0" CornerRadius="14"
-                      BorderThickness="0"
-                      FontSize="16" Foreground="#555"
-                      Padding="0"
-                      HorizontalAlignment="Center" VerticalAlignment="Center">
-                <TextBlock Text="+" HorizontalAlignment="Center" VerticalAlignment="Center" />
-              </Button>
-              <TextBlock Text="Resources" FontSize="15" FontWeight="Bold" Foreground="#1A1A1A" VerticalAlignment="Center" />
-            </DockPanel>
-            <Border Height="1" Background="#E0E0E0" Margin="0,2,0,0" />
+    <!-- ===== Tutorial Overlay ===== -->
+    <Border IsVisible="{Binding Tutorial.IsVisible}"
+            Background="#80000000"
+            ZIndex="10">
+      <Border Background="White"
+              CornerRadius="16"
+              MaxWidth="440"
+              MaxHeight="400"
+              Padding="32"
+              HorizontalAlignment="Center"
+              VerticalAlignment="Center"
+              BoxShadow="0 8 24 #26000000">
+        <StackPanel Spacing="20">
+          <!-- Dots indicator -->
+          <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="6">
+            <ItemsControl ItemsSource="{Binding Tutorial.Steps}">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <StackPanel Orientation="Horizontal" Spacing="6" />
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate DataType="x:Object">
+                  <Ellipse Width="8" Height="8" Fill="#D0D0D0" />
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
           </StackPanel>
-        </Border>
 
-        <ScrollViewer Padding="8,0">
-          <ListBox ItemsSource="{Binding DocumentList.Documents}"
-                   Background="Transparent"
-                   BorderThickness="0">
-            <ListBox.ItemTemplate>
-              <DataTemplate DataType="models:UserDocument">
-                <Border Padding="8,6" Margin="0,1" CornerRadius="6">
-                  <DockPanel LastChildFill="True">
-                    <TextBlock DockPanel.Dock="Left" FontSize="14" Margin="0,0,8,0" VerticalAlignment="Center"
-                               Text="{Binding ContentType, Converter={StaticResource TypeToEmoji}}" />
-                    <StackPanel VerticalAlignment="Center">
-                      <TextBlock Text="{Binding Name}" FontSize="12" Foreground="#444" TextWrapping="Wrap" />
-                    </StackPanel>
-                  </DockPanel>
-                </Border>
-              </DataTemplate>
-            </ListBox.ItemTemplate>
-            <ListBox.Styles>
-              <Style Selector="ListBoxItem">
-                <Setter Property="Padding" Value="0" />
-                <Setter Property="Background" Value="Transparent" />
-              </Style>
-              <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter">
-                <Setter Property="Background" Value="#E8E8EA" />
-                <Setter Property="CornerRadius" Value="6" />
-              </Style>
-            </ListBox.Styles>
-          </ListBox>
-        </ScrollViewer>
-      </DockPanel>
+          <!-- Step content -->
+          <TextBlock Text="{Binding Tutorial.StepTitle}"
+                     FontSize="20" FontWeight="Bold"
+                     Foreground="#1A1A1A"
+                     HorizontalAlignment="Center"
+                     TextWrapping="Wrap"
+                     TextAlignment="Center" />
+
+          <TextBlock Text="{Binding Tutorial.StepDescription}"
+                     FontSize="14"
+                     Foreground="#666"
+                     TextWrapping="Wrap"
+                     TextAlignment="Center"
+                     LineHeight="22" />
+
+          <!-- Buttons -->
+          <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,8,0,0">
+            <Button Grid.Column="0"
+                    Command="{Binding Tutorial.SkipCommand}"
+                    Background="Transparent"
+                    Foreground="#999"
+                    FontSize="13"
+                    Content="Skip"
+                    Padding="8,6" />
+
+            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
+              <Button Command="{Binding Tutorial.BackCommand}"
+                      Background="#F0F0F0"
+                      Foreground="#444"
+                      CornerRadius="20"
+                      Padding="16,8"
+                      FontSize="13"
+                      BorderThickness="0"
+                      IsVisible="{Binding Tutorial.IsFirstStep, Converter={x:Static BoolConverters.Not}}">
+                <TextBlock Text="Back" />
+              </Button>
+
+              <Button Command="{Binding Tutorial.NextCommand}"
+                      Background="#1A1A1A"
+                      Foreground="White"
+                      CornerRadius="20"
+                      Padding="20,8"
+                      FontSize="13"
+                      BorderThickness="0">
+                <TextBlock Text="{Binding Tutorial.NextButtonText}" />
+              </Button>
+            </StackPanel>
+          </Grid>
+        </StackPanel>
+      </Border>
     </Border>
   </Grid>
 </Window>
