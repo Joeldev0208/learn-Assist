@@ -16,6 +16,7 @@
   <Window.Resources>
     <conv:MessageRoleToAlignmentConverter x:Key="RoleToAlignment" />
     <conv:MessageRoleToBubbleColorConverter x:Key="RoleToBubble" />
+    <conv:ContentTypeToEmojiConverter x:Key="TypeToEmoji" />
   </Window.Resources>
 
   <Grid ColumnDefinitions="260,1,*,1,200">
@@ -123,21 +124,50 @@
       <DockPanel LastChildFill="True">
         <Border DockPanel.Dock="Top" Padding="14,16,14,8">
           <StackPanel Spacing="6">
-            <TextBlock Text="Resources" FontSize="15" FontWeight="Bold" Foreground="#1A1A1A" />
+            <DockPanel LastChildFill="True">
+              <Button DockPanel.Dock="Right" Width="28" Height="28"
+                      Command="{Binding DocumentList.ShowImportDialogCommand}"
+                      Background="#E0E0E0" CornerRadius="14"
+                      BorderThickness="0"
+                      FontSize="16" Foreground="#555"
+                      Padding="0"
+                      HorizontalAlignment="Center" VerticalAlignment="Center">
+                <TextBlock Text="+" HorizontalAlignment="Center" VerticalAlignment="Center" />
+              </Button>
+              <TextBlock Text="Resources" FontSize="15" FontWeight="Bold" Foreground="#1A1A1A" VerticalAlignment="Center" />
+            </DockPanel>
             <Border Height="1" Background="#E0E0E0" Margin="0,2,0,0" />
           </StackPanel>
         </Border>
 
         <ScrollViewer Padding="8,0">
-          <ItemsControl ItemsSource="{Binding DocumentList.Documents}">
-            <ItemsControl.ItemTemplate>
+          <ListBox ItemsSource="{Binding DocumentList.Documents}"
+                   Background="Transparent"
+                   BorderThickness="0">
+            <ListBox.ItemTemplate>
               <DataTemplate DataType="models:UserDocument">
-                <Border Padding="10,8" Margin="0,2" CornerRadius="6">
-                  <TextBlock Text="{Binding Name}" FontSize="12" Foreground="#444" TextWrapping="Wrap" />
+                <Border Padding="8,6" Margin="0,1" CornerRadius="6">
+                  <DockPanel LastChildFill="True">
+                    <TextBlock DockPanel.Dock="Left" FontSize="14" Margin="0,0,8,0" VerticalAlignment="Center"
+                               Text="{Binding ContentType, Converter={StaticResource TypeToEmoji}}" />
+                    <StackPanel VerticalAlignment="Center">
+                      <TextBlock Text="{Binding Name}" FontSize="12" Foreground="#444" TextWrapping="Wrap" />
+                    </StackPanel>
+                  </DockPanel>
                 </Border>
               </DataTemplate>
-            </ItemsControl.ItemTemplate>
-          </ItemsControl>
+            </ListBox.ItemTemplate>
+            <ListBox.Styles>
+              <Style Selector="ListBoxItem">
+                <Setter Property="Padding" Value="0" />
+                <Setter Property="Background" Value="Transparent" />
+              </Style>
+              <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter">
+                <Setter Property="Background" Value="#E8E8EA" />
+                <Setter Property="CornerRadius" Value="6" />
+              </Style>
+            </ListBox.Styles>
+          </ListBox>
         </ScrollViewer>
       </DockPanel>
     </Border>

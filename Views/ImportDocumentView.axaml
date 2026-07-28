@@ -1,0 +1,67 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:learn_Assist.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="380" d:DesignHeight="340"
+        x:Class="learn_Assist.Views.ImportDocumentView"
+        x:DataType="vm:ImportDocumentViewModel"
+        Title="Import Resource"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False"
+        SizeToContent="WidthAndHeight"
+        MinWidth="340" MinHeight="300"
+        Background="#FAFAFA">
+
+  <StackPanel Spacing="12" Margin="24,20">
+    <TextBlock Text="Import Resource" FontSize="18" FontWeight="Bold" Foreground="#1A1A1A" HorizontalAlignment="Center" />
+    <TextBlock Text="Select the type of file you want to import" FontSize="13" Foreground="#777" HorizontalAlignment="Center" Margin="0,0,0,8" />
+
+    <Button Command="{Binding SelectDocumentCommand}"
+            HorizontalAlignment="Stretch"
+            Padding="16,14"
+            Background="#FFFFFF"
+            BorderBrush="#D0D0D0"
+            BorderThickness="1"
+            CornerRadius="12"
+            FontSize="14"
+            Foreground="#333">
+      <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
+        <TextBlock Text="📄" FontSize="18" />
+        <TextBlock Text="Document" VerticalAlignment="Center" />
+      </StackPanel>
+    </Button>
+
+    <Button Command="{Binding SelectImageCommand}"
+            HorizontalAlignment="Stretch"
+            Padding="16,14"
+            Background="#FFFFFF"
+            BorderBrush="#D0D0D0"
+            BorderThickness="1"
+            CornerRadius="12"
+            FontSize="14"
+            Foreground="#333">
+      <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
+        <TextBlock Text="🖼" FontSize="18" />
+        <TextBlock Text="Image" VerticalAlignment="Center" />
+      </StackPanel>
+    </Button>
+
+    <Button Command="{Binding SelectVideoCommand}"
+            HorizontalAlignment="Stretch"
+            Padding="16,14"
+            Background="#FFFFFF"
+            BorderBrush="#D0D0D0"
+            BorderThickness="1"
+            CornerRadius="12"
+            FontSize="14"
+            Foreground="#333">
+      <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
+        <TextBlock Text="🎬" FontSize="18" />
+        <TextBlock Text="Video" VerticalAlignment="Center" />
+      </StackPanel>
+    </Button>
+
+    <Button Content="Cancel" Command="{Binding CancelCommand}" HorizontalAlignment="Center" Background="Transparent" Foreground="#888" FontSize="13" Margin="0,4,0,0" />
+  </StackPanel>
+</Window>
