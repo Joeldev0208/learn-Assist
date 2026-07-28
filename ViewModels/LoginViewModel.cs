@@ -27,7 +27,16 @@ public partial class LoginViewModel : ViewModelBase
     [ObservableProperty]
     public partial bool IsLoading { get; set; }
 
+    [ObservableProperty]
+    public partial bool IsPasswordVisible { get; set; }
+
     public event Action? LoginSucceeded;
+
+    [RelayCommand]
+    private void TogglePasswordVisibility()
+    {
+        IsPasswordVisible = !IsPasswordVisible;
+    }
     public event Action? GoToRegisterRequested;
 
     [RelayCommand]

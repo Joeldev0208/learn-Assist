@@ -3,67 +3,122 @@
         xmlns:vm="using:learn_Assist.ViewModels"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="560"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
         x:Class="learn_Assist.Views.RegisterView"
         x:DataType="vm:RegisterViewModel"
         Icon="/Assets/avalonia-logo.ico"
         Title="learn_Assist - Register"
         WindowStartupLocation="CenterScreen"
         CanResize="False"
-        Width="800" Height="560">
+        Width="800" Height="600">
+
+  <Window.Styles>
+    <Style Selector="TextBox">
+      <Setter Property="Background" Value="#F7F7F7" />
+      <Setter Property="Foreground" Value="#1A1A1A" />
+      <Setter Property="PlaceholderForeground" Value="#BBB" />
+    </Style>
+  </Window.Styles>
 
   <Grid ColumnDefinitions="*,*">
-    <Border Background="#FFFFFF" Grid.Column="0">
-      <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="14" MaxWidth="320" Margin="48">
-          <TextBlock Text="Create your account!" FontSize="26" FontWeight="Bold" HorizontalAlignment="Center" />
-          <TextBlock Text="learning that's everything - all in one place" FontSize="13" Foreground="#777" HorizontalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center" Margin="0,0,0,4" />
+    <Border Background="#FFFFFF" Grid.Column="0"
+            BoxShadow="4 0 12 #0A000000">
+      <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="8" MaxWidth="320" Margin="32">
 
-          <Button Content="Sign up with Google" HorizontalAlignment="Stretch" Padding="12,10" Background="White" BorderBrush="#D0D0D0" BorderThickness="1" CornerRadius="22" Foreground="#333" />
-          <Button Content="Sign up with Apple" HorizontalAlignment="Stretch" Padding="12,10" Background="White" BorderBrush="#D0D0D0" BorderThickness="1" CornerRadius="22" Foreground="#333" />
+        <TextBlock Text="Create your account!" FontSize="24" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,2" />
+        <TextBlock Text="learning that's everything - all in one place" FontSize="12" Foreground="#888" HorizontalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center" Margin="0,0,0,6" />
 
-          <Grid ColumnDefinitions="*,Auto,*" Margin="0,4">
-            <Border Height="1" Background="#DDD" VerticalAlignment="Center" Grid.Column="0" />
-            <TextBlock Text="Or" Grid.Column="1" Margin="14,0" Foreground="#999" FontSize="12" VerticalAlignment="Center" />
-            <Border Height="1" Background="#DDD" VerticalAlignment="Center" Grid.Column="2" />
-          </Grid>
+        <Button Content="Sign up with Google" HorizontalAlignment="Stretch" Padding="10,9" Background="White" BorderBrush="#D0D0D0" BorderThickness="1" CornerRadius="20" Foreground="#444" FontSize="13" />
+        <Button Content="Sign up with Apple" HorizontalAlignment="Stretch" Padding="10,9" Background="White" BorderBrush="#D0D0D0" BorderThickness="1" CornerRadius="20" Foreground="#444" FontSize="13" />
 
-          <TextBlock Text="Full Name" FontSize="12" FontWeight="SemiBold" Foreground="#555" Margin="0,4,0,0" />
-          <TextBox PlaceholderText="Enter your full name" Text="{Binding FullName}" />
+        <Grid ColumnDefinitions="*,Auto,*" Margin="0,2">
+          <Border Height="1" Background="#E0E0E0" VerticalAlignment="Center" Grid.Column="0" />
+          <TextBlock Text="Or" Grid.Column="1" Margin="12,0" Foreground="#AAA" FontSize="11" VerticalAlignment="Center" />
+          <Border Height="1" Background="#E0E0E0" VerticalAlignment="Center" Grid.Column="2" />
+        </Grid>
 
-          <TextBlock Text="Email" FontSize="12" FontWeight="SemiBold" Foreground="#555" />
-          <TextBox PlaceholderText="Enter your email" Text="{Binding Email}" />
+        <TextBlock Text="Full Name" FontSize="11" FontWeight="SemiBold" Foreground="#555" Margin="0,2,0,0" />
+        <Border CornerRadius="20" BorderBrush="#D0D0D0" BorderThickness="1" Background="#F7F7F7">
+          <DockPanel LastChildFill="True" Margin="14,0">
+            <TextBlock DockPanel.Dock="Left" Text="👤" FontSize="13" VerticalAlignment="Center" />
+            <TextBox Text="{Binding FullName}" PlaceholderText="Enter your full name" BorderThickness="0" Padding="8,10" FontSize="13" />
+          </DockPanel>
+        </Border>
 
-          <TextBlock Text="Password" FontSize="12" FontWeight="SemiBold" Foreground="#555" />
-          <TextBox PlaceholderText="Create a password" Text="{Binding Password}" PasswordChar="*" />
+        <TextBlock Text="Email" FontSize="11" FontWeight="SemiBold" Foreground="#555" Margin="0,2,0,0" />
+        <Border CornerRadius="20" BorderBrush="#D0D0D0" BorderThickness="1" Background="#F7F7F7">
+          <DockPanel LastChildFill="True" Margin="14,0">
+            <TextBlock DockPanel.Dock="Left" Text="📧" FontSize="13" VerticalAlignment="Center" />
+            <TextBox Text="{Binding Email}" PlaceholderText="Enter your email" BorderThickness="0" Padding="8,10" FontSize="13" />
+          </DockPanel>
+        </Border>
 
-          <TextBlock Text="Confirm Password" FontSize="12" FontWeight="SemiBold" Foreground="#555" />
-          <TextBox PlaceholderText="Confirm your password" Text="{Binding ConfirmPassword}" PasswordChar="*" />
+        <TextBlock Text="Password" FontSize="11" FontWeight="SemiBold" Foreground="#555" Margin="0,2,0,0" />
+        <Border CornerRadius="20" BorderBrush="#D0D0D0" BorderThickness="1" Background="#F7F7F7">
+          <DockPanel LastChildFill="True" Margin="14,0">
+            <TextBlock DockPanel.Dock="Left" Text="🔒" FontSize="13" VerticalAlignment="Center" />
+            <Button DockPanel.Dock="Right" BorderThickness="0" Padding="8,0"
+                    Command="{Binding TogglePasswordVisibilityCommand}">
+              <TextBlock Text="👁" FontSize="13" VerticalAlignment="Center" />
+            </Button>
+            <Grid>
+              <TextBox Text="{Binding Password}" PlaceholderText="Create a password"
+                       BorderThickness="0" Padding="8,10" FontSize="13"
+                       IsVisible="{Binding IsPasswordVisible, Converter={x:Static BoolConverters.Not}}"
+                       PasswordChar="*" />
+              <TextBox Text="{Binding Password}" PlaceholderText="Create a password"
+                       BorderThickness="0" Padding="8,10" FontSize="13"
+                       IsVisible="{Binding IsPasswordVisible}" />
+            </Grid>
+          </DockPanel>
+        </Border>
 
-          <TextBlock Text="{Binding ErrorMessage}" Foreground="#E53935" FontSize="12" IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+        <TextBlock Text="Confirm Password" FontSize="11" FontWeight="SemiBold" Foreground="#555" Margin="0,2,0,0" />
+        <Border CornerRadius="20" BorderBrush="#D0D0D0" BorderThickness="1" Background="#F7F7F7">
+          <DockPanel LastChildFill="True" Margin="14,0">
+            <TextBlock DockPanel.Dock="Left" Text="🔒" FontSize="13" VerticalAlignment="Center" />
+            <Button DockPanel.Dock="Right" BorderThickness="0" Padding="8,0"
+                    Command="{Binding ToggleConfirmPasswordVisibilityCommand}">
+              <TextBlock Text="👁" FontSize="13" VerticalAlignment="Center" />
+            </Button>
+            <Grid>
+              <TextBox Text="{Binding ConfirmPassword}" PlaceholderText="Confirm your password"
+                       BorderThickness="0" Padding="8,10" FontSize="13"
+                       IsVisible="{Binding IsConfirmPasswordVisible, Converter={x:Static BoolConverters.Not}}"
+                       PasswordChar="*" />
+              <TextBox Text="{Binding ConfirmPassword}" PlaceholderText="Confirm your password"
+                       BorderThickness="0" Padding="8,10" FontSize="13"
+                       IsVisible="{Binding IsConfirmPasswordVisible}" />
+            </Grid>
+          </DockPanel>
+        </Border>
 
-          <Button Command="{Binding RegisterCommand}" HorizontalAlignment="Stretch" Padding="12,10" Background="#1A1A1A" Foreground="White" CornerRadius="22" Margin="0,4,0,0">
-            <Button.Styles>
-              <Style Selector="Button">
-                <Setter Property="Content" Value="Sign up with the email" />
-              </Style>
-              <Style Selector="Button:disabled">
-                <Setter Property="Content" Value="Signing up..." />
-              </Style>
-            </Button.Styles>
-          </Button>
+        <Border CornerRadius="10" Background="#FFF0F0" Padding="10,8"
+                IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+          <TextBlock Text="{Binding ErrorMessage}" Foreground="#C62828" FontSize="12" TextWrapping="Wrap" />
+        </Border>
 
-          <Button Content="Already have an account? Sign in" Command="{Binding GoToLoginCommand}" Background="Transparent" Foreground="#777" HorizontalAlignment="Center" FontSize="13" />
-        </StackPanel>
-      </ScrollViewer>
+        <Button Command="{Binding RegisterCommand}" HorizontalAlignment="Stretch" Padding="12,9" Background="#1A1A1A" Foreground="White" CornerRadius="20" Margin="0,2,0,0" FontSize="13" FontWeight="SemiBold">
+          <Button.Styles>
+            <Style Selector="Button">
+              <Setter Property="Content" Value="Sign up with the email" />
+            </Style>
+            <Style Selector="Button:disabled">
+              <Setter Property="Content" Value="Signing up..." />
+            </Style>
+          </Button.Styles>
+        </Button>
+
+        <Button Content="Already have an account? Sign in" Command="{Binding GoToLoginCommand}" Foreground="#888" HorizontalAlignment="Center" FontSize="12" Margin="0,2,0,0" />
+      </StackPanel>
     </Border>
 
-    <Border Background="#7C7168" Grid.Column="1">
-      <Panel VerticalAlignment="Center" HorizontalAlignment="Center">
-        <Ellipse Width="90" Height="90" Fill="#6A5F58" Opacity="0.4" />
-        <Ellipse Width="50" Height="50" Fill="#5A4F48" Opacity="0.6" />
-        <Ellipse Width="20" Height="20" Fill="#4A3F38" Opacity="0.8" />
-      </Panel>
+    <Border Background="#6A5F58" Grid.Column="1">
+      <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="10">
+        <TextBlock Text="📚" FontSize="44" HorizontalAlignment="Center" />
+        <TextBlock Text="Learn-Assist" FontSize="20" FontWeight="Bold" Foreground="#FFFFFF" HorizontalAlignment="Center" Opacity="0.9" />
+        <TextBlock Text="learn anything" FontSize="12" Foreground="#D0C8C0" HorizontalAlignment="Center" Opacity="0.7" />
+      </StackPanel>
     </Border>
   </Grid>
 </Window>

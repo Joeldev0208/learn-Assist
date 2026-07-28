@@ -34,7 +34,25 @@ public partial class RegisterViewModel : ViewModelBase
     [ObservableProperty]
     public partial bool IsLoading { get; set; }
 
+    [ObservableProperty]
+    public partial bool IsPasswordVisible { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsConfirmPasswordVisible { get; set; }
+
     public event Action<string, string>? RegisterSucceeded;
+
+    [RelayCommand]
+    private void TogglePasswordVisibility()
+    {
+        IsPasswordVisible = !IsPasswordVisible;
+    }
+
+    [RelayCommand]
+    private void ToggleConfirmPasswordVisibility()
+    {
+        IsConfirmPasswordVisible = !IsConfirmPasswordVisible;
+    }
     public event Action? GoToLoginRequested;
 
     private static readonly Regex EmailRegex = new(
