@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using learn_Assist.Models;
 using learn_Assist.Services;
 using learn_Assist.ViewModels;
 using learn_Assist.Views;
@@ -69,8 +70,23 @@ public partial class App : Application
     private void ShowMainWindow(IClassicDesktopStyleApplicationLifetime desktop)
     {
         var email = _authService.CurrentUser?.Email ?? "user@example.com";
-        var aiService = new MockAiService();
-        var mainVm = new MainViewModel(aiService, email);
+
+        var config = ConfigEncryption.LoadConfig();
+        SessionPersistenceService? persistence = null;
+
+        IAiService aiService;
+        if (config is not null)
+        {
+            aiService = AiServiceFactory.Create(config);
+            if (!string.IsNullOrEmpty(config.SessionsDirectory))
+                persistence = new SessionPersistenceService(config.SessionsDirectory);
+        }
+        else
+        {
+            aiService = new MockAiService();
+        }
+
+        var mainVm = new MainViewModel(aiService, email, config, persistence);
         var mainWindow = new MainWindow
         {
             DataContext = mainVm,

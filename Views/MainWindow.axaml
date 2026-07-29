@@ -68,9 +68,19 @@
 
       <Border Background="#E8E8E8" Grid.Column="1" />
 
-      <Grid Grid.Column="2" RowDefinitions="Auto,*,Auto">
+      <Grid Grid.Column="2" RowDefinitions="Auto,*,Auto,Auto">
         <Border Padding="20,14" BorderBrush="#E8E8E8" BorderThickness="0,0,0,1" Background="White">
-          <TextBlock Text="Learn-Assist" FontSize="15" FontWeight="SemiBold" Foreground="#333" />
+          <DockPanel LastChildFill="True">
+            <Button DockPanel.Dock="Right" Width="28" Height="28"
+                    Command="{Binding ReconfigureAiCommand}"
+                    Background="Transparent" BorderThickness="0"
+                    FontSize="16" Foreground="#888" Padding="0"
+                    ToolTip.Tip="Configure AI provider"
+                    HorizontalAlignment="Center" VerticalAlignment="Center">
+              <TextBlock Text="⚙" HorizontalAlignment="Center" VerticalAlignment="Center" />
+            </Button>
+            <TextBlock Text="Learn-Assist" FontSize="15" FontWeight="SemiBold" Foreground="#333" VerticalAlignment="Center" />
+          </DockPanel>
         </Border>
 
         <ScrollViewer Grid.Row="1" Padding="24,16" x:Name="MessagesScroll" Background="White">
@@ -90,10 +100,16 @@
           </ItemsControl>
         </ScrollViewer>
 
-        <Border Grid.Row="2" Padding="20,12" BorderBrush="#E8E8E8" BorderThickness="0,1,0,0" Background="White">
+        <Border Grid.Row="2" Padding="20,8" Background="#FFF0F0" BorderBrush="#FFCDD2" BorderThickness="0,1,0,0"
+                IsVisible="{Binding Chat.ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+          <TextBlock Text="{Binding Chat.ErrorMessage}" Foreground="#C62828" FontSize="12" TextWrapping="Wrap" />
+        </Border>
+
+        <Border Grid.Row="3" Padding="20,12" BorderBrush="#E8E8E8" BorderThickness="0,1,0,0" Background="White">
           <DockPanel LastChildFill="True">
             <Button DockPanel.Dock="Right" Width="38" Height="38" Margin="10,0,0,0"
                     Command="{Binding Chat.SendMessageCommand}"
+                    IsEnabled="{Binding Chat.IsLoading, Converter={x:Static BoolConverters.Not}}"
                     Background="#F0F0F0" CornerRadius="19" BorderThickness="0"
                     HorizontalAlignment="Center" VerticalAlignment="Center" Padding="0">
               <TextBlock Text="→" FontSize="18" Foreground="#555" HorizontalAlignment="Center" VerticalAlignment="Center" />
@@ -101,7 +117,8 @@
             <TextBox Text="{Binding Chat.MessageText}"
                      PlaceholderText="What's up with the learning?"
                      FontSize="14" Padding="14,9" CornerRadius="22"
-                     BorderBrush="#D0D0D0" BorderThickness="1" />
+                     BorderBrush="#D0D0D0" BorderThickness="1"
+                     IsEnabled="{Binding Chat.IsLoading, Converter={x:Static BoolConverters.Not}}" />
           </DockPanel>
         </Border>
       </Grid>

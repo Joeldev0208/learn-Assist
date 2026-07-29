@@ -1,0 +1,87 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:learn_Assist.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="520" d:DesignHeight="480"
+        x:Class="learn_Assist.Views.ApiConfigView"
+        x:DataType="vm:ApiConfigViewModel"
+        Icon="/Assets/avalonia-logo.ico"
+        Title="Configure AI"
+        WindowStartupLocation="CenterScreen"
+        CanResize="False"
+        Width="520" Height="540">
+
+  <Window.Styles>
+    <Style Selector="TextBox">
+      <Setter Property="Background" Value="#F7F7F7" />
+      <Setter Property="Foreground" Value="#1A1A1A" />
+      <Setter Property="PlaceholderForeground" Value="#BBB" />
+    </Style>
+    <Style Selector="ComboBox">
+      <Setter Property="Background" Value="#F7F7F7" />
+      <Setter Property="Foreground" Value="#1A1A1A" />
+    </Style>
+  </Window.Styles>
+
+  <Border Background="White" Padding="32">
+    <ScrollViewer>
+    <StackPanel Spacing="14" VerticalAlignment="Center">
+      <TextBlock Text="Configure AI Provider" FontSize="22" FontWeight="Bold" HorizontalAlignment="Center" />
+      <TextBlock Text="Connect your AI API to start learning." FontSize="12" Foreground="#888" HorizontalAlignment="Center" Margin="0,0,0,4" />
+
+      <TextBlock Text="Provider" FontSize="11" FontWeight="SemiBold" Foreground="#555" />
+      <ComboBox ItemsSource="{Binding ProviderNames}"
+                SelectedItem="{Binding SelectedProvider}"
+                Padding="10,8" FontSize="13" CornerRadius="8" BorderBrush="#D0D0D0" BorderThickness="1" />
+
+      <TextBlock Text="Base URL" FontSize="11" FontWeight="SemiBold" Foreground="#555" />
+      <Border CornerRadius="8" BorderBrush="#D0D0D0" BorderThickness="1" Background="#F7F7F7">
+        <TextBox Text="{Binding BaseUrl}" PlaceholderText="https://api.openai.com"
+                 BorderThickness="0" Padding="10,8" FontSize="13" />
+      </Border>
+
+      <TextBlock Text="API Key" FontSize="11" FontWeight="SemiBold" Foreground="#555" />
+      <Border CornerRadius="8" BorderBrush="#D0D0D0" BorderThickness="1" Background="#F7F7F7">
+        <TextBox Text="{Binding ApiKey}" PlaceholderText="sk-..."
+                 BorderThickness="0" Padding="10,8" FontSize="13" PasswordChar="*" />
+      </Border>
+
+      <TextBlock Text="Model" FontSize="11" FontWeight="SemiBold" Foreground="#555" />
+      <Border CornerRadius="8" BorderBrush="#D0D0D0" BorderThickness="1" Background="#F7F7F7">
+        <TextBox Text="{Binding Model}" PlaceholderText="gpt-4o-mini"
+                 BorderThickness="0" Padding="10,8" FontSize="13" />
+      </Border>
+
+      <TextBlock Text="Sessions Directory" FontSize="11" FontWeight="SemiBold" Foreground="#555" />
+      <DockPanel LastChildFill="True">
+        <Button DockPanel.Dock="Right" Content="Browse" Margin="6,0,0,0"
+                Command="{Binding BrowseSessionsDirectoryCommand}"
+                Padding="12,7" FontSize="12" CornerRadius="6"
+                Background="#F0F0F0" BorderBrush="#D0D0D0" BorderThickness="1"
+                Foreground="#444" />
+        <Border CornerRadius="8" BorderBrush="#D0D0D0" BorderThickness="1" Background="#F7F7F7">
+          <TextBox Text="{Binding SessionsDirectory}" PlaceholderText="~/.config/learn-assist/sessions"
+                   BorderThickness="0" Padding="10,8" FontSize="13" />
+        </Border>
+      </DockPanel>
+
+      <Border CornerRadius="8" Background="#FFF0F0" Padding="10,8"
+              IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+        <TextBlock Text="{Binding ErrorMessage}" Foreground="#C62828" FontSize="12" TextWrapping="Wrap" />
+      </Border>
+
+      <Grid ColumnDefinitions="*,*" Margin="0,6,0,0">
+        <Button Grid.Column="0" Command="{Binding SkipCommand}"
+                Padding="12,9" Background="Transparent" Foreground="#888"
+                CornerRadius="20" FontSize="13"
+                Content="Skip" HorizontalAlignment="Stretch" Margin="0,0,6,0" />
+        <Button Grid.Column="1" Command="{Binding SaveCommand}"
+                Padding="12,9" Background="#1A1A1A" Foreground="White"
+                CornerRadius="20" FontSize="13" FontWeight="SemiBold"
+                Content="Accept" HorizontalAlignment="Stretch" Margin="6,0,0,0" />
+      </Grid>
+    </StackPanel>
+    </ScrollViewer>
+  </Border>
+</Window>

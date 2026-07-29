@@ -11,6 +11,8 @@ namespace learn_Assist.Views;
 
 public partial class ImportDocumentView : Window
 {
+    private ImportDocumentViewModel? _previousVm;
+
     public UserDocument? Result { get; private set; }
 
     public ImportDocumentView()
@@ -21,19 +23,34 @@ public partial class ImportDocumentView : Window
     protected override void OnDataContextChanged(EventArgs e)
     {
         base.OnDataContextChanged(e);
+
+        if (_previousVm is not null)
+        {
+            _previousVm.ImportRequested -= OnImportRequested;
+            _previousVm.CancelRequested -= OnCancel;
+        }
+
         if (DataContext is ImportDocumentViewModel vm)
         {
             vm.ImportRequested += OnImportRequested;
-            vm.CancelRequested += () => Close();
+            vm.CancelRequested += OnCancel;
+            _previousVm = vm;
         }
+        else
+        {
+            _previousVm = null;
+        }
+    }
+
+    private void OnCancel()
+    {
+        Close();
     }
 
     private async void OnImportRequested(DocumentContentType type)
     {
         if (DataContext is not ImportDocumentViewModel vm)
             return;
-
-        vm.ImportRequested -= OnImportRequested;
 
         var filters = GetFileFilters(type);
         var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
