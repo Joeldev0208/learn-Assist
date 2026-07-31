@@ -12,7 +12,7 @@ public partial class DocumentListViewModel : ViewModelBase
 
     public event Action? ImportDialogRequested;
 
-    public DocumentListViewModel()
+    /*public DocumentListViewModel()
     {
         Documents.Add(new UserDocument { Name = "React Documentation.pdf", Type = "pdf", FileSize = 245000, ContentType = DocumentContentType.Document });
         Documents.Add(new UserDocument { Name = "Design Tokens.fig", Type = "figma", FileSize = 12000, ContentType = DocumentContentType.Document });
@@ -20,7 +20,7 @@ public partial class DocumentListViewModel : ViewModelBase
         Documents.Add(new UserDocument { Name = "API Reference.pdf", Type = "pdf", FileSize = 89000, ContentType = DocumentContentType.Document });
         Documents.Add(new UserDocument { Name = "Component Library.zip", Type = "zip", FileSize = 1500000, ContentType = DocumentContentType.Document });
     }
-
+*/
     [RelayCommand]
     private void ShowImportDialog()
     {

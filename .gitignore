@@ -6,6 +6,9 @@
 # dotenv files
 .env
 
+# Publish artifacts
+dist/
+
 # User-specific files
 *.rsuser
 *.suo

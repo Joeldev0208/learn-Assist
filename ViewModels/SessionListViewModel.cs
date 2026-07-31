@@ -48,14 +48,14 @@ public partial class SessionListViewModel : ViewModelBase
         {
             if (_persistence is null)
             {
-                LoadSampleData();
+                
                 return;
             }
 
             var loaded = await _persistence.LoadSessionsAsync();
             if (loaded.Count == 0)
             {
-                LoadSampleData();
+               
                 return;
             }
 
@@ -68,40 +68,7 @@ public partial class SessionListViewModel : ViewModelBase
         }
         catch
         {
-            LoadSampleData();
         }
-    }
-
-    private void LoadSampleData()
-    {
-        Sessions.Add(new ChatSession
-        {
-            Title = "Analog Clock React app",
-            CreatedAt = DateTime.Now.AddHours(-2),
-        });
-        Sessions.Add(new ChatSession
-        {
-            Title = "Simple Design System",
-            CreatedAt = DateTime.Now.AddDays(-1),
-        });
-        Sessions.Add(new ChatSession
-        {
-            Title = "Figma variable planning",
-            CreatedAt = DateTime.Now.AddDays(-2),
-        });
-        Sessions.Add(new ChatSession
-        {
-            Title = "OKCLH token algorithm",
-            CreatedAt = DateTime.Now.AddDays(-3),
-        });
-        Sessions.Add(new ChatSession
-        {
-            Title = "Component naming advice",
-            CreatedAt = DateTime.Now.AddDays(-4),
-        });
-
-        if (Sessions.Count > 0)
-            ActiveSession = Sessions[0];
     }
 
     [RelayCommand]

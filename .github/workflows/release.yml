@@ -1,0 +1,49 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Publish linux-x64
+        run: dotnet publish -c Release -r linux-x64 --self-contained -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o out/linux
+        shell: bash
+
+      - name: Package linux-x64
+        run: |
+          cp out/linux/learn-Assist ./learn-assist-linux-x64
+          chmod +x ./learn-assist-linux-x64
+          tar -czf learn-assist-linux-x64.tar.gz learn-assist-linux-x64
+        shell: bash
+
+      - name: Publish win-x64
+        run: dotnet publish -c Release -r win-x64 --self-contained -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o out/win
+        shell: bash
+
+      - name: Package win-x64
+        run: |
+          cp out/win/learn-Assist.exe ./learn-assist-win-x64.exe
+          zip -9 -q learn-assist-win-x64.zip learn-assist-win-x64.exe
+        shell: bash
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            learn-assist-linux-x64.tar.gz
+            learn-assist-win-x64.zip
+          generate_release_notes: true
