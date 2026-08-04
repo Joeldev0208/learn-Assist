@@ -40,8 +40,8 @@ public partial class App : Application
 
         loginVm.GoToRegisterRequested += () =>
         {
-            loginView.Close();
             ShowRegisterWindow(desktop);
+            loginView.Close();
         };
 
         loginView.Show();
@@ -54,14 +54,18 @@ public partial class App : Application
 
         registerVm.RegisterSucceeded += (email, emailAddressId) =>
         {
-            ShowMainWindow(desktop);
+            if (!string.IsNullOrEmpty(emailAddressId))
+                ShowVerifyEmailWindow(desktop, email, emailAddressId);
+            else
+                ShowMainWindow(desktop);
+
             registerView.Close();
         };
 
         registerVm.GoToLoginRequested += () =>
         {
-            registerView.Close();
             ShowLoginWindow(desktop);
+            registerView.Close();
         };
 
         registerView.Show();
@@ -102,14 +106,14 @@ public partial class App : Application
 
         verifyVm.VerificationSucceeded += () =>
         {
-            verifyView.Close();
             ShowLoginWindow(desktop);
+            verifyView.Close();
         };
 
         verifyVm.BackToRegisterRequested += () =>
         {
-            verifyView.Close();
             ShowRegisterWindow(desktop);
+            verifyView.Close();
         };
 
         verifyView.Show();

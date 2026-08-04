@@ -10,7 +10,7 @@ AI-powered desktop learning assistant built with **Avalonia 12.1.0** and **.NET 
 | UI Toolkit | Avalonia Desktop 12.1.0 |
 | Theme | FluentTheme + Inter Font |
 | MVVM | CommunityToolkit.Mvvm 8.4.2 (source generators) |
-| Auth | Clerk 2.0 (`Clerk.BackendAPI`) |
+| Auth | Clerk Backend API 2.0.0 (`CLERK_SECRET_KEY`, never embedded) |
 
 ## Project Structure
 
@@ -30,29 +30,27 @@ AI-powered desktop learning assistant built with **Avalonia 12.1.0** and **.NET 
 
 ## Setup
 
-1. Create a `.env` file in the project root:
-
-```
-CLERK_SECRET_KEY=sk_test_xxx
-CLERK_PUBLISHABLE_KEY=pk_test_xxx
-```
-
-2. Run:
+Run:
 
 ```sh
 dotnet build
 dotnet run
 ```
 
-## Auth (Fase 1)
+The auth secret key must **never be embedded** in the binary. The app loads a `.env` file via `DotEnv.Load()` (`Program.cs`) and reads `CLERK_SECRET_KEY` at runtime in `ClerkAuthService`. `.env` is gitignored, so the secret stays out of source control and out of built artifacts.
 
-Email/password authentication via **Clerk 2.0**. Flow:
+## Auth
 
-1. **LoginView** — email + password form, authenticates via Clerk API.
-2. **RegisterView** — name/email/password/confirm, creates user via Clerk.
-3. **MainWindow** — three-panel UI, launched after successful auth.
+Email/password authentication via **Clerk Backend API**. Flow:
 
-> Email verification (`VerifyEmailView`) is built but not yet wired — registration currently goes directly to MainWindow.
+1. **LoginView** — email + password form, authenticates via `ClerkAuthService`.
+2. **RegisterView** — email/password/confirm, creates the user via `ClerkAuthService`.
+3. **VerifyEmailView** — sends an email code and verifies the `idn_...` email-address id.
+4. **MainWindow** — three-panel UI, launched after successful login.
+
+> Dev-instance sign-up is blocked by bot protection (`captcha_missing_token`). Fix in the Clerk dashboard: **User & Authentication → Attack Protection** → turn OFF **Bot sign-up protection**, or enable **Native API** under **Native applications**.
+
+> Dev-instance sign-up is blocked by bot protection (`captcha_missing_token`). Fix in the Clerk dashboard: **User & Authentication → Attack Protection** → turn OFF **Bot sign-up protection**, or enable **Native API** under **Native applications**.
 
 ## Chat / AI (Fase 2)
 
@@ -74,8 +72,8 @@ Three-panel layout: session list (left) / chat (center) / document list (right).
 | Feature | Status |
 |---------|--------|
 | Login / Register | Done |
-| Clerk auth integration | Done |
-| Email verification | Built but not wired |
+| Clerk auth integration (Backend API) | Done |
+| Email verification | Done (wired) |
 | OAuth buttons (Google/Apple) | UI only, no handlers |
 | Chat UI (three-panel) | Done |
 | AI service (MockAiService) | Done |

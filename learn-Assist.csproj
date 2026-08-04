@@ -26,10 +26,8 @@
       <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
       <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="Clerk.BackendAPI" Version="2.0.0" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+    <PackageReference Include="Clerk.BackendAPI" Version="2.0.0" />
     <PackageReference Include="OpenAI" Version="2.*" />
-    <PackageReference Include="Anthropic" Version="*" />
-    <PackageReference Include="Google.Cloud.AIPlatform.V1" Version="*" />
   </ItemGroup>
 </Project>
