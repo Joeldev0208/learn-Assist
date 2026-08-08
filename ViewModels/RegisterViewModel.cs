@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using learn_Assist.Models;
 using learn_Assist.Services;
 
 namespace learn_Assist.ViewModels;
@@ -10,11 +11,15 @@ namespace learn_Assist.ViewModels;
 public partial class RegisterViewModel : ViewModelBase
 {
     private readonly IAuthService _authService;
+    private readonly OAuthFlow _oauth;
 
     public RegisterViewModel(IAuthService authService)
     {
         _authService = authService;
+        _oauth = new OAuthFlow(authService);
     }
+
+    public bool IsOAuthConfigured => _oauth.IsConfigured;
 
     [ObservableProperty]
     public partial string FullName { get; set; } = string.Empty;
@@ -113,5 +118,31 @@ public partial class RegisterViewModel : ViewModelBase
     private void GoToLogin()
     {
         GoToLoginRequested?.Invoke();
+    }
+
+    [RelayCommand]
+    private async Task SignUpWithGoogleAsync() => await RunOAuthAsync("oauth_google");
+
+    [RelayCommand]
+    private async Task SignUpWithAppleAsync() => await RunOAuthAsync("oauth_apple");
+
+    private async Task RunOAuthAsync(string strategy)
+    {
+        IsLoading = true;
+        ErrorMessage = null;
+
+        var result = await _oauth.SignInAsync(strategy, AppSettings.Current.OAuthRedirectPort);
+
+        IsLoading = false;
+
+        if (result.Success)
+        {
+            var email = result.User?.Email ?? string.Empty;
+            RegisterSucceeded?.Invoke(email, string.Empty);
+        }
+        else
+        {
+            ErrorMessage = result.Error ?? "Sign-up failed";
+        }
     }
 }

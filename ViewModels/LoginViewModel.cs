@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using learn_Assist.Models;
 using learn_Assist.Services;
 
 namespace learn_Assist.ViewModels;
@@ -9,11 +10,15 @@ namespace learn_Assist.ViewModels;
 public partial class LoginViewModel : ViewModelBase
 {
     private readonly IAuthService _authService;
+    private readonly OAuthFlow _oauth;
 
     public LoginViewModel(IAuthService authService)
     {
         _authService = authService;
+        _oauth = new OAuthFlow(authService);
     }
+
+    public bool IsOAuthConfigured => _oauth.IsConfigured;
 
     [ObservableProperty]
     public partial string Email { get; set; } = string.Empty;
@@ -62,6 +67,31 @@ public partial class LoginViewModel : ViewModelBase
         else
         {
             ErrorMessage = result.Error ?? "Login failed";
+        }
+    }
+
+    [RelayCommand]
+    private async Task SignInWithGoogleAsync() => await RunOAuthAsync("oauth_google");
+
+    [RelayCommand]
+    private async Task SignInWithAppleAsync() => await RunOAuthAsync("oauth_apple");
+
+    private async Task RunOAuthAsync(string strategy)
+    {
+        IsLoading = true;
+        ErrorMessage = null;
+
+        var result = await _oauth.SignInAsync(strategy, AppSettings.Current.OAuthRedirectPort);
+
+        IsLoading = false;
+
+        if (result.Success)
+        {
+            LoginSucceeded?.Invoke();
+        }
+        else
+        {
+            ErrorMessage = result.Error ?? "Sign-in failed";
         }
     }
 

@@ -15,4 +15,20 @@ public class AppSettings
     [ConfigurationKeyName("CLERK_SECRET_KEY")]
     [Required(AllowEmptyStrings = false)]
     public string? ClerkSecretKey { get; set; }
+
+    /// <summary>
+    /// Clerk publishable key, used to talk to the Clerk Frontend API (FAPI)
+    /// for the native OAuth (Google/Apple) flow. Optional: OAuth buttons are
+    /// disabled when it is missing, email/password still works.
+    /// </summary>
+    [ConfigurationKeyName("CLERK_PUBLISHABLE_KEY")]
+    public string? ClerkPublishableKey { get; set; }
+
+    /// <summary>
+    /// Loopback port the app listens on to capture the OAuth callback.
+    /// Default 53174.
+    /// </summary>
+    [ConfigurationKeyName("OAUTH_REDIRECT_PORT")]
+    [Range(1024, 65535)]
+    public int OAuthRedirectPort { get; set; } = 53174;
 }

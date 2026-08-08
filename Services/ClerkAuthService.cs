@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Clerk.BackendAPI;
-using Clerk.BackendAPI.Models.Components;
 using Clerk.BackendAPI.Models.Operations;
 using learn_Assist.Models;
 
@@ -178,6 +177,55 @@ public class ClerkAuthService : IAuthService
         {
             return new AuthResult { Success = false, Error = ex.Message };
         }
+    }
+
+    public async Task<AuthResult> AdoptOAuthSessionAsync(string createdSessionId)
+    {
+        try
+        {
+            var sessionResponse = await _api.Sessions.GetAsync(createdSessionId);
+            var session = sessionResponse?.Session;
+
+            if (session is null || string.IsNullOrEmpty(session.Id) || string.IsNullOrEmpty(session.UserId))
+                return new AuthResult { Success = false, Error = "OAuth session not found" };
+
+            var userResponse = await _api.Users.GetAsync(session.UserId);
+            var user = userResponse?.User;
+
+            var email = FindPrimaryEmail(user?.PrimaryEmailAddressId, user?.EmailAddresses) ?? string.Empty;
+
+            var result = new AuthResult
+            {
+                Success = true,
+                User = new UserSession
+                {
+                    UserId = session.UserId,
+                    Email = email,
+                    SessionId = session.Id,
+                },
+            };
+
+            _currentUser = result.User;
+
+            return result;
+        }
+        catch (Exception ex)
+        {
+            return new AuthResult { Success = false, Error = ex.Message };
+        }
+    }
+
+    private static string? FindPrimaryEmail(string? primaryId, ICollection<Clerk.BackendAPI.Models.Components.EmailAddress>? addresses)
+    {
+        if (addresses is null || addresses.Count == 0)
+            return null;
+
+        var primary = addresses.FirstOrDefault(a => a.Id == primaryId);
+        if (primary is not null && !string.IsNullOrEmpty(primary.EmailAddressValue))
+            return primary.EmailAddressValue;
+
+        var any = addresses.FirstOrDefault(a => !string.IsNullOrEmpty(a.EmailAddressValue));
+        return any?.EmailAddressValue;
     }
 
     public Task SignOutAsync()

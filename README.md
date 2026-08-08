@@ -79,9 +79,9 @@ Three-panel layout: session list (left) / chat (center) / document list (right).
 | Login / Register | Done |
 | Clerk auth (Backend API + `.env` settings) | Done |
 | Email verification | Done (wired) |
-| OAuth buttons (Google/Apple) | UI only, no handlers |
+| OAuth (Google/Apple) via Frontend API | Done (native browser + loopback flow) |
 | Chat UI (three-panel) | Done |
 | AI service (MockAiService) | Done |
-| Real AI integration | Not started |
-| Document import | Not started |
-| Session persistence | Not started |
+| Real AI integration | Done |
+| Document import | Done |
+| Session persistence | Done |
