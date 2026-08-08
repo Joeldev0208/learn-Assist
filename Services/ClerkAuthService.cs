@@ -16,8 +16,8 @@ public class ClerkAuthService : IAuthService
 
     public ClerkAuthService()
     {
-        var secretKey = Environment.GetEnvironmentVariable("CLERK_SECRET_KEY")
-            ?? throw new InvalidOperationException("CLERK_SECRET_KEY environment variable is not set");
+        var secretKey = AppSettings.Current.ClerkSecretKey
+            ?? throw new InvalidOperationException("CLERK_SECRET_KEY is not configured. Add it to your .env file and restart the app.");
 
         _api = new ClerkBackendApi(bearerAuth: secretKey);
     }
