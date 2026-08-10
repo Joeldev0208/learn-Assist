@@ -9,6 +9,7 @@ public enum AiProvider
     Anthropic,
     Gemini,
     Ollama,
+    Nvidia,
 }
 
 public class ApiConfig
