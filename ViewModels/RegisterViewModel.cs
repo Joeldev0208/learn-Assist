@@ -45,7 +45,7 @@ public partial class RegisterViewModel : ViewModelBase
     [ObservableProperty]
     public partial bool IsConfirmPasswordVisible { get; set; }
 
-    public event Action<string, string>? RegisterSucceeded;
+    public event Action<string, string, string>? RegisterSucceeded;
 
     [RelayCommand]
     private void TogglePasswordVisibility()
@@ -104,10 +104,10 @@ public partial class RegisterViewModel : ViewModelBase
 
         IsLoading = false;
 
-        if (result.Success)
-        {
-            RegisterSucceeded?.Invoke(Email.Trim(), result.EmailAddressId ?? string.Empty);
-        }
+            if (result.Success)
+            {
+                RegisterSucceeded?.Invoke(Email.Trim(), result.EmailAddressId ?? string.Empty, result.User?.UserId ?? string.Empty);
+            }
         else
         {
             ErrorMessage = result.Error ?? "Registration failed";
@@ -126,7 +126,7 @@ public partial class RegisterViewModel : ViewModelBase
     [RelayCommand]
     private async Task SignUpWithAppleAsync() => await RunOAuthAsync("oauth_apple");
 
-    private async Task RunOAuthAsync(string strategy)
+    private async Task<AuthResult> RunOAuthAsync(string strategy)
     {
         IsLoading = true;
         ErrorMessage = null;
@@ -138,11 +138,13 @@ public partial class RegisterViewModel : ViewModelBase
         if (result.Success)
         {
             var email = result.User?.Email ?? string.Empty;
-            RegisterSucceeded?.Invoke(email, string.Empty);
+            RegisterSucceeded?.Invoke(email, result.EmailAddressId ?? string.Empty, result.User?.UserId ?? string.Empty);
         }
         else
         {
             ErrorMessage = result.Error ?? "Sign-up failed";
         }
+
+        return result;
     }
 }

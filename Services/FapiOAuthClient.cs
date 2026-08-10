@@ -27,11 +27,23 @@ public class FapiOAuthClient
     }
 
     /// <summary>
-    /// Creates an OAuth sign-in attempt and returns the authorization URL to
-    /// open in the system browser. The session created by finalizing the flow
-    /// is captured by the caller through the loopback callback.
+    /// Creates an OAuth <b>sign-in</b> attempt and returns the authorization
+    /// URL to open in the system browser. Use this for the Login screen — it
+    /// signs in an existing user (Clerk may auto-create the account when the
+    /// Google email is new, depending on the instance settings).
     /// </summary>
-    public async Task<string> StartOAuthAsync(string strategy, string redirectUrl)
+    public Task<string> StartSignInAsync(string strategy, string redirectUrl)
+        => StartAsync("sign_ins", strategy, redirectUrl);
+
+    /// <summary>
+    /// Creates an OAuth <b>sign-up</b> attempt and returns the authorization
+    /// URL to open in the system browser. Use this for the Register screen —
+    /// it always creates a new Clerk user for the OAuth identity.
+    /// </summary>
+    public Task<string> StartSignUpAsync(string strategy, string redirectUrl)
+        => StartAsync("sign_ups", strategy, redirectUrl);
+
+    private async Task<string> StartAsync(string endpoint, string strategy, string redirectUrl)
     {
         using var content = new FormUrlEncodedContent(new Dictionary<string, string>
         {
@@ -39,7 +51,7 @@ public class FapiOAuthClient
             ["redirect_url"] = redirectUrl,
         });
 
-        using var request = new HttpRequestMessage(HttpMethod.Post, $"{_frontendApiUrl}/client/sign_ins")
+        using var request = new HttpRequestMessage(HttpMethod.Post, $"{_frontendApiUrl}/client/{endpoint}")
         {
             Content = content,
         };
@@ -55,26 +67,43 @@ public class FapiOAuthClient
             throw new InvalidOperationException(message);
         }
 
+        return ExtractRedirectUrl(body);
+    }
+
+    private static string ExtractRedirectUrl(string body)
+    {
         using var doc = JsonDocument.Parse(body);
         var root = doc.RootElement;
 
-        // New FAPI shape: response.first_factor_verification.external_verification_redirect_url
-        if (root.TryGetProperty("response", out var responseEl) &&
-            responseEl.TryGetProperty("first_factor_verification", out var factor) &&
-            factor.TryGetProperty("external_verification_redirect_url", out var redirect) &&
-            redirect.ValueKind == JsonValueKind.String)
+        // The redirect URL lives under different nested paths depending on the
+        // endpoint (sign_ins vs sign_ups) and Clerk API version. Try the known
+        // shapes, then fall back to a top-level field.
+        string? url = TryGetDeep(root, "response", "first_factor_verification", "external_verification_redirect_url")
+            ?? TryGetDeep(root, "response", "external_account_verification", "redirect_url")
+            ?? TryGetDeep(root, "response", "external_verification_redirect_url");
+
+        if (url is null &&
+            root.TryGetProperty("external_verification_redirect_url", out var topRedirect) &&
+            topRedirect.ValueKind == JsonValueKind.String)
         {
-            return redirect.GetString()!;
+            url = topRedirect.GetString();
         }
 
-        // Fallback: top-level external_verification_redirect_url
-        if (root.TryGetProperty("external_verification_redirect_url", out redirect) &&
-            redirect.ValueKind == JsonValueKind.String)
-        {
-            return redirect.GetString()!;
-        }
+        if (string.IsNullOrEmpty(url))
+            throw new InvalidOperationException("Clerk did not return an OAuth redirect URL");
 
-        throw new InvalidOperationException("Clerk did not return an OAuth redirect URL");
+        return url!;
+    }
+
+    private static string? TryGetDeep(JsonElement root, params string[] path)
+    {
+        var current = root;
+        foreach (var segment in path)
+        {
+            if (current.ValueKind != JsonValueKind.Object || !current.TryGetProperty(segment, out current))
+                return null;
+        }
+        return current.ValueKind == JsonValueKind.String ? current.GetString() : null;
     }
 
     private static string? TryExtractError(string body)

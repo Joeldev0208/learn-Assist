@@ -17,6 +17,12 @@ public interface IAuthService
     /// </summary>
     Task<AuthResult> AdoptOAuthSessionAsync(string createdSessionId);
 
+    /// <summary>
+    /// Creates a Clerk session for the given user (e.g., after email
+    /// verification) and sets it as the current user.
+    /// </summary>
+    Task<AuthResult> CreateSessionAsync(string userId, string email);
+
     Task SignOutAsync();
     bool IsAuthenticated { get; }
     UserSession? CurrentUser { get; }

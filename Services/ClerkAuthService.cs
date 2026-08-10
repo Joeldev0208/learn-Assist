@@ -52,20 +52,18 @@ public class ClerkAuthService : IAuthService
                 return new AuthResult { Success = false, Error = "Failed to create user" };
 
             var emailAddressId = response.User.PrimaryEmailAddressId
-                ?? response.User.EmailAddresses?.FirstOrDefault()?.Id;
+                 ?? response.User.EmailAddresses?.FirstOrDefault()?.Id;
 
             var result = new AuthResult
             {
                 Success = true,
+                EmailAddressId = emailAddressId,
                 User = new UserSession
                 {
                     UserId = response.User.Id,
                     Email = email,
                 },
-                EmailAddressId = emailAddressId,
             };
-
-            _currentUser = result.User;
 
             return result;
         }
@@ -165,6 +163,34 @@ public class ClerkAuthService : IAuthService
             var userSession = new UserSession
             {
                 UserId = user.Id,
+                Email = email,
+                SessionId = sessionResponse?.Session?.Id ?? string.Empty,
+            };
+
+            _currentUser = userSession;
+
+            return new AuthResult { Success = true, User = userSession };
+        }
+        catch (Exception ex)
+        {
+            return new AuthResult { Success = false, Error = ex.Message };
+        }
+    }
+
+    public async Task<AuthResult> CreateSessionAsync(string userId, string email)
+    {
+        try
+        {
+            var sessionBody = new CreateSessionRequestBody
+            {
+                UserId = userId,
+            };
+
+            var sessionResponse = await _api.Sessions.CreateAsync(sessionBody);
+
+            var userSession = new UserSession
+            {
+                UserId = userId,
                 Email = email,
                 SessionId = sessionResponse?.Session?.Id ?? string.Empty,
             };

@@ -25,10 +25,21 @@ public class OAuthFlow
     public bool IsConfigured => !string.IsNullOrWhiteSpace(_publishableKey);
 
     /// <summary>
-    /// Runs the OAuth sign-in/up flow for the given strategy and returns the
-    /// adopted session (or an error).
+    /// Runs the OAuth <b>sign-in</b> flow for the Login screen (existing
+    /// users). Returns the adopted session (or an error).
     /// </summary>
     public async Task<AuthResult> SignInAsync(string strategy, int redirectPort, CancellationToken cancellationToken = default)
+        => await RunAsync(strategy, redirectPort, fapi => fapi.StartSignInAsync(strategy, /* placeholder */ ""), cancellationToken);
+
+    /// <summary>
+    /// Runs the OAuth <b>sign-up</b> flow for the Register screen. A new Clerk
+    /// user is always created for the OAuth identity. Returns the adopted
+    /// session (or an error).
+    /// </summary>
+    public async Task<AuthResult> SignUpAsync(string strategy, int redirectPort, CancellationToken cancellationToken = default)
+        => await RunAsync(strategy, redirectPort, fapi => fapi.StartSignUpAsync(strategy, ""), cancellationToken);
+
+    private async Task<AuthResult> RunAsync(string strategy, int redirectPort, Func<FapiOAuthClient, Task<string>> start, CancellationToken cancellationToken)
     {
         if (!IsConfigured)
             return new AuthResult { Success = false, Error = "OAuth is not configured. Add CLERK_PUBLISHABLE_KEY to your .env file." };
@@ -39,7 +50,7 @@ public class OAuthFlow
         string authorizeUrl;
         try
         {
-            authorizeUrl = await fapi.StartOAuthAsync(strategy, listener.RedirectUrl);
+            authorizeUrl = await start(fapi);
         }
         catch (Exception ex)
         {

@@ -1,0 +1,132 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:learn_Assist.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="520" d:DesignHeight="440"
+        x:Class="learn_Assist.Views.InstallView"
+        x:DataType="vm:InstallViewModel"
+        Icon="/Assets/avalonia-logo.ico"
+        Title="Install learn-Assistant"
+        WindowStartupLocation="CenterScreen"
+        CanResize="False"
+        Width="520" Height="440">
+
+  <Border Background="#FAFAFA">
+    <Grid RowDefinitions="Auto,*,Auto">
+
+      <!-- Header -->
+      <Border Grid.Row="0" Padding="32,24,32,16" Background="White" BorderBrush="#E8E8E8" BorderThickness="0,0,0,1">
+        <StackPanel Spacing="6">
+          <TextBlock Text="{Binding StepTitle}" FontSize="22" FontWeight="Bold" Foreground="#1A1A1A" />
+          <TextBlock Text="{Binding StepDescription}" FontSize="13" Foreground="#666"
+                     TextWrapping="Wrap" LineHeight="20" />
+        </StackPanel>
+      </Border>
+
+      <!-- Body -->
+      <Grid Grid.Row="1" Margin="32,20">
+
+        <!-- Welcome -->
+        <Border Padding="16,12" CornerRadius="8" Background="#F4F4F5" BorderBrush="#E8E8E8" BorderThickness="1"
+                IsVisible="{Binding IsFirstStep}">
+          <StackPanel Spacing="6">
+            <TextBlock Text="What will happen" FontSize="13" FontWeight="SemiBold" Foreground="#1A1A1A" />
+            <TextBlock Text="The app binary will be copied to a known location and a menu entry will be created, so you can start it from your application launcher."
+                       FontSize="12" Foreground="#555" TextWrapping="Wrap" LineHeight="19" />
+          </StackPanel>
+        </Border>
+
+        <!-- Scope selection -->
+        <StackPanel Spacing="10" IsVisible="{Binding IsScopeStep}">
+          <Border Padding="16,14" CornerRadius="8" Background="White" BorderBrush="#D0D0D0" BorderThickness="1">
+            <StackPanel Spacing="8">
+              <RadioButton GroupName="Scope" Content="User install (recommended)"
+                           IsChecked="{Binding !SystemScopeSelected}"
+                           FontSize="14" FontWeight="SemiBold" Foreground="#1A1A1A" />
+              <Border Background="#F4F4F5" CornerRadius="6" Padding="10,8">
+                <TextBlock Text="Installs under your own home directory. No administrator password needed."
+                           FontSize="12" Foreground="#666" TextWrapping="Wrap" />
+              </Border>
+            </StackPanel>
+          </Border>
+
+          <Border Padding="16,14" CornerRadius="8" Background="White" BorderBrush="#D0D0D0" BorderThickness="1">
+            <StackPanel Spacing="8">
+              <RadioButton GroupName="Scope" Content="System install (for all users)"
+                           IsChecked="{Binding SystemScopeSelected}"
+                           FontSize="14" FontWeight="SemiBold" Foreground="#1A1A1A" />
+              <Border Background="#F4F4F5" CornerRadius="6" Padding="10,8">
+                <TextBlock Text="Installs to a system location and requires administrator access (pkexec on Linux / UAC on Windows)."
+                           FontSize="12" Foreground="#666" TextWrapping="Wrap" />
+              </Border>
+            </StackPanel>
+          </Border>
+        </StackPanel>
+
+        <!-- Summary -->
+        <StackPanel Spacing="10" IsVisible="{Binding IsSummaryStep}">
+          <Border Padding="14,10" CornerRadius="8" Background="White" BorderBrush="#E8E8E8" BorderThickness="1">
+            <StackPanel Spacing="4">
+              <TextBlock Text="Application binary" FontSize="11" Foreground="#888" />
+              <TextBlock Text="{Binding BinaryPath}" FontSize="13" Foreground="#1A1A1A" TextWrapping="Wrap" />
+            </StackPanel>
+          </Border>
+          <Border Padding="14,10" CornerRadius="8" Background="White" BorderBrush="#E8E8E8" BorderThickness="1">
+            <StackPanel Spacing="4">
+              <TextBlock Text="Menu entry" FontSize="11" Foreground="#888" />
+              <TextBlock Text="{Binding MenuEntryPath}" FontSize="13" Foreground="#1A1A1A" TextWrapping="Wrap" />
+            </StackPanel>
+          </Border>
+          <Border Background="#FFF8E1" BorderBrush="#FFE082" BorderThickness="1" CornerRadius="6" Padding="10,8"
+                  IsVisible="{Binding SystemScopeSelected}">
+            <TextBlock Text="The administrator dialog will open during the copy step."
+                       FontSize="12" Foreground="#B26A00" TextWrapping="Wrap" />
+          </Border>
+        </StackPanel>
+
+        <!-- Installing -->
+        <StackPanel Spacing="16" VerticalAlignment="Center" IsVisible="{Binding IsInstallingStep}">
+          <ProgressBar IsIndeterminate="True" MinHeight="6" Foreground="#1A1A1A" Background="#E8E8E8" />
+          <TextBlock Text="Please wait, the installation may ask for permissions…"
+                     FontSize="12" Foreground="#666" HorizontalAlignment="Center" />
+        </StackPanel>
+
+        <!-- Complete -->
+        <StackPanel Spacing="14" VerticalAlignment="Center" IsVisible="{Binding IsCompleteStep}">
+          <TextBlock Text="✓" FontSize="40" Foreground="#2E7D32" HorizontalAlignment="Center" />
+          <TextBlock Text="The installation finished successfully. Click Done to open the login screen and get started."
+                     FontSize="13" Foreground="#555" TextWrapping="Wrap" HorizontalAlignment="Center" />
+        </StackPanel>
+
+        <!-- Error -->
+        <Border Grid.Row="0" Margin="0,12,0,0" Padding="12,8" CornerRadius="8"
+                Background="#FFF0F0" BorderBrush="#FFCDD2" BorderThickness="1"
+                IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+          <TextBlock Text="{Binding ErrorMessage}" Foreground="#C62828" FontSize="12" TextWrapping="Wrap" />
+        </Border>
+      </Grid>
+
+      <!-- Footer -->
+      <Border Grid.Row="2" Padding="32,14" Background="White" BorderBrush="#E8E8E8" BorderThickness="0,1,0,0">
+        <Grid ColumnDefinitions="Auto,*,Auto" HorizontalAlignment="Stretch">
+          <Button Grid.Column="0" Content="Skip" Command="{Binding SkipCommand}"
+                  IsVisible="{Binding IsNavVisible}"
+                  Background="Transparent" Foreground="#999"
+                  FontSize="13" Padding="10,7" />
+          <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8"
+                      IsVisible="{Binding IsNavVisible}">
+            <Button Content="Back" Command="{Binding BackCommand}"
+                    IsVisible="{Binding IsBackVisible}"
+                    Background="#F0F0F0" Foreground="#444" CornerRadius="20"
+                    Padding="18,8" FontSize="13" BorderThickness="0" />
+            <Button Content="{Binding NextButtonText}" Command="{Binding NextCommand}"
+                    IsEnabled="{Binding IsWorking, Converter={x:Static BoolConverters.Not}}"
+                    Background="#1A1A1A" Foreground="White" CornerRadius="20"
+                    Padding="20,8" FontSize="13" FontWeight="SemiBold" BorderThickness="0" />
+          </StackPanel>
+        </Grid>
+      </Border>
+    </Grid>
+  </Border>
+</Window>

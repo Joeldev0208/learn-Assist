@@ -18,8 +18,39 @@ sealed class Program
     [STAThread]
     public static void Main(string[] args)
     {
+        if (args.Length >= 3 && args[0] == "--install-elevated")
+        {
+            RunElevatedInstall(args[1], args[2]);
+            return;
+        }
+
         AppSettings.Current = LoadSettings();
         BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
+    }
+
+    /// <summary>
+    /// Elevated worker mode (invoked on Windows by <c>InstallationService</c>
+    /// via a UAC "runas" relaunch, or re-used on Linux): copies the binary to
+    /// a system location without opening any window, then exits.
+    /// </summary>
+    private static void RunElevatedInstall(string source, string target)
+    {
+        try
+        {
+            var dir = System.IO.Path.GetDirectoryName(target);
+            if (!string.IsNullOrEmpty(dir))
+                System.IO.Directory.CreateDirectory(dir);
+
+            var temp = target + ".tmp";
+            System.IO.File.Copy(source, temp, overwrite: true);
+            System.IO.File.Move(temp, target, overwrite: true);
+            System.IO.File.WriteAllText(target + ".installed", "ok");
+            Environment.Exit(0);
+        }
+        catch
+        {
+            Environment.Exit(1);
+        }
     }
 
     /// <summary>

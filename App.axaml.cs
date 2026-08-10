@@ -1,3 +1,4 @@
+using System;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
@@ -21,10 +22,40 @@ public partial class App : Application
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            ShowLoginWindow(desktop);
+            if (ShouldShowInstaller())
+                ShowInstallWindow(desktop);
+            else
+                ShowLoginWindow(desktop);
         }
 
         base.OnFrameworkInitializationCompleted();
+    }
+
+    private static bool ShouldShowInstaller()
+    {
+        if (Environment.GetEnvironmentVariable("LEARN_ASSIST_FORCE_INSTALL") == "1")
+            return true;
+        return !InstallationService.IsInstalled();
+    }
+
+    private void ShowInstallWindow(IClassicDesktopStyleApplicationLifetime desktop)
+    {
+        var installVm = new InstallViewModel();
+        var installView = new InstallView { DataContext = installVm };
+
+        installVm.InstallationFinished += () =>
+        {
+            ShowLoginWindow(desktop);
+            installView.Close();
+        };
+
+        installVm.InstallationSkipped += () =>
+        {
+            ShowLoginWindow(desktop);
+            installView.Close();
+        };
+
+        installView.Show();
     }
 
     private void ShowLoginWindow(IClassicDesktopStyleApplicationLifetime desktop)
@@ -52,10 +83,10 @@ public partial class App : Application
         var registerVm = new RegisterViewModel(_authService);
         var registerView = new RegisterView { DataContext = registerVm };
 
-        registerVm.RegisterSucceeded += (email, emailAddressId) =>
+        registerVm.RegisterSucceeded += (email, emailAddressId, userId) =>
         {
             if (!string.IsNullOrEmpty(emailAddressId))
-                ShowVerifyEmailWindow(desktop, email, emailAddressId);
+                ShowVerifyEmailWindow(desktop, email, emailAddressId, userId);
             else
                 ShowMainWindow(desktop);
 
@@ -99,14 +130,14 @@ public partial class App : Application
         mainWindow.Show();
     }
 
-    private void ShowVerifyEmailWindow(IClassicDesktopStyleApplicationLifetime desktop, string email, string emailAddressId)
+    private void ShowVerifyEmailWindow(IClassicDesktopStyleApplicationLifetime desktop, string email, string emailAddressId, string userId)
     {
-        var verifyVm = new VerifyEmailViewModel(_authService, email, emailAddressId);
+        var verifyVm = new VerifyEmailViewModel(_authService, email, emailAddressId, userId);
         var verifyView = new VerifyEmailView { DataContext = verifyVm };
 
         verifyVm.VerificationSucceeded += () =>
         {
-            ShowLoginWindow(desktop);
+            ShowMainWindow(desktop);
             verifyView.Close();
         };
 

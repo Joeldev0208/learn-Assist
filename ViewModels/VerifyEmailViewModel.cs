@@ -10,12 +10,15 @@ public partial class VerifyEmailViewModel : ViewModelBase
 {
     private readonly IAuthService _authService;
     private readonly string _emailAddressId;
+    private readonly string _userId;
+    private readonly string _email;
 
-    public VerifyEmailViewModel(IAuthService authService, string email, string emailAddressId)
+    public VerifyEmailViewModel(IAuthService authService, string email, string emailAddressId, string userId)
     {
         _authService = authService;
         _email = email;
         _emailAddressId = emailAddressId;
+        _userId = userId;
         DisplayEmail = email;
 
         SendCodeCommand.Execute(null);
@@ -38,8 +41,6 @@ public partial class VerifyEmailViewModel : ViewModelBase
 
     [ObservableProperty]
     public partial string? StatusMessage { get; set; }
-
-    private readonly string _email;
 
     public event Action? VerificationSucceeded;
     public event Action? BackToRegisterRequested;
@@ -65,32 +66,41 @@ public partial class VerifyEmailViewModel : ViewModelBase
         }
     }
 
-    [RelayCommand]
-    private async Task VerifyCodeAsync()
-    {
-        if (string.IsNullOrWhiteSpace(Code))
+        [RelayCommand]
+        private async Task VerifyCodeAsync()
         {
-            ErrorMessage = "Please enter the verification code";
-            return;
+            if (string.IsNullOrWhiteSpace(Code))
+            {
+                ErrorMessage = "Please enter the verification code";
+                return;
+            }
+
+            IsLoading = true;
+            ErrorMessage = null;
+
+            var result = await _authService.AttemptEmailVerificationAsync(_emailAddressId, Code.Trim());
+
+            IsLoading = false;
+
+            if (result.Success)
+            {
+                // Create a Clerk session for the verified user
+                var sessionResult = await _authService.CreateSessionAsync(_userId, _email);
+                if (sessionResult.Success)
+                {
+                    StatusMessage = "Email verified successfully!";
+                    VerificationSucceeded?.Invoke();
+                }
+                else
+                {
+                    ErrorMessage = sessionResult.Error ?? "Failed to create session after verification";
+                }
+            }
+            else
+            {
+                ErrorMessage = result.Error ?? "Invalid verification code";
+            }
         }
-
-        IsLoading = true;
-        ErrorMessage = null;
-
-        var result = await _authService.AttemptEmailVerificationAsync(_emailAddressId, Code.Trim());
-
-        IsLoading = false;
-
-        if (result.Success)
-        {
-            StatusMessage = "Email verified successfully!";
-            VerificationSucceeded?.Invoke();
-        }
-        else
-        {
-            ErrorMessage = result.Error ?? "Invalid verification code";
-        }
-    }
 
     [RelayCommand]
     private void BackToRegister()
