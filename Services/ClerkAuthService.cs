@@ -241,6 +241,60 @@ public class ClerkAuthService : IAuthService
         }
     }
 
+    public async Task<AuthResult> SignInWithGoogleAsync(string email, string name)
+    {
+        try
+        {
+            var listResponse = await _api.Users.ListAsync(new GetUserListRequest
+            {
+                EmailAddress = [email],
+                Limit = 1,
+            });
+
+            var user = listResponse?.UserList?.FirstOrDefault();
+
+            if (user is null || string.IsNullOrEmpty(user.Id))
+            {
+                // New email → create the Clerk user record (verified email, no password)
+                var createBody = new CreateUserRequestBody
+                {
+                    EmailAddress = new List<string> { email },
+                    SkipPasswordRequirement = true,
+                    SkipPasswordChecks = true,
+                    FirstName = name,
+                };
+
+                var created = await _api.Users.CreateAsync(createBody);
+                if (created?.User is null || string.IsNullOrEmpty(created.User.Id))
+                    return new AuthResult { Success = false, Error = "Failed to create Clerk user from Google account" };
+
+                user = created.User;
+            }
+
+            return await CreateSessionAsync(user.Id, email);
+        }
+        catch (Exception ex)
+        {
+            var message = ex.Message;
+            if (message.Contains("already exists", StringComparison.OrdinalIgnoreCase)
+                || message.Contains("duplicate", StringComparison.OrdinalIgnoreCase))
+            {
+                // Race: user was created concurrently → open a session anyway
+                var existing = await _api.Users.ListAsync(new GetUserListRequest
+                {
+                    EmailAddress = [email],
+                    Limit = 1,
+                });
+                var existingUser = existing?.UserList?.FirstOrDefault();
+                if (existingUser is null || string.IsNullOrEmpty(existingUser.Id))
+                    return new AuthResult { Success = false, Error = "An account with this email already exists" };
+                return await CreateSessionAsync(existingUser.Id, email);
+            }
+
+            return new AuthResult { Success = false, Error = message };
+        }
+    }
+
     private static string? FindPrimaryEmail(string? primaryId, ICollection<Clerk.BackendAPI.Models.Components.EmailAddress>? addresses)
     {
         if (addresses is null || addresses.Count == 0)

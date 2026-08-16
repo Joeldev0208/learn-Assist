@@ -29,7 +29,7 @@
         <TextBlock Text="learning that's everything - all in one place" FontSize="12" Foreground="#888" HorizontalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center" Margin="0,0,0,6" />
 
         <Button Content="Sign in with Google" Command="{Binding SignInWithGoogleCommand}"
-                IsVisible="{Binding IsOAuthConfigured}"
+                IsVisible="{Binding IsGoogleOAuthConfigured}"
                 HorizontalAlignment="Stretch" Padding="10,9" Background="White" BorderBrush="#D0D0D0" BorderThickness="1" CornerRadius="20" Foreground="#444" FontSize="13" />
         <Button Content="Sign in with Apple" Command="{Binding SignInWithAppleCommand}"
                 IsVisible="{Binding IsOAuthConfigured}"

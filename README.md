@@ -47,8 +47,18 @@ Create a `.env` in the project root (gitignored):
 # Required — Backend API auth (email/password)
 CLERK_SECRET_KEY=sk_test_...
 
-# Optional — Native OAuth (Google/Apple). Buttons hidden if unset.
+# Optional — Native OAuth (Apple via Clerk FAPI). Hidden if unset.
 CLERK_PUBLISHABLE_KEY=pk_test_...
+
+# Optional — Google Cloud OAuth (replaces Clerk FAPI for the Google button).
+# From Google Cloud Console → Credentials → OAuth client (Desktop app).
+# Must register http://127.0.0.1:53174/callback as an authorized redirect URI.
+GOOGLE_CLIENT_ID=xxxxx.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=GOCSPX-...
+
+# ...or instead of the two above: point directly at the JSON you downloaded
+# (OAuth client → download JSON),  e.g. client_secret_xxx.apps.googleusercontent.com.json
+#GOOGLE_CLIENT_SECRET_FILE=/ruta/a/client_secret_xxx.json
 
 # Optional — OAuth loopback port (default 53174)
 OAUTH_REDIRECT_PORT=53174
@@ -87,13 +97,18 @@ On startup `App.OnFrameworkInitializationCompleted` calls `InstallationService.I
 
 > ⚠️ Dev-instance sign-up is blocked by bot protection (`captcha_missing_token`). Fix in the Clerk dashboard: **User & Authentication → Attack Protection** → turn OFF **Bot sign-up protection**, or enable **Native API** under **Native applications**.
 
-### Native OAuth (Google/Apple — Frontend API + loopback)
+### Google (Google Cloud OAuth 2.0 — direct)
 
-- `FapiOAuthClient` talks to the Clerk **Frontend API** (publishable key → FAPI host derived by base64-decoding the key), `OAuthLoopbackListener` listens on `127.0.0.1:<port>/callback`, `OAuthFlow` orchestrates: FAPI creates sign-in → system browser opens the authorize URL → loopback captures `created_session_id` → `ClerkAuthService.AdoptOAuthSession(createdSessionId)` re-validates via Backend API and adopts the session.
-- The FAPI is used **only** for the OAuth redirect; all session/user validation goes through the Backend API.
-- OAuth flow resolves both sign-in and sign-up (Clerk creates the account if it doesn't exist), so the Register view reuses the same `oauth_*` strategies.
-- Clerk dashboard requirements: **Native API** ON under **Native applications**, Google + Apple **connections** enabled, and `http://127.0.0.1:53174/callback` registered as a **Redirect URL**.
-- OAuth buttons are hidden unless `CLERK_PUBLISHABLE_KEY` is set; email/password works without it.
+**Google Cloud OAuth is the default for the Google button.** It runs a direct RFC 8252 authorization-code flow with Google Cloud credentials and guarantees the Clerk user is created for new emails (upsert via Backend API):
+
+- `GoogleOAuthService` builds the authorize URL with `state` + loopback `redirect_uri` (`http://127.0.0.1:<OAUTH_REDIRECT_PORT>/callback`), opens the system browser, captures `code`+`state` via `OAuthLoopbackListener`, exchanges the code for an access token, and fetches `userinfo` (validating `email_verified`).
+- `ClerkAuthService.SignInWithGoogleAsync(email, name)` upserts in Clerk (Backend API): existing email → new session; new email → `Users.CreateAsync` (no password, verified email) then session. **Signing in with a new Google email now always creates the Clerk account.**
+- No `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` → the Google buttons are hidden; email/password still works. Alternatively, set `GOOGLE_CLIENT_SECRET_FILE` to the path of the `client_secret_*.json` downloaded from the Google Cloud Console and the credentials are read from it (the direct env vars take precedence).
+
+### Apple (Clerk Frontend API + loopback)
+
+- The Apple button keeps using the Clerk **Frontend API** flow: `FapiOAuthClient` (`/v1/client/sign_ins`) with the real loopback `redirect_url` → `OAuthFlow` → `created_session_id` → `ClerkAuthService.AdoptOAuthSessionAsync`.
+- Clerk dashboard requirements for Apple: **Native API** ON under **Native applications**, Apple **connection** enabled. OAuth buttons are hidden unless `CLERK_PUBLISHABLE_KEY` is set.
 
 > ⚠️ Security tradeoff (user decision): the `CLERK_SECRET_KEY` ships with the app's runtime (`.env` beside the binary or a real env var) — not harder to extract than before. `ConfigEncryption` is unrelated: it encrypts the AI-provider config only.
 
@@ -138,7 +153,8 @@ Three-panel layout: **session list (left) / chat (center) / document list (right
 | Login / Register (email + password) | Done |
 | Clerk Backend API + typed `.env` settings | Done |
 | Email verification | Done (wired) |
-| Native OAuth (Google/Apple) via Frontend API | Done (browser + loopback flow) |
+| Native OAuth (Apple via Clerk Frontend API) | Done (browser + loopback flow) |
+| Google OAuth (Google Cloud, direct; auto-creates Clerk user for new emails) | Done |
 | First-run install wizard (user + system scope) | Done |
 | Chat UI (three-panel) | Done |
 | AI service (MockAiService) | Done |

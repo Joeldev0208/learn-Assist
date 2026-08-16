@@ -11,14 +11,18 @@ public partial class LoginViewModel : ViewModelBase
 {
     private readonly IAuthService _authService;
     private readonly OAuthFlow _oauth;
+    private readonly GoogleOAuthService _googleOAuth;
 
     public LoginViewModel(IAuthService authService)
     {
         _authService = authService;
         _oauth = new OAuthFlow(authService);
+        _googleOAuth = new GoogleOAuthService(AppSettings.Current);
     }
 
     public bool IsOAuthConfigured => _oauth.IsConfigured;
+
+    public bool IsGoogleOAuthConfigured => _googleOAuth.IsConfigured;
 
     [ObservableProperty]
     public partial string Email { get; set; } = string.Empty;
@@ -71,7 +75,36 @@ public partial class LoginViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private async Task SignInWithGoogleAsync() => await RunOAuthAsync("oauth_google");
+    private async Task SignInWithGoogleAsync()
+    {
+        if (!_googleOAuth.IsConfigured)
+            return;
+
+        IsLoading = true;
+        ErrorMessage = null;
+
+        AuthResult result;
+        try
+        {
+            var profile = await _googleOAuth.SignInAsync(AppSettings.Current.OAuthRedirectPort);
+            result = await _authService.SignInWithGoogleAsync(profile.Email, profile.Name);
+        }
+        catch (Exception ex)
+        {
+            result = new AuthResult { Success = false, Error = ex.Message };
+        }
+
+        IsLoading = false;
+
+        if (result.Success)
+        {
+            LoginSucceeded?.Invoke();
+        }
+        else
+        {
+            ErrorMessage = result.Error ?? "Google sign-in failed";
+        }
+    }
 
     [RelayCommand]
     private async Task SignInWithAppleAsync() => await RunOAuthAsync("oauth_apple");

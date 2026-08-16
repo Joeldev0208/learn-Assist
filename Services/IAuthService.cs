@@ -23,6 +23,13 @@ public interface IAuthService
     /// </summary>
     Task<AuthResult> CreateSessionAsync(string userId, string email);
 
+    /// <summary>
+    /// Signs in (or registers, creating the Clerk user on demand) a verified
+    /// Google identity: existing email → new session; new email → the Clerk
+    /// user record is created first, then a session is opened.
+    /// </summary>
+    Task<AuthResult> SignInWithGoogleAsync(string email, string name);
+
     Task SignOutAsync();
     bool IsAuthenticated { get; }
     UserSession? CurrentUser { get; }
