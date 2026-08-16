@@ -12,14 +12,18 @@ public partial class RegisterViewModel : ViewModelBase
 {
     private readonly IAuthService _authService;
     private readonly OAuthFlow _oauth;
+    private readonly GoogleOAuthService _googleOAuth;
 
     public RegisterViewModel(IAuthService authService)
     {
         _authService = authService;
         _oauth = new OAuthFlow(authService);
+        _googleOAuth = new GoogleOAuthService(AppSettings.Current);
     }
 
     public bool IsOAuthConfigured => _oauth.IsConfigured;
+
+    public bool IsGoogleOAuthConfigured => _googleOAuth.IsConfigured;
 
     [ObservableProperty]
     public partial string FullName { get; set; } = string.Empty;
@@ -121,7 +125,37 @@ public partial class RegisterViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private async Task SignUpWithGoogleAsync() => await RunOAuthAsync("oauth_google");
+    private async Task SignUpWithGoogleAsync()
+    {
+        if (!_googleOAuth.IsConfigured)
+            return;
+
+        IsLoading = true;
+        ErrorMessage = null;
+
+        AuthResult result;
+        try
+        {
+            var profile = await _googleOAuth.SignInAsync(AppSettings.Current.OAuthRedirectPort);
+            result = await _authService.SignInWithGoogleAsync(profile.Email, profile.Name);
+        }
+        catch (Exception ex)
+        {
+            result = new AuthResult { Success = false, Error = ex.Message };
+        }
+
+        IsLoading = false;
+
+        if (result.Success)
+        {
+            var email = result.User?.Email ?? string.Empty;
+            RegisterSucceeded?.Invoke(email, string.Empty, result.User?.UserId ?? string.Empty);
+        }
+        else
+        {
+            ErrorMessage = result.Error ?? "Google sign-up failed";
+        }
+    }
 
     [RelayCommand]
     private async Task SignUpWithAppleAsync() => await RunOAuthAsync("oauth_apple");

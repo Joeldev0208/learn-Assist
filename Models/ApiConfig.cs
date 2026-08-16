@@ -9,6 +9,7 @@ public enum AiProvider
     Anthropic,
     Gemini,
     Ollama,
+    Nvidia,
 }
 
 public class ApiConfig
@@ -25,6 +26,7 @@ public class ApiConfig
         AiProvider.Anthropic => "https://api.anthropic.com",
         AiProvider.Gemini => "https://generativelanguage.googleapis.com",
         AiProvider.Ollama => "http://localhost:11434",
+        AiProvider.Nvidia => "https://integrate.api.nvidia.com/v1",
         _ => string.Empty,
     };
 
@@ -34,6 +36,7 @@ public class ApiConfig
         AiProvider.Anthropic => "claude-3-haiku-20240307",
         AiProvider.Gemini => "gemini-1.5-flash",
         AiProvider.Ollama => "llama3.2",
+        AiProvider.Nvidia => "nvidia/llama-3.3-nemotron-super-49b-v1",
         _ => string.Empty,
     };
 }

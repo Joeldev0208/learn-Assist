@@ -28,18 +28,18 @@ public class OAuthFlow
     /// Runs the OAuth <b>sign-in</b> flow for the Login screen (existing
     /// users). Returns the adopted session (or an error).
     /// </summary>
-    public async Task<AuthResult> SignInAsync(string strategy, int redirectPort, CancellationToken cancellationToken = default)
-        => await RunAsync(strategy, redirectPort, fapi => fapi.StartSignInAsync(strategy, /* placeholder */ ""), cancellationToken);
+    public Task<AuthResult> SignInAsync(string strategy, int redirectPort, CancellationToken cancellationToken = default)
+        => RunAsync(strategy, redirectPort, (fapi, redirectUrl) => fapi.StartSignInAsync(strategy, redirectUrl), cancellationToken);
 
     /// <summary>
     /// Runs the OAuth <b>sign-up</b> flow for the Register screen. A new Clerk
     /// user is always created for the OAuth identity. Returns the adopted
     /// session (or an error).
     /// </summary>
-    public async Task<AuthResult> SignUpAsync(string strategy, int redirectPort, CancellationToken cancellationToken = default)
-        => await RunAsync(strategy, redirectPort, fapi => fapi.StartSignUpAsync(strategy, ""), cancellationToken);
+    public Task<AuthResult> SignUpAsync(string strategy, int redirectPort, CancellationToken cancellationToken = default)
+        => RunAsync(strategy, redirectPort, (fapi, redirectUrl) => fapi.StartSignUpAsync(strategy, redirectUrl), cancellationToken);
 
-    private async Task<AuthResult> RunAsync(string strategy, int redirectPort, Func<FapiOAuthClient, Task<string>> start, CancellationToken cancellationToken)
+    private async Task<AuthResult> RunAsync(string strategy, int redirectPort, Func<FapiOAuthClient, string, Task<string>> start, CancellationToken cancellationToken)
     {
         if (!IsConfigured)
             return new AuthResult { Success = false, Error = "OAuth is not configured. Add CLERK_PUBLISHABLE_KEY to your .env file." };
@@ -50,7 +50,7 @@ public class OAuthFlow
         string authorizeUrl;
         try
         {
-            authorizeUrl = await start(fapi);
+            authorizeUrl = await start(fapi, listener.RedirectUrl);
         }
         catch (Exception ex)
         {
@@ -67,7 +67,7 @@ public class OAuthFlow
         }
 
         var callback = await listener.WaitForCallbackAsync(cancellationToken);
-        if (callback is null)
+        if (callback?.SessionId is null)
             return new AuthResult { Success = false, Error = "Sign-in was cancelled or timed out." };
 
         return await _auth.AdoptOAuthSessionAsync(callback.SessionId);

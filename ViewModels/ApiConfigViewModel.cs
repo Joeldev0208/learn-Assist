@@ -63,7 +63,8 @@ public partial class ApiConfigViewModel : ViewModelBase
         if (string.IsNullOrEmpty(BaseUrl) || BaseUrl == "https://api.openai.com"
             || BaseUrl == "https://api.anthropic.com"
             || BaseUrl == "https://generativelanguage.googleapis.com"
-            || BaseUrl == "http://localhost:11434")
+            || BaseUrl == "http://localhost:11434"
+            || BaseUrl == "https://integrate.api.nvidia.com/v1")
         {
             BaseUrl = defaults.GetDefaultBaseUrl();
             Model = defaults.GetDefaultModel();

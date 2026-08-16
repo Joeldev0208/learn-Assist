@@ -19,6 +19,7 @@ public static class AiServiceFactory
             AiProvider.Anthropic => new AnthropicService(config),
             AiProvider.Gemini => new GeminiService(config),
             AiProvider.Ollama => new OllamaService(config),
+            AiProvider.Nvidia => new NvidiaService(config),
             _ => throw new ArgumentOutOfRangeException(nameof(config.Provider)),
         };
     }
