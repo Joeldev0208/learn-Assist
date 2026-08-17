@@ -10,26 +10,35 @@
         Title="learn_Assist - Verify Email"
         WindowStartupLocation="CenterScreen"
         CanResize="False"
-        Width="800" Height="500">
+        Width="800" Height="500"
+        Background="{DynamicResource WindowBackgroundBrush}">
+
+  <Window.Styles>
+    <Style Selector="TextBox">
+      <Setter Property="Background" Value="{DynamicResource InputBackgroundBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+      <Setter Property="PlaceholderForeground" Value="{DynamicResource InputPlaceholderBrush}" />
+    </Style>
+  </Window.Styles>
 
   <Grid ColumnDefinitions="*,*">
-    <Border Background="#FFFFFF" Grid.Column="0">
+    <Border Background="{DynamicResource SurfaceBrush}" Grid.Column="0">
       <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="14" MaxWidth="320" Margin="48">
-          <TextBlock Text="Verify your email" FontSize="26" FontWeight="Bold" HorizontalAlignment="Center" />
-          <TextBlock FontSize="13" Foreground="#777" HorizontalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center">
+          <TextBlock Text="Verify your email" FontSize="26" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Center" />
+          <TextBlock FontSize="13" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center">
             <Run Text="We sent a code to " />
             <Run Text="{Binding DisplayEmail}" FontWeight="Bold" />
           </TextBlock>
 
-          <TextBlock Text="{Binding StatusMessage}" Foreground="#2E7D32" FontSize="12" IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+          <TextBlock Text="{Binding StatusMessage}" Foreground="{DynamicResource SuccessTextBrush}" FontSize="12" IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
 
-          <TextBlock Text="Verification Code" FontSize="12" FontWeight="SemiBold" Foreground="#555" Margin="0,4,0,0" />
+          <TextBlock Text="Verification Code" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,4,0,0" />
           <TextBox PlaceholderText="Enter verification code" Text="{Binding Code}" MaxLength="10" />
 
-          <TextBlock Text="{Binding ErrorMessage}" Foreground="#E53935" FontSize="12" IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+          <TextBlock Text="{Binding ErrorMessage}" Foreground="{DynamicResource ErrorTextBrush}" FontSize="12" IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
 
-          <Button Command="{Binding SendCodeCommand}" HorizontalAlignment="Stretch" Padding="12,10" Background="#1A1A1A" Foreground="White" CornerRadius="22" Margin="0,4,0,0" IsVisible="{Binding CodeSent, Converter={x:Static BoolConverters.Not}}">
+          <Button Command="{Binding SendCodeCommand}" HorizontalAlignment="Stretch" Padding="12,10" Background="{DynamicResource ButtonPrimaryBackgroundBrush}" Foreground="{DynamicResource ButtonPrimaryForegroundBrush}" CornerRadius="22" Margin="0,4,0,0" IsVisible="{Binding CodeSent, Converter={x:Static BoolConverters.Not}}">
             <Button.Styles>
               <Style Selector="Button">
                 <Setter Property="Content" Value="Send Code" />
@@ -41,7 +50,7 @@
           </Button>
 
           <StackPanel Spacing="10" IsVisible="{Binding CodeSent}">
-            <Button Command="{Binding VerifyCodeCommand}" HorizontalAlignment="Stretch" Padding="12,10" Background="#1A1A1A" Foreground="White" CornerRadius="22">
+            <Button Command="{Binding VerifyCodeCommand}" HorizontalAlignment="Stretch" Padding="12,10" Background="{DynamicResource ButtonPrimaryBackgroundBrush}" Foreground="{DynamicResource ButtonPrimaryForegroundBrush}" CornerRadius="22">
               <Button.Styles>
                 <Style Selector="Button">
                   <Setter Property="Content" Value="Verify Code" />
@@ -52,19 +61,19 @@
               </Button.Styles>
             </Button>
 
-            <Button Command="{Binding SendCodeCommand}" Background="Transparent" Foreground="#777" HorizontalAlignment="Center" FontSize="13" Content="Resend Code" />
+            <Button Command="{Binding SendCodeCommand}" Background="Transparent" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Center" FontSize="13" Content="Resend Code" />
           </StackPanel>
 
-          <Button Content="Back to registration" Command="{Binding BackToRegisterCommand}" Background="Transparent" Foreground="#777" HorizontalAlignment="Center" FontSize="13" />
+          <Button Content="Back to registration" Command="{Binding BackToRegisterCommand}" Background="Transparent" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Center" FontSize="13" />
         </StackPanel>
       </ScrollViewer>
     </Border>
 
-    <Border Background="#7C7168" Grid.Column="1">
+    <Border Background="{DynamicResource BrandPanelBrush}" Grid.Column="1">
       <Panel VerticalAlignment="Center" HorizontalAlignment="Center">
-        <Ellipse Width="90" Height="90" Fill="#6A5F58" Opacity="0.4" />
-        <Ellipse Width="50" Height="50" Fill="#5A4F48" Opacity="0.6" />
-        <Ellipse Width="20" Height="20" Fill="#4A3F38" Opacity="0.8" />
+        <Ellipse Width="90" Height="90" Fill="{DynamicResource BrandBrush}" Opacity="0.4" />
+        <Ellipse Width="50" Height="50" Fill="{DynamicResource BrandBrush}" Opacity="0.6" />
+        <Ellipse Width="20" Height="20" Fill="{DynamicResource BrandBrush}" Opacity="0.8" />
       </Panel>
     </Border>
   </Grid>

@@ -10,58 +10,69 @@
         Title="learn_Assist - Register"
         WindowStartupLocation="CenterScreen"
         CanResize="False"
-        Width="800" Height="600">
+        Width="800" Height="600"
+        Background="{DynamicResource WindowBackgroundBrush}">
 
   <Window.Styles>
     <Style Selector="TextBox">
-      <Setter Property="Background" Value="#F7F7F7" />
-      <Setter Property="Foreground" Value="#1A1A1A" />
-      <Setter Property="PlaceholderForeground" Value="#BBB" />
+      <Setter Property="Background" Value="{DynamicResource InputBackgroundBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+      <Setter Property="PlaceholderForeground" Value="{DynamicResource InputPlaceholderBrush}" />
     </Style>
   </Window.Styles>
 
   <Grid ColumnDefinitions="*,*">
-    <Border Background="#FFFFFF" Grid.Column="0"
+    <Border Background="{DynamicResource SurfaceBrush}" Grid.Column="0"
             BoxShadow="4 0 12 #0A000000">
+      <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
       <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="8" MaxWidth="320" Margin="32">
 
-        <TextBlock Text="Create your account!" FontSize="24" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,2" />
-        <TextBlock Text="learning that's everything - all in one place" FontSize="12" Foreground="#888" HorizontalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center" Margin="0,0,0,6" />
+        <Button Command="{Binding ToggleThemeCommand}"
+                HorizontalAlignment="Right" Width="32" Height="32" Padding="0"
+                Background="Transparent" BorderThickness="0" FontSize="15"
+                ToolTip.Tip="Toggle light/dark theme"
+                HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
+          <TextBlock Text="{Binding ThemeGlyph}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+        </Button>
 
-          <Button Command="{Binding SignUpWithGoogleCommand}"
-    IsVisible="{Binding IsGoogleOAuthConfigured}" HorizontalAlignment="Stretch" Padding="10,9" Background="White" BorderBrush="#D0D0D0" BorderThickness="1" CornerRadius="20" Foreground="#444" FontSize="13" >
-    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center">
-        <Image Source="/Assets/GoogleG_FullColor_RGB.png" Width="40" Height="40" Margin="0,0,8,0"/>
-        <TextBlock Text="Sign up with Google" VerticalAlignment="Center"/>
-    </StackPanel>
-  </Button>        <Button Content="Sign up with Apple" Command="{Binding SignUpWithAppleCommand}"
+        <TextBlock Text="Create your account!" FontSize="24" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Center" Margin="0,0,0,2" />
+        <TextBlock Text="learning that's everything - all in one place" FontSize="12" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center" Margin="0,0,0,6" />
+
+        <Button Command="{Binding SignUpWithGoogleCommand}"
+                IsVisible="{Binding IsGoogleOAuthConfigured}" HorizontalAlignment="Stretch" Padding="10,9" Background="Transparent" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" CornerRadius="20" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="13">
+          <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center">
+            <Image Source="/Assets/GoogleG_FullColor_RGB.png" Width="40" Height="40" Margin="0,0,8,0"/>
+            <TextBlock Text="Sign up with Google" VerticalAlignment="Center"/>
+          </StackPanel>
+        </Button>
+        <Button Content="Sign up with Apple" Command="{Binding SignUpWithAppleCommand}"
                 IsVisible="{Binding IsOAuthConfigured}"
-                HorizontalAlignment="Stretch" Padding="10,9" Background="White" BorderBrush="#D0D0D0" BorderThickness="1" CornerRadius="20" Foreground="#444" FontSize="13" />
+                HorizontalAlignment="Stretch" Padding="10,9" Background="Transparent" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" CornerRadius="20" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="13" />
 
         <Grid ColumnDefinitions="*,Auto,*" Margin="0,2">
-          <Border Height="1" Background="#E0E0E0" VerticalAlignment="Center" Grid.Column="0" />
-          <TextBlock Text="Or" Grid.Column="1" Margin="12,0" Foreground="#AAA" FontSize="11" VerticalAlignment="Center" />
-          <Border Height="1" Background="#E0E0E0" VerticalAlignment="Center" Grid.Column="2" />
+          <Border Height="1" Background="{DynamicResource DividerBrush}" VerticalAlignment="Center" Grid.Column="0" />
+          <TextBlock Text="Or" Grid.Column="1" Margin="12,0" Foreground="{DynamicResource TextMutedBrush}" FontSize="11" VerticalAlignment="Center" />
+          <Border Height="1" Background="{DynamicResource DividerBrush}" VerticalAlignment="Center" Grid.Column="2" />
         </Grid>
 
-        <TextBlock Text="Full Name" FontSize="11" FontWeight="SemiBold" Foreground="#555" Margin="0,2,0,0" />
-        <Border CornerRadius="20" BorderBrush="#D0D0D0" BorderThickness="1" Background="#F7F7F7">
+        <TextBlock Text="Full Name" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0" />
+        <Border CornerRadius="20" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" Background="{DynamicResource InputBackgroundBrush}">
           <DockPanel LastChildFill="True" Margin="14,0">
             <TextBlock DockPanel.Dock="Left" Text="👤" FontSize="13" VerticalAlignment="Center" />
             <TextBox Text="{Binding FullName}" PlaceholderText="Enter your full name" BorderThickness="0" Padding="8,10" FontSize="13" />
           </DockPanel>
         </Border>
 
-        <TextBlock Text="Email" FontSize="11" FontWeight="SemiBold" Foreground="#555" Margin="0,2,0,0" />
-        <Border CornerRadius="20" BorderBrush="#D0D0D0" BorderThickness="1" Background="#F7F7F7">
+        <TextBlock Text="Email" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0" />
+        <Border CornerRadius="20" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" Background="{DynamicResource InputBackgroundBrush}">
           <DockPanel LastChildFill="True" Margin="14,0">
             <TextBlock DockPanel.Dock="Left" Text="📧" FontSize="13" VerticalAlignment="Center" />
             <TextBox Text="{Binding Email}" PlaceholderText="Enter your email" BorderThickness="0" Padding="8,10" FontSize="13" />
           </DockPanel>
         </Border>
 
-        <TextBlock Text="Password" FontSize="11" FontWeight="SemiBold" Foreground="#555" Margin="0,2,0,0" />
-        <Border CornerRadius="20" BorderBrush="#D0D0D0" BorderThickness="1" Background="#F7F7F7">
+        <TextBlock Text="Password" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0" />
+        <Border CornerRadius="20" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" Background="{DynamicResource InputBackgroundBrush}">
           <DockPanel LastChildFill="True" Margin="14,0">
             <TextBlock DockPanel.Dock="Left" Text="🔒" FontSize="13" VerticalAlignment="Center" />
             <Button DockPanel.Dock="Right" BorderThickness="0" Padding="8,0"
@@ -80,8 +91,8 @@
           </DockPanel>
         </Border>
 
-        <TextBlock Text="Confirm Password" FontSize="11" FontWeight="SemiBold" Foreground="#555" Margin="0,2,0,0" />
-        <Border CornerRadius="20" BorderBrush="#D0D0D0" BorderThickness="1" Background="#F7F7F7">
+        <TextBlock Text="Confirm Password" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0" />
+        <Border CornerRadius="20" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" Background="{DynamicResource InputBackgroundBrush}">
           <DockPanel LastChildFill="True" Margin="14,0">
             <TextBlock DockPanel.Dock="Left" Text="🔒" FontSize="13" VerticalAlignment="Center" />
             <Button DockPanel.Dock="Right" BorderThickness="0" Padding="8,0"
@@ -100,12 +111,12 @@
           </DockPanel>
         </Border>
 
-        <Border CornerRadius="10" Background="#FFF0F0" Padding="10,8"
+        <Border CornerRadius="10" Background="{DynamicResource ErrorBackgroundBrush}" Padding="10,8"
                 IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-          <TextBlock Text="{Binding ErrorMessage}" Foreground="#C62828" FontSize="12" TextWrapping="Wrap" />
+          <TextBlock Text="{Binding ErrorMessage}" Foreground="{DynamicResource ErrorTextBrush}" FontSize="12" TextWrapping="Wrap" />
         </Border>
 
-        <Button Command="{Binding RegisterCommand}" HorizontalAlignment="Stretch" Padding="12,9" Background="#1A1A1A" Foreground="White" CornerRadius="20" Margin="0,2,0,0" FontSize="13" FontWeight="SemiBold">
+        <Button Command="{Binding RegisterCommand}" HorizontalAlignment="Stretch" Padding="12,9" Background="{DynamicResource ButtonPrimaryBackgroundBrush}" Foreground="{DynamicResource ButtonPrimaryForegroundBrush}" CornerRadius="20" Margin="0,2,0,0" FontSize="13" FontWeight="SemiBold">
           <Button.Styles>
             <Style Selector="Button">
               <Setter Property="Content" Value="Sign up with the email" />
@@ -116,15 +127,16 @@
           </Button.Styles>
         </Button>
 
-        <Button Content="Already have an account? Sign in" Command="{Binding GoToLoginCommand}" Foreground="#888" HorizontalAlignment="Center" FontSize="12" Margin="0,2,0,0" />
+        <Button Content="Already have an account? Sign in" Command="{Binding GoToLoginCommand}" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Center" FontSize="12" Margin="0,2,0,0" />
       </StackPanel>
+      </ScrollViewer>
     </Border>
 
-    <Border Background="#6A5F58" Grid.Column="1">
+    <Border Background="{DynamicResource BrandPanelBrush}" Grid.Column="1">
       <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="10">
         <TextBlock Text="📚" FontSize="44" HorizontalAlignment="Center" />
-        <TextBlock Text="Learn-Assist" FontSize="20" FontWeight="Bold" Foreground="#FFFFFF" HorizontalAlignment="Center" Opacity="0.9" />
-        <TextBlock Text="learn anything" FontSize="12" Foreground="#D0C8C0" HorizontalAlignment="Center" Opacity="0.7" />
+        <TextBlock Text="Learn-Assist" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource BrandTextBrush}" HorizontalAlignment="Center" Opacity="0.9" />
+        <TextBlock Text="learn anything" FontSize="12" Foreground="{DynamicResource BrandSubtextBrush}" HorizontalAlignment="Center" Opacity="0.7" />
       </StackPanel>
     </Border>
   </Grid>
