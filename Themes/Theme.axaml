@@ -1,0 +1,97 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <ResourceDictionary.ThemeDictionaries>
+
+    <!-- ===================== LIGHT ===================== -->
+    <ResourceDictionary x:Key="Light">
+
+      <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#F6F6F7" />
+      <SolidColorBrush x:Key="SurfaceBrush" Color="#FFFFFF" />
+      <SolidColorBrush x:Key="SidebarBrush" Color="#F1F1F3" />
+      <SolidColorBrush x:Key="HeaderBackgroundBrush" Color="#FFFFFF" />
+      <SolidColorBrush x:Key="BorderBrush" Color="#E1E1E3" />
+      <SolidColorBrush x:Key="DividerBrush" Color="#E8E8EA" />
+      <SolidColorBrush x:Key="HoverBrush" Color="#E9E9EB" />
+      <SolidColorBrush x:Key="SelectedBrush" Color="#DFDFE2" />
+
+      <SolidColorBrush x:Key="TextPrimaryBrush" Color="#1A1A1A" />
+      <SolidColorBrush x:Key="TextSecondaryBrush" Color="#555555" />
+      <SolidColorBrush x:Key="TextMutedBrush" Color="#8A8A8E" />
+
+      <SolidColorBrush x:Key="InputBackgroundBrush" Color="#F7F7F8" />
+      <SolidColorBrush x:Key="InputBorderBrush" Color="#D4D4D6" />
+      <SolidColorBrush x:Key="InputPlaceholderBrush" Color="#B5B5B8" />
+
+      <SolidColorBrush x:Key="ButtonPrimaryBackgroundBrush" Color="#1A1A1A" />
+      <SolidColorBrush x:Key="ButtonPrimaryForegroundBrush" Color="#FFFFFF" />
+      <SolidColorBrush x:Key="ButtonSecondaryBackgroundBrush" Color="#F0F0F1" />
+      <SolidColorBrush x:Key="ButtonSecondaryForegroundBrush" Color="#4A4A4A" />
+      <SolidColorBrush x:Key="ButtonDisabledBackgroundBrush" Color="#ECECEE" />
+
+      <SolidColorBrush x:Key="BrandBrush" Color="#6A5F58" />
+      <SolidColorBrush x:Key="BrandPanelBrush" Color="#6A5F58" />
+      <SolidColorBrush x:Key="BrandTextBrush" Color="#FFFFFF" />
+      <SolidColorBrush x:Key="BrandSubtextBrush" Color="#D0C8C0" />
+
+      <SolidColorBrush x:Key="ErrorBackgroundBrush" Color="#FFF0F0" />
+      <SolidColorBrush x:Key="ErrorBorderBrush" Color="#FFCDD2" />
+      <SolidColorBrush x:Key="ErrorTextBrush" Color="#C62828" />
+      <SolidColorBrush x:Key="WarningBackgroundBrush" Color="#FFF8E1" />
+      <SolidColorBrush x:Key="WarningBorderBrush" Color="#FFE082" />
+      <SolidColorBrush x:Key="WarningTextBrush" Color="#B26A00" />
+      <SolidColorBrush x:Key="SuccessTextBrush" Color="#2E7D32" />
+
+      <SolidColorBrush x:Key="BubbleUserBrush" Color="#E3F2FD" />
+      <SolidColorBrush x:Key="BubbleAssistantBrush" Color="#FFFFFF" />
+      <SolidColorBrush x:Key="OverlayBrush" Color="#80000000" />
+
+    </ResourceDictionary>
+
+    <!-- ===================== DARK ===================== -->
+    <ResourceDictionary x:Key="Dark">
+
+      <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#17181C" />
+      <SolidColorBrush x:Key="SurfaceBrush" Color="#1E1F24" />
+      <SolidColorBrush x:Key="SidebarBrush" Color="#212228" />
+      <SolidColorBrush x:Key="HeaderBackgroundBrush" Color="#1E1F24" />
+      <SolidColorBrush x:Key="BorderBrush" Color="#313238" />
+      <SolidColorBrush x:Key="DividerBrush" Color="#2A2B31" />
+      <SolidColorBrush x:Key="HoverBrush" Color="#2A2B31" />
+      <SolidColorBrush x:Key="SelectedBrush" Color="#34353D" />
+
+      <SolidColorBrush x:Key="TextPrimaryBrush" Color="#ECEDEF" />
+      <SolidColorBrush x:Key="TextSecondaryBrush" Color="#B0B2B8" />
+      <SolidColorBrush x:Key="TextMutedBrush" Color="#7C7E86" />
+
+      <SolidColorBrush x:Key="InputBackgroundBrush" Color="#26272D" />
+      <SolidColorBrush x:Key="InputBorderBrush" Color="#3B3C44" />
+      <SolidColorBrush x:Key="InputPlaceholderBrush" Color="#5E6068" />
+
+      <SolidColorBrush x:Key="ButtonPrimaryBackgroundBrush" Color="#ECEDEF" />
+      <SolidColorBrush x:Key="ButtonPrimaryForegroundBrush" Color="#17181C" />
+      <SolidColorBrush x:Key="ButtonSecondaryBackgroundBrush" Color="#2A2B31" />
+      <SolidColorBrush x:Key="ButtonSecondaryForegroundBrush" Color="#C5C7CC" />
+      <SolidColorBrush x:Key="ButtonDisabledBackgroundBrush" Color="#26272D" />
+
+      <SolidColorBrush x:Key="BrandBrush" Color="#8A7B70" />
+      <SolidColorBrush x:Key="BrandPanelBrush" Color="#3A3531" />
+      <SolidColorBrush x:Key="BrandTextBrush" Color="#FFFFFF" />
+      <SolidColorBrush x:Key="BrandSubtextBrush" Color="#C4BBB2" />
+
+      <SolidColorBrush x:Key="ErrorBackgroundBrush" Color="#3A2020" />
+      <SolidColorBrush x:Key="ErrorBorderBrush" Color="#5C3030" />
+      <SolidColorBrush x:Key="ErrorTextBrush" Color="#FF8A80" />
+      <SolidColorBrush x:Key="WarningBackgroundBrush" Color="#3D3217" />
+      <SolidColorBrush x:Key="WarningBorderBrush" Color="#5C4A1E" />
+      <SolidColorBrush x:Key="WarningTextBrush" Color="#FFD54F" />
+      <SolidColorBrush x:Key="SuccessTextBrush" Color="#81C784" />
+
+      <SolidColorBrush x:Key="BubbleUserBrush" Color="#1E3A5F" />
+      <SolidColorBrush x:Key="BubbleAssistantBrush" Color="#2A2B31" />
+      <SolidColorBrush x:Key="OverlayBrush" Color="#CC000000" />
+
+    </ResourceDictionary>
+
+  </ResourceDictionary.ThemeDictionaries>
+</ResourceDictionary>

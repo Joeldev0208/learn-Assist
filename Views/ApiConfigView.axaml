@@ -10,74 +10,75 @@
         Title="Configure AI"
         WindowStartupLocation="CenterScreen"
         CanResize="False"
-        Width="520" Height="540">
+        Width="520" Height="540"
+        Background="{DynamicResource WindowBackgroundBrush}">
 
   <Window.Styles>
     <Style Selector="TextBox">
-      <Setter Property="Background" Value="#F7F7F7" />
-      <Setter Property="Foreground" Value="#1A1A1A" />
-      <Setter Property="PlaceholderForeground" Value="#BBB" />
+      <Setter Property="Background" Value="{DynamicResource InputBackgroundBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+      <Setter Property="PlaceholderForeground" Value="{DynamicResource InputPlaceholderBrush}" />
     </Style>
     <Style Selector="ComboBox">
-      <Setter Property="Background" Value="#F7F7F7" />
-      <Setter Property="Foreground" Value="#1A1A1A" />
+      <Setter Property="Background" Value="{DynamicResource InputBackgroundBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
     </Style>
   </Window.Styles>
 
-  <Border Background="White" Padding="32">
+  <Border Background="{DynamicResource SurfaceBrush}" Padding="32">
     <ScrollViewer>
     <StackPanel Spacing="14" VerticalAlignment="Center">
-      <TextBlock Text="Configure AI Provider" FontSize="22" FontWeight="Bold" HorizontalAlignment="Center" />
-      <TextBlock Text="Connect your AI API to start learning." FontSize="12" Foreground="#888" HorizontalAlignment="Center" Margin="0,0,0,4" />
+      <TextBlock Text="Configure AI Provider" FontSize="22" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Center" />
+      <TextBlock Text="Connect your AI API to start learning." FontSize="12" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Center" Margin="0,0,0,4" />
 
-      <TextBlock Text="Provider" FontSize="11" FontWeight="SemiBold" Foreground="#555" />
+      <TextBlock Text="Provider" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" />
       <ComboBox ItemsSource="{Binding ProviderNames}"
                 SelectedItem="{Binding SelectedProvider}"
-                Padding="10,8" FontSize="13" CornerRadius="8" BorderBrush="#D0D0D0" BorderThickness="1" />
+                Padding="10,8" FontSize="13" CornerRadius="8" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" />
 
-      <TextBlock Text="Base URL" FontSize="11" FontWeight="SemiBold" Foreground="#555" />
-      <Border CornerRadius="8" BorderBrush="#D0D0D0" BorderThickness="1" Background="#F7F7F7">
+      <TextBlock Text="Base URL" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" />
+      <Border CornerRadius="8" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" Background="{DynamicResource InputBackgroundBrush}">
         <TextBox Text="{Binding BaseUrl}" PlaceholderText="https://api.openai.com"
                  BorderThickness="0" Padding="10,8" FontSize="13" />
       </Border>
 
-      <TextBlock Text="API Key" FontSize="11" FontWeight="SemiBold" Foreground="#555" />
-      <Border CornerRadius="8" BorderBrush="#D0D0D0" BorderThickness="1" Background="#F7F7F7">
+      <TextBlock Text="API Key" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" />
+      <Border CornerRadius="8" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" Background="{DynamicResource InputBackgroundBrush}">
         <TextBox Text="{Binding ApiKey}" PlaceholderText="sk-..."
                  BorderThickness="0" Padding="10,8" FontSize="13" PasswordChar="*" />
       </Border>
 
-      <TextBlock Text="Model" FontSize="11" FontWeight="SemiBold" Foreground="#555" />
-      <Border CornerRadius="8" BorderBrush="#D0D0D0" BorderThickness="1" Background="#F7F7F7">
+      <TextBlock Text="Model" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" />
+      <Border CornerRadius="8" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" Background="{DynamicResource InputBackgroundBrush}">
         <TextBox Text="{Binding Model}" PlaceholderText="gpt-4o-mini"
                  BorderThickness="0" Padding="10,8" FontSize="13" />
       </Border>
 
-      <TextBlock Text="Sessions Directory" FontSize="11" FontWeight="SemiBold" Foreground="#555" />
+      <TextBlock Text="Sessions Directory" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" />
       <DockPanel LastChildFill="True">
         <Button DockPanel.Dock="Right" Content="Browse" Margin="6,0,0,0"
                 Command="{Binding BrowseSessionsDirectoryCommand}"
                 Padding="12,7" FontSize="12" CornerRadius="6"
-                Background="#F0F0F0" BorderBrush="#D0D0D0" BorderThickness="1"
-                Foreground="#444" />
-        <Border CornerRadius="8" BorderBrush="#D0D0D0" BorderThickness="1" Background="#F7F7F7">
+                Background="{DynamicResource ButtonSecondaryBackgroundBrush}" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1"
+                Foreground="{DynamicResource ButtonSecondaryForegroundBrush}" />
+        <Border CornerRadius="8" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" Background="{DynamicResource InputBackgroundBrush}">
           <TextBox Text="{Binding SessionsDirectory}" PlaceholderText="~/.config/learn-assist/sessions"
                    BorderThickness="0" Padding="10,8" FontSize="13" />
         </Border>
       </DockPanel>
 
-      <Border CornerRadius="8" Background="#FFF0F0" Padding="10,8"
+      <Border CornerRadius="8" Background="{DynamicResource ErrorBackgroundBrush}" Padding="10,8"
               IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-        <TextBlock Text="{Binding ErrorMessage}" Foreground="#C62828" FontSize="12" TextWrapping="Wrap" />
+        <TextBlock Text="{Binding ErrorMessage}" Foreground="{DynamicResource ErrorTextBrush}" FontSize="12" TextWrapping="Wrap" />
       </Border>
 
       <Grid ColumnDefinitions="*,*" Margin="0,6,0,0">
         <Button Grid.Column="0" Command="{Binding SkipCommand}"
-                Padding="12,9" Background="Transparent" Foreground="#888"
+                Padding="12,9" Background="Transparent" Foreground="{DynamicResource TextMutedBrush}"
                 CornerRadius="20" FontSize="13"
                 Content="Skip" HorizontalAlignment="Stretch" Margin="0,0,6,0" />
         <Button Grid.Column="1" Command="{Binding SaveCommand}"
-                Padding="12,9" Background="#1A1A1A" Foreground="White"
+                Padding="12,9" Background="{DynamicResource ButtonPrimaryBackgroundBrush}" Foreground="{DynamicResource ButtonPrimaryForegroundBrush}"
                 CornerRadius="20" FontSize="13" FontWeight="SemiBold"
                 Content="Accept" HorizontalAlignment="Stretch" Margin="6,0,0,0" />
       </Grid>

@@ -19,6 +19,15 @@ public partial class MainViewModel : ViewModelBase
 
     public event Action? ConfigureAiRequested;
 
+    public string ThemeGlyph => ThemeService.IsDark ? "☀️" : "🌙";
+
+    [RelayCommand]
+    private void ToggleTheme()
+    {
+        ThemeService.Toggle();
+        OnPropertyChanged(nameof(ThemeGlyph));
+    }
+
     [RelayCommand]
     private void ReconfigureAi()
     {

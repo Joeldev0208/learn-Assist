@@ -25,6 +25,15 @@ public partial class RegisterViewModel : ViewModelBase
 
     public bool IsGoogleOAuthConfigured => _googleOAuth.IsConfigured;
 
+    public string ThemeGlyph => ThemeService.IsDark ? "☀️" : "🌙";
+
+    [RelayCommand]
+    private void ToggleTheme()
+    {
+        ThemeService.Toggle();
+        OnPropertyChanged(nameof(ThemeGlyph));
+    }
+
     [ObservableProperty]
     public partial string FullName { get; set; } = string.Empty;
 
