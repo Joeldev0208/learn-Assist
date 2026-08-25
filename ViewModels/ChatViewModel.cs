@@ -20,6 +20,12 @@ public partial class ChatViewModel : ViewModelBase
         ".cs", ".js", ".ts", ".py", ".java", ".html", ".css", ".sh", ".sql",
     };
 
+    // Formats accepted by all three vision providers (OpenAI, Anthropic, Gemini).
+    private static readonly HashSet<string> VisionImageExtensions = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ".png", ".jpg", ".jpeg", ".webp",
+    };
+
     private IAiService _aiService;
     private SessionPersistenceService? _persistence;
     private ChatSession? _currentSession;
@@ -62,6 +68,7 @@ public partial class ChatViewModel : ViewModelBase
     {
         _currentSession = session;
         Messages.Clear();
+        AttachedDocuments.Clear();
         foreach (var msg in session.Messages)
             Messages.Add(msg);
     }
@@ -173,13 +180,25 @@ public partial class ChatViewModel : ViewModelBase
             {
                 if (document.ContentType == DocumentContentType.Image)
                 {
-                    result.Add(new MessageAttachment
+                    if (VisionImageExtensions.Contains(Path.GetExtension(path)))
                     {
-                        FileName = document.Name,
-                        Kind = AttachmentKind.Image,
-                        MimeType = GetImageMimeType(Path.GetExtension(path)),
-                        ImageData = File.ReadAllBytes(path),
-                    });
+                        result.Add(new MessageAttachment
+                        {
+                            FileName = document.Name,
+                            Kind = AttachmentKind.Image,
+                            MimeType = GetImageMimeType(Path.GetExtension(path)),
+                            ImageData = File.ReadAllBytes(path),
+                        });
+                    }
+                    else
+                    {
+                        result.Add(new MessageAttachment
+                        {
+                            FileName = document.Name,
+                            Kind = AttachmentKind.TextDocument,
+                            TextContent = $"[image '{document.Name}' not attachable: format not supported by vision providers]",
+                        });
+                    }
                 }
                 else if (IsTextExtractable(Path.GetExtension(path)))
                 {
