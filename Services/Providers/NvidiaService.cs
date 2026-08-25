@@ -37,7 +37,10 @@ public class NvidiaService : IAiService
         }
     }
 
-    public async Task<string> AskAsync(string message, List<ChatMessage> history)
+    public Task<string> AskAsync(string message, List<ChatMessage> history)
+        => AskAsync(message, history, null);
+
+    public async Task<string> AskAsync(string message, List<ChatMessage> history, IReadOnlyList<MessageAttachment>? attachments)
     {
         var messages = new List<object>
         {
@@ -53,7 +56,8 @@ public class NvidiaService : IAiService
             });
         }
 
-        messages.Add(new { role = "user", content = message });
+        var prompt = message + BuildTextBlocks(attachments);
+        messages.Add(new { role = "user", content = prompt });
 
         var body = new
         {
@@ -90,6 +94,22 @@ public class NvidiaService : IAiService
             .GetString();
 
         return text ?? string.Empty;
+    }
+
+    private static string BuildTextBlocks(IReadOnlyList<MessageAttachment>? attachments)
+    {
+        if (attachments is null || attachments.Count == 0)
+            return string.Empty;
+
+        var builder = new StringBuilder();
+        foreach (var attachment in attachments)
+        {
+            if (attachment.Kind == AttachmentKind.TextDocument && !string.IsNullOrEmpty(attachment.TextContent))
+                builder.Append("\n\n").Append(attachment.ToTextBlock());
+            else if (attachment.Kind == AttachmentKind.Image)
+                builder.Append($"\n\n[image '{attachment.FileName}' omitted: this provider does not support vision]");
+        }
+        return builder.ToString();
     }
 
     private static string TryExtractErrorMessage(string json)

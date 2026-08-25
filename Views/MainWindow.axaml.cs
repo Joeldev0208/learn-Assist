@@ -24,6 +24,7 @@ public partial class MainWindow : Window
         {
             _previousVm.Chat.ScrollToBottomRequested -= OnScrollToBottom;
             _previousVm.DocumentList.ImportDialogRequested -= OnImportDialog;
+            _previousVm.DocumentList.AttachRequested -= OnAttachToChat;
             _previousVm.ConfigureAiRequested -= OnConfigureAi;
         }
 
@@ -31,6 +32,7 @@ public partial class MainWindow : Window
         {
             vm.Chat.ScrollToBottomRequested += OnScrollToBottom;
             vm.DocumentList.ImportDialogRequested += OnImportDialog;
+            vm.DocumentList.AttachRequested += OnAttachToChat;
             vm.ConfigureAiRequested += OnConfigureAi;
             _previousVm = vm;
         }
@@ -48,6 +50,12 @@ public partial class MainWindow : Window
     private void OnImportDialog()
     {
         _ = ShowImportDialogAsync();
+    }
+
+    private void OnAttachToChat(UserDocument document)
+    {
+        if (DataContext is MainViewModel vm)
+            vm.Chat.AttachDocument(document);
     }
 
     private void OnConfigureAi()

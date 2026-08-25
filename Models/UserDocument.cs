@@ -26,4 +26,6 @@ public class UserDocument
         < 1024 * 1024 => $"{FileSize / 1024} KB",
         _ => $"{FileSize / (1024.0 * 1024.0):F1} MB",
     };
+
+    public bool IsAttachable => ContentType != DocumentContentType.Video;
 }

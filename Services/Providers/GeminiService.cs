@@ -25,7 +25,10 @@ public class GeminiService : IAiService
         _model = string.IsNullOrEmpty(config.Model) ? config.GetDefaultModel() : config.Model;
     }
 
-    public async Task<string> AskAsync(string message, List<ChatMessage> history)
+    public Task<string> AskAsync(string message, List<ChatMessage> history)
+        => AskAsync(message, history, null);
+
+    public async Task<string> AskAsync(string message, List<ChatMessage> history, IReadOnlyList<MessageAttachment>? attachments)
     {
         var contents = new List<object>();
 
@@ -38,11 +41,43 @@ public class GeminiService : IAiService
             });
         }
 
-        contents.Add(new
+        var textParts = new List<string>();
+        var inlineData = new List<object>();
+        if (attachments is not null)
         {
-            role = "user",
-            parts = new[] { new { text = message } },
-        });
+            foreach (var attachment in attachments)
+            {
+                if (attachment.Kind == AttachmentKind.TextDocument && !string.IsNullOrEmpty(attachment.TextContent))
+                    textParts.Add(attachment.ToTextBlock());
+                else if (attachment.Kind == AttachmentKind.Image && attachment.ImageData is { Length: > 0 })
+                    inlineData.Add(new
+                    {
+                        inline_data = new
+                        {
+                            mime_type = attachment.MimeType,
+                            data = Convert.ToBase64String(attachment.ImageData),
+                        },
+                    });
+            }
+        }
+
+        if (inlineData.Count > 0)
+        {
+            var promptParts = new List<object>();
+            var promptText = message + AppendBlocks(textParts);
+            if (!string.IsNullOrWhiteSpace(promptText))
+                promptParts.Add(new { text = promptText });
+            promptParts.AddRange(inlineData);
+            contents.Add(new { role = "user", parts = promptParts });
+        }
+        else
+        {
+            contents.Add(new
+            {
+                role = "user",
+                parts = new[] { new { text = message + AppendBlocks(textParts) } },
+            });
+        }
 
         var body = new
         {
@@ -90,6 +125,9 @@ public class GeminiService : IAiService
         var text = parts[0].GetProperty("text").GetString();
         return text ?? string.Empty;
     }
+
+    private static string AppendBlocks(List<string> blocks)
+        => blocks.Count == 0 ? string.Empty : "\n\n" + string.Join("\n\n", blocks);
 
     private static string TryExtractErrorMessage(string json)
     {

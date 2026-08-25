@@ -29,7 +29,10 @@ public class AnthropicService : IAiService
         _model = string.IsNullOrEmpty(config.Model) ? config.GetDefaultModel() : config.Model;
     }
 
-    public async Task<string> AskAsync(string message, List<ChatMessage> history)
+    public Task<string> AskAsync(string message, List<ChatMessage> history)
+        => AskAsync(message, history, null);
+
+    public async Task<string> AskAsync(string message, List<ChatMessage> history, IReadOnlyList<MessageAttachment>? attachments)
     {
         var messages = new List<object>();
 
@@ -42,7 +45,41 @@ public class AnthropicService : IAiService
             });
         }
 
-        messages.Add(new { role = "user", content = message });
+        var textParts = new List<string>();
+        var images = new List<object>();
+        if (attachments is not null)
+        {
+            foreach (var attachment in attachments)
+            {
+                if (attachment.Kind == AttachmentKind.TextDocument && !string.IsNullOrEmpty(attachment.TextContent))
+                    textParts.Add(attachment.ToTextBlock());
+                else if (attachment.Kind == AttachmentKind.Image && attachment.ImageData is { Length: > 0 })
+                    images.Add(new
+                    {
+                        type = "image",
+                        source = new
+                        {
+                            type = "base64",
+                            media_type = attachment.MimeType,
+                            data = Convert.ToBase64String(attachment.ImageData),
+                        },
+                    });
+            }
+        }
+
+        if (images.Count > 0)
+        {
+            var content = new List<object>();
+            var promptText = message + AppendBlocks(textParts);
+            if (!string.IsNullOrWhiteSpace(promptText))
+                content.Add(new { type = "text", text = promptText });
+            content.AddRange(images);
+            messages.Add(new { role = "user", content });
+        }
+        else
+        {
+            messages.Add(new { role = "user", content = message + AppendBlocks(textParts) });
+        }
 
         var body = new
         {
@@ -80,6 +117,9 @@ public class AnthropicService : IAiService
         var text = contentArray[0].GetProperty("text").GetString();
         return text ?? string.Empty;
     }
+
+    private static string AppendBlocks(List<string> blocks)
+        => blocks.Count == 0 ? string.Empty : "\n\n" + string.Join("\n\n", blocks);
 
     private static string TryExtractErrorMessage(string json)
     {

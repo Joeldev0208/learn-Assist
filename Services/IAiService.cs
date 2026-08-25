@@ -8,4 +8,6 @@ namespace learn_Assist.Services;
 public interface IAiService : IDisposable
 {
     Task<string> AskAsync(string message, List<ChatMessage> history);
+
+    Task<string> AskAsync(string message, List<ChatMessage> history, IReadOnlyList<MessageAttachment>? attachments);
 }
