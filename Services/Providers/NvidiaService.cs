@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -56,8 +57,40 @@ public class NvidiaService : IAiService
             });
         }
 
-        var prompt = message + BuildTextBlocks(attachments);
-        messages.Add(new { role = "user", content = prompt });
+        var textParts = new List<string>();
+        var images = new List<object>();
+        if (attachments is not null)
+        {
+            foreach (var attachment in attachments)
+            {
+                if (attachment.Kind == AttachmentKind.TextDocument && !string.IsNullOrEmpty(attachment.TextContent))
+                    textParts.Add(attachment.ToTextBlock());
+                else if (attachment.Kind == AttachmentKind.Image && attachment.ImageData is { Length: > 0 })
+                    images.Add(new
+                    {
+                        type = "image_url",
+                        image_url = new
+                        {
+                            url = $"data:{attachment.MimeType};base64,{Convert.ToBase64String(attachment.ImageData)}",
+                        },
+                    });
+            }
+        }
+
+        var prompt = message + AppendBlocks(textParts);
+        if (images.Count > 0)
+        {
+            var content = new List<object>
+            {
+                new { type = "text", text = prompt },
+            };
+            content.AddRange(images);
+            messages.Add(new { role = "user", content });
+        }
+        else
+        {
+            messages.Add(new { role = "user", content = prompt });
+        }
 
         var body = new
         {
@@ -68,10 +101,11 @@ public class NvidiaService : IAiService
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}/chat/completions")
         {
+            // Vision-capable NIM models reject "application/json; charset=utf-8" (HTTP 415).
             Content = new StringContent(
                 JsonSerializer.Serialize(body),
                 Encoding.UTF8,
-                "application/json"),
+                new MediaTypeHeaderValue("application/json")),
         };
         request.Headers.Add("Authorization", $"Bearer {_apiKey}");
 
@@ -96,21 +130,8 @@ public class NvidiaService : IAiService
         return text ?? string.Empty;
     }
 
-    private static string BuildTextBlocks(IReadOnlyList<MessageAttachment>? attachments)
-    {
-        if (attachments is null || attachments.Count == 0)
-            return string.Empty;
-
-        var builder = new StringBuilder();
-        foreach (var attachment in attachments)
-        {
-            if (attachment.Kind == AttachmentKind.TextDocument && !string.IsNullOrEmpty(attachment.TextContent))
-                builder.Append("\n\n").Append(attachment.ToTextBlock());
-            else if (attachment.Kind == AttachmentKind.Image)
-                builder.Append($"\n\n[image '{attachment.FileName}' omitted: this provider does not support vision]");
-        }
-        return builder.ToString();
-    }
+    private static string AppendBlocks(List<string> blocks)
+        => blocks.Count == 0 ? string.Empty : "\n\n" + string.Join("\n\n", blocks);
 
     private static string TryExtractErrorMessage(string json)
     {
