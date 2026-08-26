@@ -101,7 +101,7 @@ public partial class ChatViewModel : ViewModelBase
         ErrorMessage = null;
         IsLoading = true;
 
-        var history = Messages.ToList();
+        var imagePaths = new List<string>();
 
         var userMsg = new ChatMessage
         {
@@ -115,12 +115,28 @@ public partial class ChatViewModel : ViewModelBase
         List<MessageAttachment>? attachments = null;
         try
         {
-            attachments = hasAttachments ? BuildAttachments() : null;
+            if (hasAttachments)
+            {
+                attachments = BuildAttachments();
+                foreach (var doc in AttachedDocuments)
+                {
+                    var path = doc.LocalPath ?? doc.FilePath;
+                    if (!string.IsNullOrEmpty(path) && File.Exists(path))
+                        imagePaths.Add(path);
+                }
+                userMsg.ImagePaths = imagePaths.Count > 0 ? imagePaths : null;
+            }
 
             var prompt = string.IsNullOrEmpty(text) && hasAttachments
                 ? "Please analyze the attached resource(s)."
                 : text!;
 
+            var history = Messages.Where(m => m != userMsg).Select(m => new ChatMessage
+            {
+                Role = m.Role,
+                Content = m.Content,
+                Timestamp = m.Timestamp,
+            }).ToList();
             var response = await _aiService.AskAsync(prompt, history, attachments);
 
             var assistantMsg = new ChatMessage
@@ -133,7 +149,19 @@ public partial class ChatViewModel : ViewModelBase
             ScrollToBottomRequested?.Invoke();
 
             AttachedDocuments.Clear();
-
+        }
+        catch (HttpRequestException ex)
+        {
+            ErrorMessage = ex.Message;
+            MessageText = text ?? string.Empty;
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Unexpected error: {ex.Message}";
+            MessageText = text ?? string.Empty;
+        }
+        finally
+        {
             if (_persistence is not null && _currentSession is not null)
             {
                 _currentSession.Messages = new ObservableCollection<ChatMessage>(Messages);
@@ -147,21 +175,7 @@ public partial class ChatViewModel : ViewModelBase
                     ErrorMessage = $"Failed to save conversation: {ex.Message}";
                 }
             }
-        }
-        catch (HttpRequestException ex)
-        {
-            ErrorMessage = ex.Message;
-            Messages.Remove(userMsg);
-            MessageText = text ?? string.Empty;
-        }
-        catch (Exception ex)
-        {
-            ErrorMessage = $"Unexpected error: {ex.Message}";
-            Messages.Remove(userMsg);
-            MessageText = text ?? string.Empty;
-        }
-        finally
-        {
+
             IsLoading = false;
         }
     }

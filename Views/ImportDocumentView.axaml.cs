@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Platform.Storage;
 using learn_Assist.Models;
+using learn_Assist.Services;
 using learn_Assist.ViewModels;
 
 namespace learn_Assist.Views;
@@ -67,9 +68,11 @@ public partial class ImportDocumentView : Window
         }
 
         var file = files[0];
-        var filePath = file.Path.AbsolutePath;
+        var localPath = file.TryGetLocalPath();
+        var filePath = localPath ?? file.Path.AbsolutePath;
         var fileInfo = new FileInfo(filePath);
 
+        var sessionsDir = ApiConfigViewModel.GetDefaultSessionsDirectory();
         var doc = new UserDocument
         {
             Name = file.Name,
@@ -80,6 +83,13 @@ public partial class ImportDocumentView : Window
             ContentType = type,
             ImportedAt = DateTime.Now,
         };
+
+        if (type == DocumentContentType.Image && !string.IsNullOrEmpty(localPath) && fileInfo.Exists)
+        {
+            var copied = SessionPersistenceService.CopyImageToAttachmentsStatic(localPath, "imported", file.Name);
+            doc.FilePath = copied;
+            doc.LocalPath = copied;
+        }
 
         Result = doc;
         Close(doc);

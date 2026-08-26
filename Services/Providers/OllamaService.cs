@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
@@ -18,7 +20,7 @@ public class OllamaService : IAiService
 
     public OllamaService(ApiConfig config)
     {
-        _http = new HttpClient { Timeout = TimeSpan.FromSeconds(60) };
+        _http = new HttpClient { Timeout = TimeSpan.FromMinutes(3) };
         _baseUrl = string.IsNullOrEmpty(config.BaseUrl)
             ? config.GetDefaultBaseUrl()
             : config.BaseUrl.TrimEnd('/');
@@ -47,10 +49,16 @@ public class OllamaService : IAiService
 
         foreach (var msg in history)
         {
+            var content = msg.Content;
+            if (msg.ImagePaths is { Count: > 0 })
+            {
+                var names = string.Join(", ", msg.ImagePaths.Select(p => Path.GetFileName(p)));
+                content += $" [images: {names}]";
+            }
             messages.Add(new
             {
                 role = msg.Role == MessageRole.User ? "user" : "assistant",
-                content = msg.Content,
+                content,
             });
         }
 

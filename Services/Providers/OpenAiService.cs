@@ -39,10 +39,27 @@ public class OpenAiService : IAiService
 
         foreach (var msg in history)
         {
-            if (msg.Role == MessageRole.User)
-                messages.Add(OpenAI.Chat.ChatMessage.CreateUserMessage(msg.Content));
+            if (msg.ImagePaths is { Count: > 0 } && msg.Role == MessageRole.User)
+            {
+                var histContent = new List<ChatMessageContentPart> { ChatMessageContentPart.CreateTextPart(msg.Content) };
+                foreach (var imgPath in msg.ImagePaths)
+                {
+                    if (System.IO.File.Exists(imgPath))
+                    {
+                        var bytes = System.IO.File.ReadAllBytes(imgPath);
+                        histContent.Add(ChatMessageContentPart.CreateImagePart(
+                            BinaryData.FromBytes(bytes), GetMimeType(imgPath)));
+                    }
+                }
+                messages.Add(OpenAI.Chat.ChatMessage.CreateUserMessage(histContent));
+            }
             else
-                messages.Add(OpenAI.Chat.ChatMessage.CreateAssistantMessage(msg.Content));
+            {
+                if (msg.Role == MessageRole.User)
+                    messages.Add(OpenAI.Chat.ChatMessage.CreateUserMessage(msg.Content));
+                else
+                    messages.Add(OpenAI.Chat.ChatMessage.CreateAssistantMessage(msg.Content));
+            }
         }
 
         var textParts = new List<string>();
@@ -79,4 +96,14 @@ public class OpenAiService : IAiService
 
     private static string AppendBlocks(List<string> blocks)
         => blocks.Count == 0 ? string.Empty : "\n\n" + string.Join("\n\n", blocks);
+
+    private static string GetMimeType(string filePath) => System.IO.Path.GetExtension(filePath).ToLowerInvariant() switch
+    {
+        ".jpg" or ".jpeg" => "image/jpeg",
+        ".gif" => "image/gif",
+        ".webp" => "image/webp",
+        ".bmp" => "image/bmp",
+        ".svg" => "image/svg+xml",
+        _ => "image/png",
+    };
 }

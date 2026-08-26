@@ -22,6 +22,38 @@ public class SessionPersistenceService
 
     public string? SessionsDirectory => string.IsNullOrEmpty(_sessionsDir) ? null : _sessionsDir;
 
+    public string GetAttachmentsDir(string sessionTitle)
+    {
+        var dir = Path.Combine(_sessionsDir, SanitizeFileName(sessionTitle));
+        Directory.CreateDirectory(dir);
+        return dir;
+    }
+
+    public string CopyImageToAttachments(string sourcePath, string sessionTitle, string fileName)
+    {
+        var attachmentsDir = GetAttachmentsDir(sessionTitle);
+        var safeName = SanitizeFileName(Path.GetFileNameWithoutExtension(fileName)) + Path.GetExtension(fileName).ToLowerInvariant();
+        var destName = $"{Guid.NewGuid():N}_{safeName}";
+        var destPath = Path.Combine(attachmentsDir, destName);
+        if (!File.Exists(destPath))
+            File.Copy(sourcePath, destPath, false);
+        return destPath;
+    }
+
+    public static string CopyImageToAttachmentsStatic(string sourcePath, string sessionTitle, string fileName)
+    {
+        var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        var sessionsDir = Path.Combine(appData, "learn-assist", "sessions");
+        var dir = Path.Combine(sessionsDir, SanitizeFileName(sessionTitle));
+        Directory.CreateDirectory(dir);
+        var safeName = SanitizeFileName(Path.GetFileNameWithoutExtension(fileName)) + Path.GetExtension(fileName).ToLowerInvariant();
+        var destName = $"{Guid.NewGuid():N}_{safeName}";
+        var destPath = Path.Combine(dir, destName);
+        if (!File.Exists(destPath))
+            File.Copy(sourcePath, destPath, false);
+        return destPath;
+    }
+
     public async Task SaveSessionAsync(ChatSession session)
     {
         if (string.IsNullOrEmpty(_sessionsDir))
@@ -40,6 +72,16 @@ public class SessionPersistenceService
         {
             sb.AppendLine($"## {msg.Role}");
             sb.AppendLine();
+            if (msg.ImagePaths is { Count: > 0 })
+            {
+                foreach (var absPath in msg.ImagePaths)
+                {
+                    var relPath = Uri.EscapeDataString(Path.GetRelativePath(_sessionsDir, absPath).Replace('\\', '/'));
+                    var name = Path.GetFileName(absPath);
+                    sb.AppendLine($"![{Uri.EscapeDataString(name)}]({relPath})");
+                }
+                sb.AppendLine();
+            }
             sb.AppendLine(msg.Content);
             sb.AppendLine();
         }
@@ -64,7 +106,7 @@ public class SessionPersistenceService
             try
             {
                 var lines = await File.ReadAllLinesAsync(file);
-                var session = ParseSessionLines(lines, file);
+                var session = ParseSessionLines(lines, file, _sessionsDir);
                 if (session is not null)
                     sessions.Add(session);
             }
@@ -77,7 +119,7 @@ public class SessionPersistenceService
         return sessions;
     }
 
-    private static ChatSession? ParseSessionLines(string[] lines, string? filePath = null)
+    private static ChatSession? ParseSessionLines(string[] lines, string? filePath = null, string? sessionsDir = null)
     {
         if (lines.Length == 0)
             return null;
@@ -109,6 +151,7 @@ public class SessionPersistenceService
 
         MessageRole? currentRole = null;
         var contentLines = new List<string>();
+        List<string>? currentImagePaths = null;
 
         void FlushMessage()
         {
@@ -118,9 +161,11 @@ public class SessionPersistenceService
                 {
                     Role = currentRole.Value,
                     Content = string.Join("\n", contentLines).Trim(),
+                    ImagePaths = currentImagePaths,
                     Timestamp = DateTime.Now,
                 });
                 contentLines.Clear();
+                currentImagePaths = null;
             }
         }
 
@@ -135,6 +180,30 @@ public class SessionPersistenceService
             {
                 FlushMessage();
                 currentRole = MessageRole.Assistant;
+            }
+            else if (line.TrimStart().StartsWith("<!-- images:") && line.Contains("-->"))
+            {
+                var start = line.IndexOf("images:") + "images:".Length;
+                var end = line.IndexOf("-->", start);
+                if (end > start)
+                {
+                    var paths = line[start..end].Trim()
+                        .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                    currentImagePaths = paths.Length > 0 ? paths.ToList() : null;
+                }
+            }
+            else if (line.TrimStart().StartsWith("![") && line.Contains("](") && line.TrimEnd().EndsWith(")"))
+            {
+                var openParen = line.IndexOf("](");
+                var closeParen = line.TrimEnd().LastIndexOf(')');
+                if (openParen > 0 && closeParen > openParen)
+                {
+                    var relPath = line[(openParen + 2)..closeParen];
+                    var absPath = Path.GetFullPath(Path.Combine(sessionsDir!, Uri.UnescapeDataString(relPath)));
+                    currentImagePaths ??= new List<string>();
+                    if (File.Exists(absPath))
+                        currentImagePaths.Add(absPath);
+                }
             }
             else if (currentRole is not null && !line.StartsWith('#') && !line.StartsWith("Created:", StringComparison.OrdinalIgnoreCase))
             {
@@ -155,7 +224,7 @@ public class SessionPersistenceService
             return null;
 
         var lines = await File.ReadAllLinesAsync(filePath);
-        return ParseSessionLines(lines, filePath);
+        return ParseSessionLines(lines, filePath, _sessionsDir);
     }
 
     public string GetSessionFilePath(string title)

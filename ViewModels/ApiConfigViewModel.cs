@@ -33,10 +33,15 @@ public partial class ApiConfigViewModel : ViewModelBase
     public event Action? ConfigSkipped;
     public event Action? BrowseDirectoryRequested;
 
-    public ApiConfigViewModel()
+    public static string GetDefaultSessionsDirectory()
     {
         var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        SessionsDirectory = Path.Combine(appData, "learn-assist", "sessions");
+        return Path.Combine(appData, "learn-assist", "sessions");
+    }
+
+    public ApiConfigViewModel()
+    {
+        SessionsDirectory = GetDefaultSessionsDirectory();
         UpdateDefaults();
     }
 

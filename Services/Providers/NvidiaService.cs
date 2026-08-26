@@ -21,7 +21,7 @@ public class NvidiaService : IAiService
 
     public NvidiaService(ApiConfig config)
     {
-        _http = new HttpClient { Timeout = TimeSpan.FromSeconds(60) };
+        _http = new HttpClient { Timeout = TimeSpan.FromMinutes(3) };
         _baseUrl = string.IsNullOrEmpty(config.BaseUrl)
             ? DefaultBaseUrl
             : config.BaseUrl.TrimEnd('/');
@@ -50,11 +50,31 @@ public class NvidiaService : IAiService
 
         foreach (var msg in history)
         {
-            messages.Add(new
+            if (msg.ImagePaths is { Count: > 0 } && msg.Role == MessageRole.User)
             {
-                role = msg.Role == MessageRole.User ? "user" : "assistant",
-                content = msg.Content,
-            });
+                var histContent = new List<object> { new { type = "text", text = msg.Content } };
+                foreach (var imgPath in msg.ImagePaths)
+                {
+                    if (System.IO.File.Exists(imgPath))
+                    {
+                        var bytes = System.IO.File.ReadAllBytes(imgPath);
+                        histContent.Add(new
+                        {
+                            type = "image_url",
+                            image_url = new { url = $"data:{GetMimeType(imgPath)};base64,{Convert.ToBase64String(bytes)}" },
+                        });
+                    }
+                }
+                messages.Add(new { role = "user", content = histContent });
+            }
+            else
+            {
+                messages.Add(new
+                {
+                    role = msg.Role == MessageRole.User ? "user" : "assistant",
+                    content = msg.Content,
+                });
+            }
         }
 
         var textParts = new List<string>();
@@ -132,6 +152,16 @@ public class NvidiaService : IAiService
 
     private static string AppendBlocks(List<string> blocks)
         => blocks.Count == 0 ? string.Empty : "\n\n" + string.Join("\n\n", blocks);
+
+    private static string GetMimeType(string filePath) => System.IO.Path.GetExtension(filePath).ToLowerInvariant() switch
+    {
+        ".jpg" or ".jpeg" => "image/jpeg",
+        ".gif" => "image/gif",
+        ".webp" => "image/webp",
+        ".bmp" => "image/bmp",
+        ".svg" => "image/svg+xml",
+        _ => "image/png",
+    };
 
     private static string TryExtractErrorMessage(string json)
     {

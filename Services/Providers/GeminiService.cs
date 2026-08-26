@@ -20,7 +20,7 @@ public class GeminiService : IAiService
 
     public GeminiService(ApiConfig config)
     {
-        _http = new HttpClient { Timeout = TimeSpan.FromSeconds(60) };
+        _http = new HttpClient { Timeout = TimeSpan.FromMinutes(3) };
         _apiKey = config.ApiKey;
         _model = string.IsNullOrEmpty(config.Model) ? config.GetDefaultModel() : config.Model;
     }
@@ -34,11 +34,34 @@ public class GeminiService : IAiService
 
         foreach (var msg in history)
         {
-            contents.Add(new
+            if (msg.ImagePaths is { Count: > 0 } && msg.Role == MessageRole.User)
             {
-                role = msg.Role == MessageRole.User ? "user" : "model",
-                parts = new[] { new { text = msg.Content } },
-            });
+                var histParts = new List<object> { new { text = msg.Content } };
+                foreach (var imgPath in msg.ImagePaths)
+                {
+                    if (System.IO.File.Exists(imgPath))
+                    {
+                        var bytes = System.IO.File.ReadAllBytes(imgPath);
+                        histParts.Add(new
+                        {
+                            inline_data = new
+                            {
+                                mime_type = GetMimeType(imgPath),
+                                data = Convert.ToBase64String(bytes),
+                            },
+                        });
+                    }
+                }
+                contents.Add(new { role = "user", parts = histParts });
+            }
+            else
+            {
+                contents.Add(new
+                {
+                    role = msg.Role == MessageRole.User ? "user" : "model",
+                    parts = new[] { new { text = msg.Content } },
+                });
+            }
         }
 
         var textParts = new List<string>();
@@ -128,6 +151,16 @@ public class GeminiService : IAiService
 
     private static string AppendBlocks(List<string> blocks)
         => blocks.Count == 0 ? string.Empty : "\n\n" + string.Join("\n\n", blocks);
+
+    private static string GetMimeType(string filePath) => System.IO.Path.GetExtension(filePath).ToLowerInvariant() switch
+    {
+        ".jpg" or ".jpeg" => "image/jpeg",
+        ".gif" => "image/gif",
+        ".webp" => "image/webp",
+        ".bmp" => "image/bmp",
+        ".svg" => "image/svg+xml",
+        _ => "image/png",
+    };
 
     private static string TryExtractErrorMessage(string json)
     {

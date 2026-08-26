@@ -103,8 +103,25 @@
                         Padding="14,12" CornerRadius="12"
                         Background="{Binding Role, Converter={StaticResource RoleToBubble}}"
                         BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
-                  <TextBlock Text="{Binding Content}" FontSize="14" Foreground="{DynamicResource TextPrimaryBrush}"
-                             TextWrapping="Wrap" LineHeight="35" />
+                  <StackPanel Spacing="8">
+                    <TextBlock Text="{Binding Content}" FontSize="14" Foreground="{DynamicResource TextPrimaryBrush}"
+                               TextWrapping="Wrap" LineHeight="35" />
+                    <ItemsControl ItemsSource="{Binding ImagePaths}"
+                                  IsVisible="{Binding ImagePaths.Count}">
+                      <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                          <WrapPanel Orientation="Horizontal" />
+                        </ItemsPanelTemplate>
+                      </ItemsControl.ItemsPanel>
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="x:String">
+                          <Border CornerRadius="8" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Margin="0,0,4,4">
+                            <Image Source="{Binding}" Width="180" Height="180" Stretch="Uniform" />
+                          </Border>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                  </StackPanel>
                 </Border>
               </DataTemplate>
             </ItemsControl.ItemTemplate>
