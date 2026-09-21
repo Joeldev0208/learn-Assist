@@ -12,8 +12,12 @@ public class AppSettings
 {
     public static AppSettings Current { get; set; } = new();
 
+    /// <summary>
+    /// Clerk secret key. Currently optional: auth runs on local PC accounts
+    /// (<see cref="Services.LocalAuthService"/>). Kept so Clerk can be
+    /// re-enabled later for a cloud feature.
+    /// </summary>
     [ConfigurationKeyName("CLERK_SECRET_KEY")]
-    [Required(AllowEmptyStrings = false)]
     public string? ClerkSecretKey { get; set; }
 
     /// <summary>

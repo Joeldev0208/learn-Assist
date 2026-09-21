@@ -146,7 +146,7 @@ public class GoogleOAuthService
         var body = await response.Content.ReadAsStringAsync();
 
         if (!response.IsSuccessStatusCode)
-            throw new InvalidOperationException($"Failed to exchange OAuth code (HTTP {(int)response.StatusCode})");
+            throw new InvalidOperationException($"Failed to exchange OAuth code (HTTP {(int)response.StatusCode}). Response: {body}");
 
         using var doc = System.Text.Json.JsonDocument.Parse(body);
         if (!doc.RootElement.TryGetProperty("access_token", out var tokenEl))
@@ -164,7 +164,7 @@ public class GoogleOAuthService
         var body = await response.Content.ReadAsStringAsync();
 
         if (!response.IsSuccessStatusCode)
-            throw new InvalidOperationException($"Failed to fetch Google profile (HTTP {(int)response.StatusCode})");
+            throw new InvalidOperationException($"Failed to fetch Google profile (HTTP {(int)response.StatusCode}). Response: {body}");
 
         using var doc = System.Text.Json.JsonDocument.Parse(body);
         var root = doc.RootElement;

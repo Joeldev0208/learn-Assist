@@ -11,7 +11,9 @@ namespace learn_Assist;
 
 public partial class App : Application
 {
-    private readonly IAuthService _authService = new ClerkAuthService();
+    // Local accounts on this PC. ClerkAuthService is kept in the repo
+    // (unused) so Clerk can be re-enabled later for a cloud feature.
+    private readonly IAuthService _authService = new LocalAuthService();
 
     public override void Initialize()
     {
