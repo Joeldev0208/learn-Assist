@@ -20,9 +20,36 @@
     <conv:ContentTypeToEmojiConverter x:Key="TypeToEmoji" />
   </Window.Resources>
 
-  <Grid>
+  <Grid RowDefinitions="Auto,*">
+    <!-- ===== Update banner ===== -->
+    <Border Grid.Row="0" Background="{DynamicResource SurfaceBrush}"
+            BorderBrush="{DynamicResource WarningBorderBrush}" BorderThickness="0,0,0,1"
+            Padding="14,10" IsVisible="{Binding IsUpdateAvailable}">
+      <DockPanel LastChildFill="True">
+        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+          <Button Command="{Binding ApplyUpdateCommand}"
+                  IsEnabled="{Binding IsUpdating, Converter={x:Static BoolConverters.Not}}"
+                  Background="{DynamicResource ButtonPrimaryBackgroundBrush}"
+                  Foreground="{DynamicResource ButtonPrimaryForegroundBrush}"
+                  CornerRadius="16" Padding="14,6" FontSize="12" FontWeight="SemiBold" BorderThickness="0">
+            <TextBlock Text="{Binding UpdateButtonText}" />
+          </Button>
+          <Button Command="{Binding DismissUpdateCommand}" Width="26" Height="26" Padding="0"
+                  Background="Transparent" BorderThickness="0" FontSize="13"
+                  Foreground="{DynamicResource TextMutedBrush}">
+            <TextBlock Text="✕" HorizontalAlignment="Center" VerticalAlignment="Center" />
+          </Button>
+        </StackPanel>
+        <StackPanel VerticalAlignment="Center">
+          <TextBlock Text="{Binding UpdateMessage}" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="13" TextWrapping="Wrap" />
+          <TextBlock Text="{Binding UpdateError}" Foreground="{DynamicResource ErrorTextBrush}" FontSize="12" TextWrapping="Wrap"
+                     IsVisible="{Binding UpdateError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+        </StackPanel>
+      </DockPanel>
+    </Border>
+
     <!-- ===== Main Content ===== -->
-    <Grid ColumnDefinitions="260,1,*,1,200">
+    <Grid Grid.Row="1" ColumnDefinitions="260,1,*,1,200">
       <Border Background="{DynamicResource SidebarBrush}" Grid.Column="0">
         <DockPanel LastChildFill="True">
           <Border DockPanel.Dock="Top" Padding="16,16,16,8">

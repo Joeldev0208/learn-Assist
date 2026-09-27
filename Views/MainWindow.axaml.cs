@@ -25,6 +25,7 @@ public partial class MainWindow : Window
             _previousVm.Chat.ScrollToBottomRequested -= OnScrollToBottom;
             _previousVm.DocumentList.ImportDialogRequested -= OnImportDialog;
             _previousVm.ConfigureAiRequested -= OnConfigureAi;
+            _previousVm.RestartRequested -= OnRestartRequested;
         }
 
         if (DataContext is MainViewModel vm)
@@ -32,6 +33,7 @@ public partial class MainWindow : Window
             vm.Chat.ScrollToBottomRequested += OnScrollToBottom;
             vm.DocumentList.ImportDialogRequested += OnImportDialog;
             vm.ConfigureAiRequested += OnConfigureAi;
+            vm.RestartRequested += OnRestartRequested;
             _previousVm = vm;
         }
         else
@@ -53,6 +55,13 @@ public partial class MainWindow : Window
     private void OnConfigureAi()
     {
         _ = ShowApiConfigDialogAsync();
+    }
+
+    private void OnRestartRequested()
+    {
+        // The apply-update.cmd script waits for this window to close before
+        // swapping the binary, then relaunches the new version.
+        Close();
     }
 
     private async Task ShowImportDialogAsync()

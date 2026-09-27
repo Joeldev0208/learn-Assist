@@ -125,7 +125,7 @@ public partial class App : Application
             aiService = new MockAiService();
         }
 
-        var mainVm = new MainViewModel(aiService, email, config, persistence);
+        var mainVm = new MainViewModel(aiService, email, config, persistence, new UpdateService());
         var mainWindow = new MainWindow
         {
             DataContext = mainVm,
