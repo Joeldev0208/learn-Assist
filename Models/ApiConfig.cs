@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
 namespace learn_Assist.Models;
@@ -20,6 +21,7 @@ public class ApiConfig
     public string ApiKey { get; set; } = string.Empty;
     public string Model { get; set; } = string.Empty;
     public string SessionsDirectory { get; set; } = string.Empty;
+    public Dictionary<string, string> SavedModels { get; set; } = [];
 
     public string GetDefaultBaseUrl() => Provider switch
     {

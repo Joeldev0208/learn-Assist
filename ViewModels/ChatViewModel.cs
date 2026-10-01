@@ -93,10 +93,9 @@ public partial class ChatViewModel : ViewModelBase
 
             if (_persistence is not null && _currentSession is not null)
             {
-                _currentSession.Messages = new ObservableCollection<ChatMessage>(Messages);
-
                 try
                 {
+                    _currentSession.Messages = new ObservableCollection<ChatMessage>(Messages);
                     await _persistence.SaveSessionAsync(_currentSession);
                 }
                 catch (Exception ex)

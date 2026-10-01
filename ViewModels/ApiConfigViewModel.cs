@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -9,6 +10,9 @@ namespace learn_Assist.ViewModels;
 
 public partial class ApiConfigViewModel : ViewModelBase
 {
+    private readonly Dictionary<string, string> _savedModels = new(StringComparer.OrdinalIgnoreCase);
+    private string _activeProvider = nameof(AiProvider.OpenAI);
+
     [ObservableProperty]
     public partial string SelectedProvider { get; set; } = AiProvider.OpenAI.ToString();
 
@@ -38,6 +42,7 @@ public partial class ApiConfigViewModel : ViewModelBase
     {
         var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
         SessionsDirectory = Path.Combine(appData, "learn-assist", "sessions");
+        _activeProvider = SelectedProvider;
         UpdateDefaults();
     }
 
@@ -48,11 +53,39 @@ public partial class ApiConfigViewModel : ViewModelBase
         ApiKey = existing.ApiKey;
         Model = existing.Model;
         SessionsDirectory = existing.SessionsDirectory;
+        foreach (var savedModel in existing.SavedModels)
+            _savedModels[savedModel.Key] = savedModel.Value;
+
+        if (!string.IsNullOrWhiteSpace(existing.Model))
+            _savedModels[SelectedProvider] = existing.Model;
+
+        _activeProvider = SelectedProvider;
+    }
+
+    partial void OnSelectedProviderChanging(string value)
+    {
+        if (!string.IsNullOrWhiteSpace(Model))
+            _savedModels[_activeProvider] = Model.Trim();
     }
 
     partial void OnSelectedProviderChanged(string value)
     {
         OnPropertyChanged(nameof(IsOpenCode));
+
+        if (Enum.TryParse<AiProvider>(value, out var provider))
+        {
+            _activeProvider = value;
+            if (_savedModels.TryGetValue(value, out var savedModel) &&
+                !string.IsNullOrWhiteSpace(savedModel))
+            {
+                Model = savedModel;
+            }
+            else
+            {
+                Model = new ApiConfig { Provider = provider }.GetDefaultModel();
+            }
+        }
+
         UpdateDefaults();
     }
 
@@ -70,8 +103,13 @@ public partial class ApiConfigViewModel : ViewModelBase
             || BaseUrl == "https://opencode.ai/zen/v1")
         {
             BaseUrl = defaults.GetDefaultBaseUrl();
-            Model = defaults.GetDefaultModel();
         }
+
+        if (string.IsNullOrWhiteSpace(Model))
+            Model = _savedModels.TryGetValue(SelectedProvider, out var savedModel) &&
+                    !string.IsNullOrWhiteSpace(savedModel)
+                ? savedModel
+                : defaults.GetDefaultModel();
     }
 
     [RelayCommand]
@@ -110,6 +148,8 @@ public partial class ApiConfigViewModel : ViewModelBase
             Model = string.IsNullOrWhiteSpace(Model) ? new ApiConfig { Provider = provider }.GetDefaultModel() : Model,
             SessionsDirectory = SessionsDirectory,
         };
+        _savedModels[provider.ToString()] = config.Model.Trim();
+        config.SavedModels = new Dictionary<string, string>(_savedModels, StringComparer.OrdinalIgnoreCase);
 
         try
         {

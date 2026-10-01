@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Threading;
 using learn_Assist.Models;
 using learn_Assist.Services;
@@ -117,7 +118,20 @@ public partial class MainWindow : Window
 
     private void OnScrollToBottom()
     {
-        MessagesScroll?.ScrollToEnd();
+        Dispatcher.UIThread.Post(() => MessagesScroll?.ScrollToEnd());
+    }
+
+    private void OnMessageTextBoxKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.Key != Key.Enter || (e.KeyModifiers & KeyModifiers.Shift) != 0)
+            return;
+
+        if (DataContext is MainViewModel vm &&
+            vm.Chat.SendMessageCommand.CanExecute(null))
+        {
+            e.Handled = true;
+            vm.Chat.SendMessageCommand.Execute(null);
+        }
     }
 
     private void OnImportDialog()

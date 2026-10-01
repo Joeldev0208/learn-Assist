@@ -118,7 +118,7 @@
 
       <Border Background="{DynamicResource BorderBrush}" Grid.Column="1" />
 
-      <Grid Grid.Column="2" RowDefinitions="Auto,*,Auto,Auto">
+      <Grid Grid.Column="2" RowDefinitions="Auto,*,Auto,Auto,Auto">
         <Border Padding="14,10" BorderBrush="{DynamicResource DividerBrush}" BorderThickness="0,0,0,1" Background="{DynamicResource HeaderBackgroundBrush}">
           <DockPanel LastChildFill="True">
             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
@@ -292,14 +292,17 @@
             <ItemsControl ItemsSource="{Binding Chat.Messages}">
               <ItemsControl.ItemTemplate>
                 <DataTemplate DataType="models:ChatMessage">
-                  <Border Margin="0,0,0,16" MaxWidth="720"
-                          HorizontalAlignment="{Binding Role, Converter={StaticResource RoleToAlignment}}"
-                          Padding="14,12" CornerRadius="12"
-                          Background="{Binding Role, Converter={StaticResource RoleToBubble}}"
-                          BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
-                    <TextBlock Text="{Binding Content}" FontSize="14" Foreground="{DynamicResource TextPrimaryBrush}"
-                               TextWrapping="Wrap" LineHeight="24" />
-                  </Border>
+                  <Grid HorizontalAlignment="Stretch" Margin="0,0,0,10">
+                    <Border MaxWidth="720"
+                            HorizontalAlignment="{Binding Role, Converter={StaticResource RoleToAlignment}}"
+                            Padding="14,12" CornerRadius="12"
+                            Background="{Binding Role, Converter={StaticResource RoleToBubble}}"
+                            BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
+                      <TextBlock Text="{Binding Content}" FontSize="14"
+                                 Foreground="{DynamicResource TextPrimaryBrush}"
+                                 TextWrapping="Wrap" LineHeight="22" />
+                    </Border>
+                  </Grid>
                 </DataTemplate>
               </ItemsControl.ItemTemplate>
             </ItemsControl>
@@ -311,7 +314,7 @@
           <TextBlock Text="{Binding Chat.ErrorMessage}" Foreground="{DynamicResource ErrorTextBrush}" FontSize="12" TextWrapping="Wrap" />
         </Border>
 
-        <Border Grid.Row="2" Padding="20,8"
+        <Border Grid.Row="3" Padding="20,8"
                 Background="{DynamicResource HeaderBackgroundBrush}"
                 BorderBrush="{DynamicResource DividerBrush}" BorderThickness="0,1,0,0"
                 IsVisible="{Binding Chat.IsLoading}">
@@ -324,7 +327,7 @@
           </StackPanel>
         </Border>
 
-        <Border Grid.Row="3" Padding="20,14" BorderBrush="{DynamicResource DividerBrush}" BorderThickness="0,1,0,0"
+        <Border Grid.Row="4" Padding="20,14" BorderBrush="{DynamicResource DividerBrush}" BorderThickness="0,1,0,0"
                 Background="{DynamicResource HeaderBackgroundBrush}"
                 IsVisible="{Binding IsLearningSessionActive}">
           <DockPanel LastChildFill="True">
@@ -338,10 +341,13 @@
             <TextBox Text="{Binding Chat.MessageText}"
                      PlaceholderText="What's up with the learning?"
                      FontSize="14" Padding="14,9" CornerRadius="22"
+                     AcceptsReturn="True" TextWrapping="Wrap"
+                     MinHeight="42" MaxHeight="120"
                      BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1"
                      Background="{DynamicResource InputBackgroundBrush}"
                      Foreground="{DynamicResource TextPrimaryBrush}"
-                     IsEnabled="{Binding Chat.IsLoading, Converter={x:Static BoolConverters.Not}}" />
+                     IsEnabled="{Binding Chat.IsLoading, Converter={x:Static BoolConverters.Not}}"
+                     KeyDown="OnMessageTextBoxKeyDown" />
           </DockPanel>
         </Border>
       </Grid>
