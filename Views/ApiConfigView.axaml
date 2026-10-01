@@ -41,6 +41,9 @@
         <TextBox Text="{Binding BaseUrl}" PlaceholderText="https://api.openai.com"
                  BorderThickness="0" Padding="10,8" FontSize="13" />
       </Border>
+      <TextBlock Text="OpenCode uses https://opencode.ai/zen/v1 by default. You can replace it with another OpenAI-compatible endpoint."
+                 FontSize="11" Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap"
+                 IsVisible="{Binding IsOpenCode}" />
 
       <TextBlock Text="API Key" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" />
       <Border CornerRadius="8" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" Background="{DynamicResource InputBackgroundBrush}">

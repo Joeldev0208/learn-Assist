@@ -11,7 +11,7 @@ AI-powered desktop learning assistant built with **Avalonia 12.1.0** and **.NET 
 | Theme | FluentTheme + Inter Font |
 | MVVM | CommunityToolkit.Mvvm 8.4.2 (source generators) |
 | Auth | Clerk Backend API 2.0.0 (`CLERK_SECRET_KEY` via `.env`) + Frontend API (OAuth) |
-| AI Providers | OpenAI SDK, Anthropic, Google Gemini, Ollama, NVIDIA (raw `HttpClient`) |
+| AI Providers | OpenAI SDK, Anthropic, Google Gemini, Ollama, NVIDIA, OpenCode |
 | Settings | Microsoft.Extensions.Configuration + Options (validated, pydantic-settings-like) |
 
 ## Project Structure
@@ -27,10 +27,10 @@ AI-powered desktop learning assistant built with **Avalonia 12.1.0** and **.NET 
 │                               (Main, SessionList, Chat, DocumentList, Tutorial,
 │                                Login, Register, VerifyEmail, ImportDocument, ApiConfig, Install)
 ├── Views/                      Avalonia XAML + code-behind windows/controls
-├── Services/                   IAuthService (ClerkAuthService), IAiService (Mock + 4 providers),
+├── Services/                   IAuthService (ClerkAuthService), IAiService (Mock + 5 providers),
 │                               ConfigEncryption, SessionPersistenceService, AiServiceFactory,
 │                               InstallationService, OAuth: FapiOAuthClient, OAuthLoopbackListener, OAuthFlow
-├── Services/Providers/         OpenAiService, AnthropicService, GeminiService, OllamaService, NvidiaService
+├── Services/Providers/         OpenAiService, AnthropicService, GeminiService, OllamaService, NvidiaService, OpenCodeService
 ├── Converters/                 IValueConverter (message bubble alignment/color, content-type emoji)
 ├── Assets/                     Icons (avalonia-logo.ico/.png) and screenshots
 ├── scripts/publish.sh          Local self-contained build → dist/ (gitignored)
@@ -119,7 +119,7 @@ Three-panel layout: **session list (left) / chat (center) / document list (right
 - `IAiService` (`AskAsync(message, history)`) with `MockAiService` (hardcoded response) for testing.
 - Production providers in `Services/Providers/`:
   - **OpenAiService** — uses the official `OpenAI` NuGet SDK (`ChatClient`).
-  - **AnthropicService**, **GeminiService**, **OllamaService**, **NvidiaService** — call native endpoints via raw `HttpClient` + `JsonDocument`. Ollama is local (`http://localhost:11434`, model `llama3.2`, API key optional). NVIDIA uses the OpenAI-compatible endpoint `https://integrate.api.nvidia.com/v1` (model `nvidia/llama-3.3-nemotron-super-49b-v1`).
+  - **AnthropicService**, **GeminiService**, **OllamaService**, **NvidiaService**, **OpenCodeService** — call native endpoints via raw `HttpClient` + `JsonDocument`. Ollama is local (`http://localhost:11434`, model `llama3.2`, API key optional). NVIDIA uses the OpenAI-compatible endpoint `https://integrate.api.nvidia.com/v1` (model `nvidia/llama-3.3-nemotron-super-49b-v1`). OpenCode uses its OpenAI-compatible Zen endpoint `https://opencode.ai/zen/v1` (model `big-pickle`) by default; both URL and model can be changed in the AI configuration dialog.
   - Provider implementations are heterogeneous — don't assume SDK usage when editing.
 - `AiServiceFactory.Create(config)` returns the correct provider based on `ApiConfig.Provider`.
 - Provider selection + API key configured via `ApiConfigView` (modal dialog triggered by `MainViewModel.ConfigureAiRequested`) → encrypted via `ConfigEncryption` (AES-256 + PBKDF2-derived key) to `~/.config/learn-assist/config.enc`.
@@ -158,7 +158,7 @@ Three-panel layout: **session list (left) / chat (center) / document list (right
 | First-run install wizard (user + system scope) | Done |
 | Chat UI (three-panel) | Done |
 | AI service (MockAiService) | Done |
-| Real AI integration (OpenAI, Anthropic, Gemini, Ollama, NVIDIA) | Done |
+| Real AI integration (OpenAI, Anthropic, Gemini, Ollama, NVIDIA, OpenCode) | Done |
 | API config encryption (AES-256 + PBKDF2) | Done |
 | Document import | Done |
 | Session persistence (`.md` autosave) | Done |

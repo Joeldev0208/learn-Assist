@@ -11,7 +11,7 @@
         Icon="/Assets/avalonia-logo.ico"
         Title="learn_Assist"
         WindowStartupLocation="CenterScreen"
-        Width="1200" Height="700"
+        Width="1200" Height="700" MinWidth="720" MinHeight="500"
         Background="{DynamicResource WindowBackgroundBrush}">
 
   <Window.Resources>
@@ -27,6 +27,14 @@
             Padding="14,10" IsVisible="{Binding IsUpdateAvailable}">
       <DockPanel LastChildFill="True">
         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+          <Button Width="30" Height="30"
+                  Command="{Binding EndLearningSessionCommand}"
+                  IsVisible="{Binding IsLearningSessionActive}"
+                  Background="Transparent" BorderThickness="0" Padding="0"
+                  Foreground="{DynamicResource TextMutedBrush}"
+                  ToolTip.Tip="Return to learning home">
+            <TextBlock Text="←" FontSize="17" HorizontalAlignment="Center" VerticalAlignment="Center" />
+          </Button>
           <Button Command="{Binding ApplyUpdateCommand}"
                   IsEnabled="{Binding IsUpdating, Converter={x:Static BoolConverters.Not}}"
                   Background="{DynamicResource ButtonPrimaryBackgroundBrush}"
@@ -49,12 +57,26 @@
     </Border>
 
     <!-- ===== Main Content ===== -->
-    <Grid Grid.Row="1" ColumnDefinitions="260,1,*,1,200">
-      <Border Background="{DynamicResource SidebarBrush}" Grid.Column="0">
+    <Grid Grid.Row="1" x:Name="WorkspaceGrid" ColumnDefinitions="260,1,*,1,220">
+      <Border Background="{DynamicResource SidebarBrush}" Grid.Column="0"
+              IsVisible="{Binding IsSessionsVisible}">
         <DockPanel LastChildFill="True">
           <Border DockPanel.Dock="Top" Padding="16,16,16,8">
-            <StackPanel Spacing="6">
-              <TextBlock Text="Chat History" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" />
+            <StackPanel Spacing="8">
+              <DockPanel LastChildFill="True">
+                <Button DockPanel.Dock="Right" Width="30" Height="30"
+                        Command="{Binding SessionList.NewSessionCommand}"
+                        Background="{DynamicResource ButtonPrimaryBackgroundBrush}"
+                        Foreground="{DynamicResource ButtonPrimaryForegroundBrush}"
+                        CornerRadius="15" BorderThickness="0" Padding="0"
+                        ToolTip.Tip="Start a new chat">
+                  <TextBlock Text="+" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                </Button>
+                <StackPanel>
+                  <TextBlock Text="Your workspace" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" />
+                  <TextBlock Text="Chat history" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" />
+                </StackPanel>
+              </DockPanel>
               <Border Height="1" Background="{DynamicResource DividerBrush}" Margin="0,2,0,0" />
             </StackPanel>
           </Border>
@@ -97,9 +119,25 @@
       <Border Background="{DynamicResource BorderBrush}" Grid.Column="1" />
 
       <Grid Grid.Column="2" RowDefinitions="Auto,*,Auto,Auto">
-        <Border Padding="20,14" BorderBrush="{DynamicResource DividerBrush}" BorderThickness="0,0,0,1" Background="{DynamicResource HeaderBackgroundBrush}">
+        <Border Padding="14,10" BorderBrush="{DynamicResource DividerBrush}" BorderThickness="0,0,0,1" Background="{DynamicResource HeaderBackgroundBrush}">
           <DockPanel LastChildFill="True">
             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+              <Button Width="30" Height="30"
+                      Command="{Binding ToggleSessionsCommand}"
+                      IsVisible="{Binding IsCompactLayout}"
+                      Background="Transparent" BorderThickness="0" Padding="0"
+                      Foreground="{DynamicResource TextMutedBrush}"
+                      ToolTip.Tip="Show chat history">
+                <TextBlock Text="☰" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center" />
+              </Button>
+              <Button Width="30" Height="30"
+                      Command="{Binding ToggleResourcesCommand}"
+                      IsVisible="{Binding IsCompactLayout}"
+                      Background="Transparent" BorderThickness="0" Padding="0"
+                      Foreground="{DynamicResource TextMutedBrush}"
+                      ToolTip.Tip="Show resources">
+                <TextBlock Text="▣" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center" />
+              </Button>
               <Button Width="30" Height="30"
                       Command="{Binding ToggleThemeCommand}"
                       Background="Transparent" BorderThickness="0"
@@ -117,25 +155,155 @@
                 <TextBlock Text="⚙" HorizontalAlignment="Center" VerticalAlignment="Center" />
               </Button>
             </StackPanel>
-            <TextBlock Text="Learn-Assist" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
+            <StackPanel VerticalAlignment="Center">
+              <TextBlock Text="Learn-Assist" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" />
+              <StackPanel Orientation="Horizontal" Spacing="5"
+                          IsVisible="{Binding IsLearningSessionActive}">
+                <TextBlock Text="Learning workspace ·" FontSize="11"
+                           Foreground="{DynamicResource TextMutedBrush}" />
+                <TextBlock Text="{Binding LearningGoal}" FontSize="11"
+                           Foreground="{DynamicResource TextMutedBrush}" />
+              </StackPanel>
+              <TextBlock Text="One clear step at a time"
+                         FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+                         IsVisible="{Binding IsLearningSessionActive, Converter={x:Static BoolConverters.Not}}" />
+            </StackPanel>
           </DockPanel>
         </Border>
 
-        <ScrollViewer Grid.Row="1" Padding="24,16" x:Name="MessagesScroll" Background="{DynamicResource WindowBackgroundBrush}">
-          <ItemsControl ItemsSource="{Binding Chat.Messages}">
-            <ItemsControl.ItemTemplate>
-              <DataTemplate DataType="models:ChatMessage">
-                <Border Margin="0,0,0,35" MaxWidth="680"
-                        HorizontalAlignment="{Binding Role, Converter={StaticResource RoleToAlignment}}"
-                        Padding="14,12" CornerRadius="12"
-                        Background="{Binding Role, Converter={StaticResource RoleToBubble}}"
-                        BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
-                  <TextBlock Text="{Binding Content}" FontSize="14" Foreground="{DynamicResource TextPrimaryBrush}"
-                             TextWrapping="Wrap" LineHeight="35" />
-                </Border>
-              </DataTemplate>
-            </ItemsControl.ItemTemplate>
-          </ItemsControl>
+        <ScrollViewer Grid.Row="1" Padding="28,24" Background="{DynamicResource WindowBackgroundBrush}"
+                      IsVisible="{Binding IsLearningSessionActive, Converter={x:Static BoolConverters.Not}}">
+          <StackPanel MaxWidth="700" HorizontalAlignment="Center" Spacing="20">
+            <StackPanel Spacing="8">
+              <TextBlock Text="Continue learning" FontSize="28" FontWeight="Bold"
+                         Foreground="{DynamicResource TextPrimaryBrush}" />
+              <TextBlock Text="Choose one goal. Learn it, practice it, and leave with a clear next step."
+                         FontSize="15" Foreground="{DynamicResource TextSecondaryBrush}"
+                         TextWrapping="Wrap" />
+            </StackPanel>
+
+            <Border Padding="22" CornerRadius="16"
+                    Background="{DynamicResource SurfaceBrush}"
+                    BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
+              <StackPanel Spacing="16">
+                <StackPanel Spacing="5">
+                  <TextBlock Text="What do you want to understand?"
+                             FontSize="16" FontWeight="SemiBold"
+                             Foreground="{DynamicResource TextPrimaryBrush}" />
+                  <TextBlock Text="Keep it specific. The app will guide you through one focused session."
+                             FontSize="12" Foreground="{DynamicResource TextMutedBrush}"
+                             TextWrapping="Wrap" />
+                </StackPanel>
+                <TextBox Text="{Binding LearningGoal}"
+                         PlaceholderText="For example: React component state"
+                         FontSize="15" Padding="14,11" CornerRadius="10"
+                         Background="{DynamicResource InputBackgroundBrush}"
+                         BorderBrush="{DynamicResource InputBorderBrush}"
+                         Foreground="{DynamicResource TextPrimaryBrush}" />
+                <Button Command="{Binding StartLearningSessionCommand}"
+                        Background="{DynamicResource ButtonPrimaryBackgroundBrush}"
+                        Foreground="{DynamicResource ButtonPrimaryForegroundBrush}"
+                        CornerRadius="10" Padding="18,11"
+                        HorizontalAlignment="Left" BorderThickness="0">
+                  <TextBlock Text="Start learning session" FontSize="14" FontWeight="SemiBold" />
+                </Button>
+              </StackPanel>
+            </Border>
+
+            <Button Command="{Binding StartQuickSessionCommand}"
+                    Background="Transparent" BorderThickness="0"
+                    Foreground="{DynamicResource BrandBrush}"
+                    HorizontalAlignment="Center" Padding="10,6">
+              <TextBlock Text="Start a quick 5-minute session" FontSize="13" />
+            </Button>
+
+            <Grid ColumnDefinitions="*,*,*" ColumnSpacing="10">
+              <Border Grid.Column="0" Padding="14" CornerRadius="12"
+                      Background="{DynamicResource SurfaceBrush}"
+                      BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
+                <StackPanel Spacing="6">
+                  <TextBlock Text="1  Understand" FontWeight="SemiBold"
+                             Foreground="{DynamicResource TextPrimaryBrush}" />
+                  <TextBlock Text="A short explanation without the noise."
+                             FontSize="12" TextWrapping="Wrap"
+                             Foreground="{DynamicResource TextMutedBrush}" />
+                </StackPanel>
+              </Border>
+              <Border Grid.Column="1" Padding="14" CornerRadius="12"
+                      Background="{DynamicResource SurfaceBrush}"
+                      BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
+                <StackPanel Spacing="6">
+                  <TextBlock Text="2  Practice" FontWeight="SemiBold"
+                             Foreground="{DynamicResource TextPrimaryBrush}" />
+                  <TextBlock Text="A small task that makes it stick."
+                             FontSize="12" TextWrapping="Wrap"
+                             Foreground="{DynamicResource TextMutedBrush}" />
+                </StackPanel>
+              </Border>
+              <Border Grid.Column="2" Padding="14" CornerRadius="12"
+                      Background="{DynamicResource SurfaceBrush}"
+                      BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
+                <StackPanel Spacing="6">
+                  <TextBlock Text="3  Explain" FontWeight="SemiBold"
+                             Foreground="{DynamicResource TextPrimaryBrush}" />
+                  <TextBlock Text="Say it back and know what comes next."
+                             FontSize="12" TextWrapping="Wrap"
+                             Foreground="{DynamicResource TextMutedBrush}" />
+                </StackPanel>
+              </Border>
+            </Grid>
+          </StackPanel>
+        </ScrollViewer>
+
+        <ScrollViewer Grid.Row="1" Padding="24,16" x:Name="MessagesScroll"
+                      Background="{DynamicResource WindowBackgroundBrush}"
+                      IsVisible="{Binding IsLearningSessionActive}">
+          <StackPanel Spacing="14">
+            <Border MaxWidth="720" HorizontalAlignment="Center" Padding="14,12"
+                    CornerRadius="12" Background="{DynamicResource SurfaceBrush}"
+                    BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
+              <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+                <StackPanel Spacing="2">
+                  <TextBlock Text="{Binding LearningStepLabel}" FontSize="11"
+                             Foreground="{DynamicResource BrandBrush}" FontWeight="SemiBold" />
+                  <TextBlock Text="{Binding LearningProgressText}" FontSize="14"
+                             Foreground="{DynamicResource TextPrimaryBrush}" FontWeight="SemiBold" />
+                </StackPanel>
+                <Button Grid.Column="1" Command="{Binding NeedLearningHelpCommand}"
+                        Background="{DynamicResource ButtonSecondaryBackgroundBrush}"
+                        Foreground="{DynamicResource ButtonSecondaryForegroundBrush}"
+                        BorderThickness="0" CornerRadius="8" Padding="10,7">
+                  <TextBlock Text="Make it simpler" FontSize="12" />
+                </Button>
+                <Button Grid.Column="2" Command="{Binding CompleteLearningStepCommand}"
+                        Background="{DynamicResource ButtonPrimaryBackgroundBrush}"
+                        Foreground="{DynamicResource ButtonPrimaryForegroundBrush}"
+                        BorderThickness="0" CornerRadius="8" Padding="10,7">
+                  <TextBlock Text="{Binding LearningActionText}" FontSize="12" />
+                </Button>
+              </Grid>
+            </Border>
+            <Border MaxWidth="720" HorizontalAlignment="Center" Padding="14,12"
+                    CornerRadius="12" Background="{DynamicResource SuccessTextBrush}"
+                    IsVisible="{Binding IsLearningSessionComplete}">
+              <TextBlock Text="Nice work. You completed this focused session. Return when you are ready for the next idea."
+                         Foreground="{DynamicResource BrandTextBrush}" TextWrapping="Wrap" FontSize="13" />
+            </Border>
+            <ItemsControl ItemsSource="{Binding Chat.Messages}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate DataType="models:ChatMessage">
+                  <Border Margin="0,0,0,16" MaxWidth="720"
+                          HorizontalAlignment="{Binding Role, Converter={StaticResource RoleToAlignment}}"
+                          Padding="14,12" CornerRadius="12"
+                          Background="{Binding Role, Converter={StaticResource RoleToBubble}}"
+                          BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
+                    <TextBlock Text="{Binding Content}" FontSize="14" Foreground="{DynamicResource TextPrimaryBrush}"
+                               TextWrapping="Wrap" LineHeight="24" />
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
         </ScrollViewer>
 
         <Border Grid.Row="2" Padding="20,8" Background="{DynamicResource ErrorBackgroundBrush}" BorderBrush="{DynamicResource ErrorBorderBrush}" BorderThickness="0,1,0,0"
@@ -143,7 +311,22 @@
           <TextBlock Text="{Binding Chat.ErrorMessage}" Foreground="{DynamicResource ErrorTextBrush}" FontSize="12" TextWrapping="Wrap" />
         </Border>
 
-        <Border Grid.Row="3" Padding="20,12" BorderBrush="{DynamicResource DividerBrush}" BorderThickness="0,1,0,0" Background="{DynamicResource HeaderBackgroundBrush}">
+        <Border Grid.Row="2" Padding="20,8"
+                Background="{DynamicResource HeaderBackgroundBrush}"
+                BorderBrush="{DynamicResource DividerBrush}" BorderThickness="0,1,0,0"
+                IsVisible="{Binding Chat.IsLoading}">
+          <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+            <ProgressBar Width="72" Height="5" IsIndeterminate="True"
+                         Foreground="{DynamicResource BrandBrush}"
+                         Background="{DynamicResource InputBorderBrush}" />
+            <TextBlock Text="Thinking..." FontSize="12"
+                       Foreground="{DynamicResource TextMutedBrush}" />
+          </StackPanel>
+        </Border>
+
+        <Border Grid.Row="3" Padding="20,14" BorderBrush="{DynamicResource DividerBrush}" BorderThickness="0,1,0,0"
+                Background="{DynamicResource HeaderBackgroundBrush}"
+                IsVisible="{Binding IsLearningSessionActive}">
           <DockPanel LastChildFill="True">
             <Button DockPanel.Dock="Right" Width="38" Height="38" Margin="10,0,0,0"
                     Command="{Binding Chat.SendMessageCommand}"
@@ -165,7 +348,8 @@
 
       <Border Background="{DynamicResource BorderBrush}" Grid.Column="3" />
 
-      <Border Background="{DynamicResource SidebarBrush}" Grid.Column="4">
+      <Border Background="{DynamicResource SidebarBrush}" Grid.Column="4"
+              IsVisible="{Binding IsResourcesVisible}">
         <DockPanel LastChildFill="True">
           <Border DockPanel.Dock="Top" Padding="14,16,14,8">
             <StackPanel Spacing="6">

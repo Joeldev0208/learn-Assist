@@ -13,13 +13,27 @@ public partial class MainViewModel : ViewModelBase
     private readonly string _userEmail;
     private SessionPersistenceService? _persistence;
     private readonly UpdateService? _updateService;
+    private Action? _configureAiRequested;
+    private bool _configureAiPending;
 
     public SessionListViewModel SessionList { get; }
     public ChatViewModel Chat { get; }
     public DocumentListViewModel DocumentList { get; }
     public TutorialViewModel Tutorial { get; }
 
-    public event Action? ConfigureAiRequested;
+    public event Action? ConfigureAiRequested
+    {
+        add
+        {
+            _configureAiRequested += value;
+            if (_configureAiPending && value is not null)
+            {
+                _configureAiPending = false;
+                value();
+            }
+        }
+        remove => _configureAiRequested -= value;
+    }
     public event Action? RestartRequested;
 
     public string ThemeGlyph => ThemeService.IsDark ? "☀️" : "🌙";
@@ -32,6 +46,36 @@ public partial class MainViewModel : ViewModelBase
 
     [ObservableProperty]
     public partial bool IsUpdating { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsCompactLayout { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsSessionsVisible { get; set; } = true;
+
+    [ObservableProperty]
+    public partial bool IsResourcesVisible { get; set; } = true;
+
+    [ObservableProperty]
+    public partial string LearningGoal { get; set; } = string.Empty;
+
+    [ObservableProperty]
+    public partial bool IsLearningSessionActive { get; set; }
+
+    [ObservableProperty]
+    public partial int LearningStep { get; set; } = 1;
+
+    [ObservableProperty]
+    public partial bool IsLearningSessionComplete { get; set; }
+
+    public string LearningStepLabel => $"Step {LearningStep} of 3";
+    public string LearningProgressText => LearningStep switch
+    {
+        1 => "Understand the idea",
+        2 => "Practice with a small example",
+        _ => "Explain it in your own words",
+    };
+    public string LearningActionText => LearningStep == 3 ? "Finish session" : "Next step";
 
     [ObservableProperty]
     public partial string? UpdateError { get; set; }
@@ -53,7 +97,73 @@ public partial class MainViewModel : ViewModelBase
     [RelayCommand]
     private void ReconfigureAi()
     {
-        ConfigureAiRequested?.Invoke();
+        _configureAiRequested?.Invoke();
+    }
+
+    [RelayCommand]
+    private void ToggleSessions()
+    {
+        IsSessionsVisible = !IsSessionsVisible;
+    }
+
+    [RelayCommand]
+    private void ToggleResources()
+    {
+        IsResourcesVisible = !IsResourcesVisible;
+    }
+
+    [RelayCommand]
+    private void StartLearningSession()
+    {
+        if (string.IsNullOrWhiteSpace(LearningGoal))
+            LearningGoal = "A topic I want to understand";
+
+        IsLearningSessionActive = true;
+        IsLearningSessionComplete = false;
+        LearningStep = 1;
+        Chat.AddWelcomeMessage();
+        Chat.MessageText = $"Help me learn {LearningGoal.Trim()} in a short focused session.";
+        Chat.SendMessageCommand.Execute(null);
+    }
+
+    [RelayCommand]
+    private void StartQuickSession()
+    {
+        LearningGoal = "one useful idea in five minutes";
+        StartLearningSession();
+    }
+
+    [RelayCommand]
+    private void CompleteLearningStep()
+    {
+        if (LearningStep < 3)
+        {
+            LearningStep++;
+            return;
+        }
+
+        IsLearningSessionComplete = true;
+    }
+
+    [RelayCommand]
+    private void EndLearningSession()
+    {
+        IsLearningSessionActive = false;
+        IsLearningSessionComplete = false;
+        LearningStep = 1;
+    }
+
+    [RelayCommand]
+    private void NeedLearningHelp()
+    {
+        Chat.MessageText = $"Explain {LearningGoal} with a simpler example and one short practice question.";
+    }
+
+    partial void OnLearningStepChanged(int value)
+    {
+        OnPropertyChanged(nameof(LearningStepLabel));
+        OnPropertyChanged(nameof(LearningProgressText));
+        OnPropertyChanged(nameof(LearningActionText));
     }
 
     public MainViewModel(IAiService aiService, string userEmail, ApiConfig? config = null, SessionPersistenceService? persistence = null, UpdateService? updateService = null)
@@ -83,7 +193,7 @@ public partial class MainViewModel : ViewModelBase
         }
         else if (config is null)
         {
-            ConfigureAiRequested?.Invoke();
+            _configureAiPending = true;
         }
 
         if (_updateService is { IsSupported: true })
@@ -139,7 +249,7 @@ public partial class MainViewModel : ViewModelBase
     private void OnTutorialFinished()
     {
         if (!ConfigEncryption.ConfigExists())
-            ConfigureAiRequested?.Invoke();
+            _configureAiRequested?.Invoke();
     }
 
     public void ApplyConfig(ApiConfig config)

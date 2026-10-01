@@ -10,7 +10,7 @@
         Title="learn_Assist - Verify Email"
         WindowStartupLocation="CenterScreen"
         CanResize="False"
-        Width="800" Height="500"
+        Width="800" Height="500" MinWidth="640" MinHeight="420"
         Background="{DynamicResource WindowBackgroundBrush}">
 
   <Window.Styles>
@@ -25,6 +25,13 @@
     <Border Background="{DynamicResource SurfaceBrush}" Grid.Column="0">
       <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="14" MaxWidth="320" Margin="48">
+          <Button Command="{Binding ToggleThemeCommand}"
+                  HorizontalAlignment="Right" Width="32" Height="32" Padding="0"
+                  Background="Transparent" BorderThickness="0" FontSize="15"
+                  ToolTip.Tip="Toggle light/dark theme"
+                  HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
+            <TextBlock Text="{Binding ThemeGlyph}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+          </Button>
           <TextBlock Text="Verify your email" FontSize="26" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Center" />
           <TextBlock FontSize="13" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center">
             <Run Text="We sent a code to " />

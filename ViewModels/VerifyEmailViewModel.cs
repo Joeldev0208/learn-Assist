@@ -42,8 +42,17 @@ public partial class VerifyEmailViewModel : ViewModelBase
     [ObservableProperty]
     public partial string? StatusMessage { get; set; }
 
+    public string ThemeGlyph => ThemeService.IsDark ? "☀️" : "🌙";
+
     public event Action? VerificationSucceeded;
     public event Action? BackToRegisterRequested;
+
+    [RelayCommand]
+    private void ToggleTheme()
+    {
+        ThemeService.Toggle();
+        OnPropertyChanged(nameof(ThemeGlyph));
+    }
 
     [RelayCommand]
     private async Task SendCodeAsync()

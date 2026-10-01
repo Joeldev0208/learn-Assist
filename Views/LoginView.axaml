@@ -10,7 +10,7 @@
         Title="learn_Assist - Login"
         WindowStartupLocation="CenterScreen"
         CanResize="False"
-        Width="800" Height="500"
+        Width="800" Height="500" MinWidth="640" MinHeight="420"
         Background="{DynamicResource WindowBackgroundBrush}">
 
   <Window.Styles>
@@ -24,6 +24,7 @@
   <Grid ColumnDefinitions="*,*">
     <Border Background="{DynamicResource SurfaceBrush}" Grid.Column="0"
             BoxShadow="4 0 12 #0A000000">
+      <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
       <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="8" MaxWidth="320" Margin="32">
 
         <Button Command="{Binding ToggleThemeCommand}"
@@ -40,7 +41,7 @@
         <Button Command="{Binding SignInWithGoogleCommand}"
                 IsVisible="{Binding IsGoogleOAuthConfigured}" HorizontalAlignment="Stretch" Padding="10,9" Background="Transparent" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" CornerRadius="20" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="13">
           <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center">
-            <Image Source="/Assets/GoogleG_FullColor_RGB.png" Width="40" Height="40" Margin="0,0,8,0"/>
+            <Image Source="/Assets/GoogleG_FullColor_RGB.png" Width="20" Height="20" Margin="0,0,8,0"/>
             <TextBlock Text="Sign in with Google" VerticalAlignment="Center"/>
           </StackPanel>
         </Button>
@@ -101,6 +102,7 @@
 
         <Button Content="Don't have an account? Sign up" Command="{Binding GoToRegisterCommand}" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Center" FontSize="12" Margin="0,2,0,0" />
       </StackPanel>
+      </ScrollViewer>
     </Border>
 
     <Border Background="{DynamicResource BrandPanelBrush}" Grid.Column="1">

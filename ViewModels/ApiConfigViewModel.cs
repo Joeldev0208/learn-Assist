@@ -28,6 +28,7 @@ public partial class ApiConfigViewModel : ViewModelBase
     public partial string? ErrorMessage { get; set; }
 
     public string[] ProviderNames { get; } = Enum.GetNames<AiProvider>();
+    public bool IsOpenCode => SelectedProvider == nameof(AiProvider.OpenCode);
 
     public event Action<ApiConfig>? ConfigSaved;
     public event Action? ConfigSkipped;
@@ -51,6 +52,7 @@ public partial class ApiConfigViewModel : ViewModelBase
 
     partial void OnSelectedProviderChanged(string value)
     {
+        OnPropertyChanged(nameof(IsOpenCode));
         UpdateDefaults();
     }
 
@@ -64,7 +66,8 @@ public partial class ApiConfigViewModel : ViewModelBase
             || BaseUrl == "https://api.anthropic.com"
             || BaseUrl == "https://generativelanguage.googleapis.com"
             || BaseUrl == "http://localhost:11434"
-            || BaseUrl == "https://integrate.api.nvidia.com/v1")
+            || BaseUrl == "https://integrate.api.nvidia.com/v1"
+            || BaseUrl == "https://opencode.ai/zen/v1")
         {
             BaseUrl = defaults.GetDefaultBaseUrl();
             Model = defaults.GetDefaultModel();

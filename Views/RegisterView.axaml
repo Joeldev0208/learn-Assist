@@ -10,7 +10,7 @@
         Title="learn_Assist - Register"
         WindowStartupLocation="CenterScreen"
         CanResize="False"
-        Width="800" Height="600"
+        Width="800" Height="600" MinWidth="640" MinHeight="480"
         Background="{DynamicResource WindowBackgroundBrush}">
 
   <Window.Styles>
