@@ -7,6 +7,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using learn_Assist.Models;
+using learn_Assist.Services;
 
 namespace learn_Assist.Services.Providers;
 
@@ -49,7 +50,7 @@ public class GeminiService : IAiService
             contents,
             systemInstruction = new
             {
-                parts = new[] { new { text = "You are a helpful learning assistant." } },
+                parts = new[] { new { text = AiPrompt.System } },
             },
         };
 

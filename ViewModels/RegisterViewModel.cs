@@ -30,8 +30,7 @@ public partial class RegisterViewModel : ViewModelBase
     [RelayCommand]
     private void ToggleTheme()
     {
-        ThemeService.Toggle();
-        OnPropertyChanged(nameof(ThemeGlyph));
+        ThemeService.ToggleAndRestart();
     }
 
     [ObservableProperty]

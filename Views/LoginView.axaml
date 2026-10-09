@@ -1,16 +1,17 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:learn_Assist.ViewModels"
+        xmlns:services="using:learn_Assist.Services"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="500"
         x:Class="learn_Assist.Views.LoginView"
         x:DataType="vm:LoginViewModel"
-        Icon="/Assets/avalonia-logo.ico"
+        Icon="/Assets/learn-assist.ico"
         Title="learn_Assist - Login"
         WindowStartupLocation="CenterScreen"
         CanResize="False"
-        Width="800" Height="500"
+        Width="800" Height="500" MinWidth="640" MinHeight="420"
         Background="{DynamicResource WindowBackgroundBrush}">
 
   <Window.Styles>
@@ -24,6 +25,7 @@
   <Grid ColumnDefinitions="*,*">
     <Border Background="{DynamicResource SurfaceBrush}" Grid.Column="0"
             BoxShadow="4 0 12 #0A000000">
+      <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
       <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="8" MaxWidth="320" Margin="32">
 
         <Button Command="{Binding ToggleThemeCommand}"
@@ -40,7 +42,7 @@
         <Button Command="{Binding SignInWithGoogleCommand}"
                 IsVisible="{Binding IsGoogleOAuthConfigured}" HorizontalAlignment="Stretch" Padding="10,9" Background="Transparent" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" CornerRadius="20" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="13">
           <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center">
-            <Image Source="/Assets/GoogleG_FullColor_RGB.png" Width="40" Height="40" Margin="0,0,8,0"/>
+            <Image Source="/Assets/GoogleG_FullColor_RGB.png" Width="20" Height="20" Margin="0,0,8,0"/>
             <TextBlock Text="Sign in with Google" VerticalAlignment="Center"/>
           </StackPanel>
         </Button>
@@ -101,11 +103,17 @@
 
         <Button Content="Don't have an account? Sign up" Command="{Binding GoToRegisterCommand}" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Center" FontSize="12" Margin="0,2,0,0" />
       </StackPanel>
+      </ScrollViewer>
     </Border>
 
     <Border Background="{DynamicResource BrandPanelBrush}" Grid.Column="1">
       <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="10">
-        <TextBlock Text="📚" FontSize="44" HorizontalAlignment="Center" />
+        <Image Source="/Assets/learn-assist-logo-light.svg" Width="72" Height="72"
+               HorizontalAlignment="Center"
+               IsVisible="{x:Static services:ThemeService.IsLight}" />
+        <Image Source="/Assets/learn-assist-logo-dark.svg" Width="72" Height="72"
+               HorizontalAlignment="Center"
+               IsVisible="{x:Static services:ThemeService.IsDark}" />
         <TextBlock Text="Learn-Assist" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource BrandTextBrush}" HorizontalAlignment="Center" Opacity="0.9" />
         <TextBlock Text="learn anything" FontSize="12" Foreground="{DynamicResource BrandSubtextBrush}" HorizontalAlignment="Center" Opacity="0.7" />
       </StackPanel>

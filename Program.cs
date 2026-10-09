@@ -81,7 +81,7 @@ sealed class Program
         catch (OptionsValidationException)
         {
             throw new InvalidOperationException(
-                "Missing required configuration. Add CLERK_SECRET_KEY to your .env file and restart the app.");
+                "Invalid application configuration. Check your .env file and restart the app.");
         }
     }
 

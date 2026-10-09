@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
@@ -11,7 +12,9 @@ namespace learn_Assist;
 
 public partial class App : Application
 {
-    private readonly IAuthService _authService = new ClerkAuthService();
+    // Local accounts on this PC. ClerkAuthService is kept in the repo
+    // (unused) so Clerk can be re-enabled later for a cloud feature.
+    private readonly IAuthService _authService = new LocalAuthService();
 
     public override void Initialize()
     {
@@ -62,6 +65,12 @@ public partial class App : Application
 
     private void ShowLoginWindow(IClassicDesktopStyleApplicationLifetime desktop)
     {
+        if (_authService.IsAuthenticated)
+        {
+            ShowMainWindow(desktop);
+            return;
+        }
+
         var loginVm = new LoginViewModel(_authService);
         var loginView = new LoginView { DataContext = loginVm };
 
@@ -123,13 +132,21 @@ public partial class App : Application
             aiService = new MockAiService();
         }
 
-        var mainVm = new MainViewModel(aiService, email, config, persistence);
+        var mainVm = new MainViewModel(aiService, email, config, persistence, new UpdateService());
         var mainWindow = new MainWindow
         {
             DataContext = mainVm,
         };
+        mainVm.SignOutRequested += () => _ = SignOutAndShowLoginAsync(mainWindow, desktop);
         desktop.MainWindow = mainWindow;
         mainWindow.Show();
+    }
+
+    private async Task SignOutAndShowLoginAsync(MainWindow mainWindow, IClassicDesktopStyleApplicationLifetime desktop)
+    {
+        await _authService.SignOutAsync();
+        ShowLoginWindow(desktop);
+        mainWindow.Close();
     }
 
     private void ShowVerifyEmailWindow(IClassicDesktopStyleApplicationLifetime desktop, string email, string emailAddressId, string userId)

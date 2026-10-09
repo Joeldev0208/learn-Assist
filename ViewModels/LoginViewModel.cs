@@ -29,8 +29,7 @@ public partial class LoginViewModel : ViewModelBase
     [RelayCommand]
     private void ToggleTheme()
     {
-        ThemeService.Toggle();
-        OnPropertyChanged(nameof(ThemeGlyph));
+        ThemeService.ToggleAndRestart();
     }
 
     [ObservableProperty]
@@ -143,4 +142,3 @@ public partial class LoginViewModel : ViewModelBase
         GoToRegisterRequested?.Invoke();
     }
 }
-

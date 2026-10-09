@@ -93,10 +93,9 @@ public partial class ChatViewModel : ViewModelBase
 
             if (_persistence is not null && _currentSession is not null)
             {
-                _currentSession.Messages = new ObservableCollection<ChatMessage>(Messages);
-
                 try
                 {
+                    _currentSession.Messages = new ObservableCollection<ChatMessage>(Messages);
                     await _persistence.SaveSessionAsync(_currentSession);
                 }
                 catch (Exception ex)
@@ -129,7 +128,7 @@ public partial class ChatViewModel : ViewModelBase
         Messages.Add(new ChatMessage
         {
             Role = MessageRole.Assistant,
-            Content = "¡Hola! Soy tu asistente de aprendizaje. ¿En qué puedo ayudarte hoy?",
+            Content = "Hi! I'm your learning assistant. We'll focus on one useful idea at a time.",
             Timestamp = DateTime.Now,
         });
     }

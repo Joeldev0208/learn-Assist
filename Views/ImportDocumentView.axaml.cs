@@ -61,10 +61,7 @@ public partial class ImportDocumentView : Window
         });
 
         if (files.Count == 0)
-        {
-            Close();
             return;
-        }
 
         var file = files[0];
         var filePath = file.Path.AbsolutePath;
