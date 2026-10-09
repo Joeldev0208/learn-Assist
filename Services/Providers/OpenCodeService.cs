@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using learn_Assist.Models;
+using learn_Assist.Services;
 
 namespace learn_Assist.Services.Providers;
 
@@ -40,7 +41,7 @@ public class OpenCodeService : IAiService
     {
         var messages = new List<object>
         {
-            new { role = "system", content = "You are a helpful learning assistant." },
+            new { role = "system", content = AiPrompt.System },
         };
 
         foreach (var msg in history)

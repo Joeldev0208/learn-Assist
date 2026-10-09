@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
@@ -64,6 +65,12 @@ public partial class App : Application
 
     private void ShowLoginWindow(IClassicDesktopStyleApplicationLifetime desktop)
     {
+        if (_authService.IsAuthenticated)
+        {
+            ShowMainWindow(desktop);
+            return;
+        }
+
         var loginVm = new LoginViewModel(_authService);
         var loginView = new LoginView { DataContext = loginVm };
 
@@ -130,8 +137,16 @@ public partial class App : Application
         {
             DataContext = mainVm,
         };
+        mainVm.SignOutRequested += () => _ = SignOutAndShowLoginAsync(mainWindow, desktop);
         desktop.MainWindow = mainWindow;
         mainWindow.Show();
+    }
+
+    private async Task SignOutAndShowLoginAsync(MainWindow mainWindow, IClassicDesktopStyleApplicationLifetime desktop)
+    {
+        await _authService.SignOutAsync();
+        ShowLoginWindow(desktop);
+        mainWindow.Close();
     }
 
     private void ShowVerifyEmailWindow(IClassicDesktopStyleApplicationLifetime desktop, string email, string emailAddressId, string userId)

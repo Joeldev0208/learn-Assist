@@ -6,7 +6,7 @@
         mc:Ignorable="d" d:DesignWidth="520" d:DesignHeight="480"
         x:Class="learn_Assist.Views.ApiConfigView"
         x:DataType="vm:ApiConfigViewModel"
-        Icon="/Assets/avalonia-logo.ico"
+        Icon="/Assets/learn-assist.ico"
         Title="Configure AI"
         WindowStartupLocation="CenterScreen"
         CanResize="False"

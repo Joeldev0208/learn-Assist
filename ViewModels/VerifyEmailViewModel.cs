@@ -50,8 +50,7 @@ public partial class VerifyEmailViewModel : ViewModelBase
     [RelayCommand]
     private void ToggleTheme()
     {
-        ThemeService.Toggle();
-        OnPropertyChanged(nameof(ThemeGlyph));
+        ThemeService.ToggleAndRestart();
     }
 
     [RelayCommand]

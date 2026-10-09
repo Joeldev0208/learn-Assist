@@ -6,7 +6,7 @@
         mc:Ignorable="d" d:DesignWidth="520" d:DesignHeight="440"
         x:Class="learn_Assist.Views.InstallView"
         x:DataType="vm:InstallViewModel"
-        Icon="/Assets/avalonia-logo.ico"
+        Icon="/Assets/learn-assist.ico"
         Title="Install learn-Assistant"
         WindowStartupLocation="CenterScreen"
         CanResize="False"

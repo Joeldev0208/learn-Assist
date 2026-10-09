@@ -1,7 +1,9 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
 using Avalonia;
+using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Styling;
 
 namespace learn_Assist.Services;
@@ -24,6 +26,8 @@ public static class ThemeService
     public static bool IsDark =>
         Current == ThemeVariant.Dark;
 
+    public static bool IsLight => !IsDark;
+
     public static void Apply()
     {
         var variant = Load();
@@ -34,6 +38,30 @@ public static class ThemeService
     public static void Toggle()
     {
         Set(IsDark ? ThemeVariant.Light : ThemeVariant.Dark);
+    }
+
+    public static void ToggleAndRestart()
+    {
+        Toggle();
+
+        var processPath = Environment.ProcessPath;
+        if (string.IsNullOrEmpty(processPath))
+            throw new InvalidOperationException("Unable to determine the application path for restart.");
+
+        var startInfo = new ProcessStartInfo
+        {
+            FileName = processPath,
+            UseShellExecute = true,
+            WorkingDirectory = Environment.CurrentDirectory,
+        };
+
+        foreach (var argument in Environment.GetCommandLineArgs()[1..])
+            startInfo.ArgumentList.Add(argument);
+
+        Process.Start(startInfo);
+
+        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+            desktop.Shutdown();
     }
 
     public static void Set(ThemeVariant variant)

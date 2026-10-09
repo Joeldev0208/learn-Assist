@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using learn_Assist.Models;
+using learn_Assist.Services;
 using OpenAI.Chat;
 
 namespace learn_Assist.Services.Providers;
@@ -32,7 +33,7 @@ public class OpenAiService : IAiService
     {
         var messages = new List<OpenAI.Chat.ChatMessage>
         {
-            OpenAI.Chat.ChatMessage.CreateSystemMessage("You are a helpful learning assistant."),
+            OpenAI.Chat.ChatMessage.CreateSystemMessage(AiPrompt.System),
         };
 
         foreach (var msg in history)

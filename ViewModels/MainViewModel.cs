@@ -35,6 +35,8 @@ public partial class MainViewModel : ViewModelBase
         remove => _configureAiRequested -= value;
     }
     public event Action? RestartRequested;
+    public event Action? SignOutRequested;
+    public IRelayCommand SignOutCommand { get; }
 
     public string ThemeGlyph => ThemeService.IsDark ? "☀️" : "🌙";
 
@@ -90,14 +92,18 @@ public partial class MainViewModel : ViewModelBase
     [RelayCommand]
     private void ToggleTheme()
     {
-        ThemeService.Toggle();
-        OnPropertyChanged(nameof(ThemeGlyph));
+        ThemeService.ToggleAndRestart();
     }
 
     [RelayCommand]
     private void ReconfigureAi()
     {
         _configureAiRequested?.Invoke();
+    }
+
+    private void SignOut()
+    {
+        SignOutRequested?.Invoke();
     }
 
     [RelayCommand]
@@ -168,6 +174,7 @@ public partial class MainViewModel : ViewModelBase
 
     public MainViewModel(IAiService aiService, string userEmail, ApiConfig? config = null, SessionPersistenceService? persistence = null, UpdateService? updateService = null)
     {
+        SignOutCommand = new RelayCommand(SignOut);
         _userEmail = userEmail;
         _persistence = persistence;
         _updateService = updateService;

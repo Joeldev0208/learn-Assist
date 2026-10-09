@@ -105,7 +105,7 @@ public static class InstallationService
             binary = Path.Combine(userData, "learn-assist", "learn-assist");
 
         var menuEntry = Path.Combine(userData, "applications", "learn-assist.desktop");
-        var icon = Path.Combine(userData, "icons", "hicolor", "256x256", "apps", "learn-assist.png");
+        var icon = Path.Combine(userData, "icons", "hicolor", "apps", "learn-assist.ico");
         return new InstallPaths(binary, menuEntry, icon);
     }
 
@@ -122,11 +122,11 @@ public static class InstallationService
             return new InstallPaths(
                 Path.Combine(programFiles, "LearnAssist", "learn-assist.exe"),
                 menuEntry,
-                Path.Combine(programFiles, "LearnAssist", "learn-assist.png"));
+                Path.Combine(programFiles, "LearnAssist", "learn-assist.ico"));
         }
 
         var localData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-        var icon = Path.Combine(localData, "learn-assist", "learn-assist.png");
+        var icon = Path.Combine(localData, "learn-assist", "learn-assist.ico");
         return new InstallPaths(
             Path.Combine(localData, "learn-assist", "learn-assist.exe"),
             menuEntry,
@@ -199,7 +199,7 @@ public static class InstallationService
         Directory.CreateDirectory(dir);
 
         var assemblyName = System.Reflection.Assembly.GetExecutingAssembly().GetName().Name;
-        var uri = new Uri($"avares://{assemblyName}/Assets/avalonia-logo.png");
+        var uri = new Uri($"avares://{assemblyName}/Assets/learn-assist.ico");
         using var stream = AssetLoader.Open(uri);
         using var file = File.Create(iconPath);
         stream.CopyTo(file);

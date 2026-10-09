@@ -7,6 +7,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using learn_Assist.Models;
+using learn_Assist.Services;
 
 namespace learn_Assist.Services.Providers;
 
@@ -48,7 +49,7 @@ public class AnthropicService : IAiService
         {
             model = _model,
             max_tokens = 2048,
-            system = "You are a helpful learning assistant.",
+            system = AiPrompt.System,
             messages,
         };
 

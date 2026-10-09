@@ -20,6 +20,7 @@ namespace learn_Assist.Services;
 public class LocalAuthService : IAuthService
 {
     private const int Iterations = 210_000;
+    private const string SessionFileName = "session.json";
 
     private sealed class LocalUser
     {
@@ -31,8 +32,20 @@ public class LocalAuthService : IAuthService
         public DateTime CreatedAt { get; set; }
     }
 
+    private sealed class RememberedSession
+    {
+        public string UserId { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string SessionId { get; set; } = string.Empty;
+    }
+
     private readonly object _lock = new();
     private UserSession? _currentUser;
+
+    public LocalAuthService()
+    {
+        RestoreRememberedSession();
+    }
 
     public bool IsAuthenticated => _currentUser is not null;
 
@@ -148,7 +161,11 @@ public class LocalAuthService : IAuthService
 
     public Task SignOutAsync()
     {
-        _currentUser = null;
+        lock (_lock)
+        {
+            _currentUser = null;
+            DeleteRememberedSession();
+        }
         return Task.CompletedTask;
     }
 
@@ -161,7 +178,85 @@ public class LocalAuthService : IAuthService
             SessionId = Guid.NewGuid().ToString("N"),
         };
         _currentUser = session;
+        SaveRememberedSession(session);
         return new AuthResult { Success = true, User = session };
+    }
+
+    private void RestoreRememberedSession()
+    {
+        lock (_lock)
+        {
+            try
+            {
+                var path = GetSessionPath();
+                if (!File.Exists(path))
+                    return;
+
+                var remembered = JsonSerializer.Deserialize<RememberedSession>(File.ReadAllText(path));
+                if (remembered is null
+                    || string.IsNullOrWhiteSpace(remembered.UserId)
+                    || string.IsNullOrWhiteSpace(remembered.SessionId))
+                {
+                    DeleteRememberedSession();
+                    return;
+                }
+
+                var user = LoadUsers().FirstOrDefault(u => u.Id == remembered.UserId);
+                if (user is null
+                    || !string.Equals(user.Email, remembered.Email, StringComparison.OrdinalIgnoreCase))
+                {
+                    DeleteRememberedSession();
+                    return;
+                }
+
+                _currentUser = new UserSession
+                {
+                    UserId = user.Id,
+                    Email = user.Email,
+                    SessionId = remembered.SessionId,
+                };
+            }
+            catch (JsonException)
+            {
+                DeleteRememberedSession();
+            }
+            catch (IOException)
+            {
+                // A temporarily unavailable session file must not block startup.
+            }
+        }
+    }
+
+    private static void SaveRememberedSession(UserSession session)
+    {
+        try
+        {
+            var json = JsonSerializer.Serialize(new RememberedSession
+            {
+                UserId = session.UserId,
+                Email = session.Email,
+                SessionId = session.SessionId,
+            }, new JsonSerializerOptions { WriteIndented = true });
+            File.WriteAllText(GetSessionPath(), json);
+        }
+        catch (IOException)
+        {
+            // The authenticated session remains usable for this process.
+        }
+    }
+
+    private static void DeleteRememberedSession()
+    {
+        try
+        {
+            var path = GetSessionPath();
+            if (File.Exists(path))
+                File.Delete(path);
+        }
+        catch (IOException)
+        {
+            // The next successful sign-in can overwrite the session file.
+        }
     }
 
     private static string HashPassword(string password)
@@ -194,6 +289,14 @@ public class LocalAuthService : IAuthService
         var dir = Path.Combine(appData, "learn-assist");
         Directory.CreateDirectory(dir);
         return Path.Combine(dir, "users.json");
+    }
+
+    private static string GetSessionPath()
+    {
+        var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        var dir = Path.Combine(appData, "learn-assist");
+        Directory.CreateDirectory(dir);
+        return Path.Combine(dir, SessionFileName);
     }
 
     private static List<LocalUser> LoadUsers()

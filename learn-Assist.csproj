@@ -4,6 +4,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\learn-assist.ico</ApplicationIcon>
     <Version>1.0.0</Version>
   </PropertyGroup>
 

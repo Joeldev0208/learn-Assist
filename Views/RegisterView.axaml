@@ -1,12 +1,13 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:learn_Assist.ViewModels"
+        xmlns:services="using:learn_Assist.Services"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
         x:Class="learn_Assist.Views.RegisterView"
         x:DataType="vm:RegisterViewModel"
-        Icon="/Assets/avalonia-logo.ico"
+        Icon="/Assets/learn-assist.ico"
         Title="learn_Assist - Register"
         WindowStartupLocation="CenterScreen"
         CanResize="False"
@@ -134,7 +135,12 @@
 
     <Border Background="{DynamicResource BrandPanelBrush}" Grid.Column="1">
       <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="10">
-        <TextBlock Text="📚" FontSize="44" HorizontalAlignment="Center" />
+        <Image Source="/Assets/learn-assist-logo-light.svg" Width="72" Height="72"
+               HorizontalAlignment="Center"
+               IsVisible="{x:Static services:ThemeService.IsLight}" />
+        <Image Source="/Assets/learn-assist-logo-dark.svg" Width="72" Height="72"
+               HorizontalAlignment="Center"
+               IsVisible="{x:Static services:ThemeService.IsDark}" />
         <TextBlock Text="Learn-Assist" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource BrandTextBrush}" HorizontalAlignment="Center" Opacity="0.9" />
         <TextBlock Text="learn anything" FontSize="12" Foreground="{DynamicResource BrandSubtextBrush}" HorizontalAlignment="Center" Opacity="0.7" />
       </StackPanel>
