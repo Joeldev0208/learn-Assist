@@ -33,31 +33,24 @@ public partial class SessionListViewModel : ViewModelBase
     public SessionListViewModel(SessionPersistenceService? persistence = null)
     {
         _persistence = persistence;
-        _ = LoadSessionsAsync();
     }
 
-    public void SetPersistence(SessionPersistenceService? persistence)
+    public async Task SetPersistenceAsync(SessionPersistenceService? persistence)
     {
         _persistence = persistence;
-        _ = LoadSessionsAsync();
+        await LoadSessionsAsync();
     }
 
-    private async Task LoadSessionsAsync()
+    public async Task LoadSessionsAsync()
     {
         try
         {
             if (_persistence is null)
-            {
-                
                 return;
-            }
 
             var loaded = await _persistence.LoadSessionsAsync();
             if (loaded.Count == 0)
-            {
-               
                 return;
-            }
 
             Sessions.Clear();
             foreach (var session in loaded.OrderByDescending(s => s.CreatedAt))
@@ -68,6 +61,7 @@ public partial class SessionListViewModel : ViewModelBase
         }
         catch
         {
+            // A malformed or unavailable history must not prevent the workspace from opening.
         }
     }
 
@@ -77,7 +71,6 @@ public partial class SessionListViewModel : ViewModelBase
         if (session is null)
             return;
         ActiveSession = session;
-        SessionSelected?.Invoke(session);
     }
 
     [RelayCommand]

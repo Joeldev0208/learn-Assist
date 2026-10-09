@@ -12,6 +12,8 @@ namespace learn_Assist.Controls;
 
 public sealed class MarkdownView : UserControl
 {
+    public static event Action? RenderCompleted;
+
     public static readonly StyledProperty<string?> MarkdownProperty =
         AvaloniaProperty.Register<MarkdownView, string?>(nameof(Markdown));
 
@@ -45,7 +47,10 @@ public sealed class MarkdownView : UserControl
 
         var text = Markdown ?? string.Empty;
         if (string.IsNullOrEmpty(text))
+        {
+            RenderCompleted?.Invoke();
             return;
+        }
 
         var lines = text.Replace("\r\n", "\n").Replace('\r', '\n').Split('\n');
         var paragraph = new List<string>();
@@ -176,6 +181,7 @@ public sealed class MarkdownView : UserControl
         }
 
         FlushParagraph(paragraph);
+        RenderCompleted?.Invoke();
     }
 
     private void FlushParagraph(List<string> paragraph)

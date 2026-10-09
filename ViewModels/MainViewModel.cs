@@ -191,9 +191,6 @@ public partial class MainViewModel : ViewModelBase
         SessionList.SessionSelected += OnSessionSelected;
         SessionList.NewSessionRequested += OnNewSessionRequested;
 
-        var initialSession = SessionList.CreateNewSession();
-        Chat.SetCurrentSession(initialSession);
-
         Tutorial.TutorialFinished += OnTutorialFinished;
 
         if (!TutorialStateService.HasBeenSeen(_userKey))
@@ -205,6 +202,17 @@ public partial class MainViewModel : ViewModelBase
 
         if (_updateService is { IsSupported: true })
             CheckForUpdates();
+    }
+
+    public async Task InitializeAsync()
+    {
+        await SessionList.LoadSessionsAsync();
+
+        if (SessionList.ActiveSession is null)
+        {
+            var initialSession = SessionList.CreateNewSession();
+            Chat.SetCurrentSession(initialSession);
+        }
     }
 
     private async void CheckForUpdates()
@@ -261,7 +269,7 @@ public partial class MainViewModel : ViewModelBase
             _configureAiRequested?.Invoke();
     }
 
-    public void ApplyConfig(ApiConfig config)
+    public async Task ApplyConfigAsync(ApiConfig config)
     {
         var aiService = AiServiceFactory.Create(config);
 
@@ -270,7 +278,7 @@ public partial class MainViewModel : ViewModelBase
         {
             persistence = new SessionPersistenceService(config.SessionsDirectory);
             _persistence = persistence;
-            SessionList.SetPersistence(persistence);
+            await SessionList.SetPersistenceAsync(persistence);
         }
 
         Chat.SetAiService(aiService, persistence);
@@ -278,6 +286,8 @@ public partial class MainViewModel : ViewModelBase
 
     private void OnSessionSelected(Models.ChatSession session)
     {
+        IsLearningSessionActive = true;
+        IsLearningSessionComplete = false;
         Chat.LoadSession(session);
     }
 

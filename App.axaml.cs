@@ -113,7 +113,7 @@ public partial class App : Application
         registerView.Show();
     }
 
-    private void ShowMainWindow(IClassicDesktopStyleApplicationLifetime desktop)
+    private async void ShowMainWindow(IClassicDesktopStyleApplicationLifetime desktop)
     {
         var user = _authService.CurrentUser;
         var email = user?.Email ?? "user@example.com";
@@ -134,6 +134,8 @@ public partial class App : Application
         }
 
         var mainVm = new MainViewModel(aiService, email, user?.UserId, config, persistence, new UpdateService());
+        await mainVm.InitializeAsync();
+
         var mainWindow = new MainWindow
         {
             DataContext = mainVm,
