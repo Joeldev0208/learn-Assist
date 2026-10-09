@@ -9,8 +9,9 @@ namespace learn_Assist.ViewModels;
 
 public partial class MainViewModel : ViewModelBase
 {
-    private static bool _isFirstLogin = true;
     private readonly string _userEmail;
+    private readonly string _userKey;
+    private readonly bool _hasAiConfig;
     private SessionPersistenceService? _persistence;
     private readonly UpdateService? _updateService;
     private Action? _configureAiRequested;
@@ -172,10 +173,12 @@ public partial class MainViewModel : ViewModelBase
         OnPropertyChanged(nameof(LearningActionText));
     }
 
-    public MainViewModel(IAiService aiService, string userEmail, ApiConfig? config = null, SessionPersistenceService? persistence = null, UpdateService? updateService = null)
+    public MainViewModel(IAiService aiService, string userEmail, string? userId = null, ApiConfig? config = null, SessionPersistenceService? persistence = null, UpdateService? updateService = null)
     {
         SignOutCommand = new RelayCommand(SignOut);
         _userEmail = userEmail;
+        _userKey = string.IsNullOrWhiteSpace(userId) ? userEmail.Trim().ToLowerInvariant() : userId;
+        _hasAiConfig = config is not null;
         _persistence = persistence;
         _updateService = updateService;
 
@@ -193,11 +196,8 @@ public partial class MainViewModel : ViewModelBase
 
         Tutorial.TutorialFinished += OnTutorialFinished;
 
-        if (_isFirstLogin)
-        {
-            _isFirstLogin = false;
+        if (!TutorialStateService.HasBeenSeen(_userKey))
             Tutorial.IsVisible = true;
-        }
         else if (config is null)
         {
             _configureAiPending = true;
@@ -255,7 +255,9 @@ public partial class MainViewModel : ViewModelBase
 
     private void OnTutorialFinished()
     {
-        if (!ConfigEncryption.ConfigExists())
+        TutorialStateService.MarkSeen(_userKey);
+
+        if (!_hasAiConfig)
             _configureAiRequested?.Invoke();
     }
 

@@ -136,7 +136,7 @@ public class SessionPersistenceService
                 FlushMessage();
                 currentRole = MessageRole.Assistant;
             }
-            else if (currentRole is not null && !line.StartsWith('#') && !line.StartsWith("Created:", StringComparison.OrdinalIgnoreCase))
+            else if (currentRole is not null && !line.StartsWith("Created:", StringComparison.OrdinalIgnoreCase))
             {
                 contentLines.Add(line);
             }

@@ -115,7 +115,8 @@ public partial class App : Application
 
     private void ShowMainWindow(IClassicDesktopStyleApplicationLifetime desktop)
     {
-        var email = _authService.CurrentUser?.Email ?? "user@example.com";
+        var user = _authService.CurrentUser;
+        var email = user?.Email ?? "user@example.com";
 
         var config = ConfigEncryption.LoadConfig();
         SessionPersistenceService? persistence = null;
@@ -132,7 +133,7 @@ public partial class App : Application
             aiService = new MockAiService();
         }
 
-        var mainVm = new MainViewModel(aiService, email, config, persistence, new UpdateService());
+        var mainVm = new MainViewModel(aiService, email, user?.UserId, config, persistence, new UpdateService());
         var mainWindow = new MainWindow
         {
             DataContext = mainVm,

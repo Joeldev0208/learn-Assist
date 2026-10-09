@@ -3,6 +3,7 @@
         xmlns:vm="using:learn_Assist.ViewModels"
         xmlns:models="using:learn_Assist.Models"
         xmlns:conv="using:learn_Assist.Converters"
+        xmlns:controls="using:learn_Assist.Controls"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="700"
@@ -365,12 +366,9 @@
                               Padding="14,12" CornerRadius="12"
                               Background="{Binding Role, Converter={StaticResource RoleToBubble}}"
                               BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
-                        <TextBlock Text="{Binding Content}" FontSize="14"
-                                   Foreground="{DynamicResource TextPrimaryBrush}"
-                                   TextWrapping="Wrap"
-                                   HorizontalAlignment="Stretch"
-                                   VerticalAlignment="Top"
-                                   LineHeight="22" />
+                        <controls:MarkdownView Markdown="{Binding Content}"
+                                                HorizontalAlignment="Stretch"
+                                                VerticalAlignment="Top" />
                       </Border>
                     </Grid>
                   </DataTemplate>
@@ -420,7 +418,7 @@
                      PlaceholderText="What's up with the learning?"
                      FontSize="14" Padding="14,9" CornerRadius="22"
                      AcceptsReturn="True" TextWrapping="Wrap"
-                     MinHeight="42" MaxHeight="120"
+                     MinHeight="48" MaxHeight="180"
                      BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1"
                      Background="{DynamicResource InputBackgroundBrush}"
                      Foreground="{DynamicResource TextPrimaryBrush}"
@@ -495,83 +493,81 @@
       ZIndex 10 lo coloca sobre el espacio de trabajo y IsVisible depende
       de Tutorial.IsVisible. Contiene indicadores, texto y navegación.
     -->
-    <Border IsVisible="{Binding Tutorial.IsVisible}"
+    <Border x:Name="TutorialOverlay"
+            Grid.Row="1"
+            IsVisible="{Binding Tutorial.IsVisible}"
             Background="{DynamicResource OverlayBrush}"
-            ZIndex="10">
+            ZIndex="10"
+            Focusable="True">
       <Border Background="{DynamicResource SurfaceBrush}"
               CornerRadius="16"
               MaxWidth="440"
-              MaxHeight="400"
-              Padding="32"
+              MaxHeight="440"
+              Margin="20"
+              Padding="28"
               HorizontalAlignment="Center"
               VerticalAlignment="Center"
               BoxShadow="0 8 24 #26000000">
-        <StackPanel Spacing="20">
-          <!-- Indicadores visuales de los pasos disponibles. -->
-          <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="6">
-            <ItemsControl ItemsSource="{Binding Tutorial.Steps}">
-              <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                  <StackPanel Orientation="Horizontal" Spacing="6" />
-                </ItemsPanelTemplate>
-              </ItemsControl.ItemsPanel>
-              <ItemsControl.ItemTemplate>
-                <DataTemplate DataType="x:Object">
-                  <Ellipse Width="8" Height="8" Fill="{DynamicResource InputBorderBrush}" />
-                </DataTemplate>
-              </ItemsControl.ItemTemplate>
-            </ItemsControl>
+        <ScrollViewer MaxHeight="380"
+                      VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled">
+          <StackPanel Spacing="18">
+            <!-- Indicador del paso actual. -->
+            <TextBlock Text="{Binding Tutorial.StepIndicatorText}"
+                       FontSize="12"
+                       Foreground="{DynamicResource TextMutedBrush}"
+                       HorizontalAlignment="Center" />
+
+            <!-- Título y descripción del paso actual. -->
+            <TextBlock Text="{Binding Tutorial.StepTitle}"
+                       FontSize="20" FontWeight="Bold"
+                       Foreground="{DynamicResource TextPrimaryBrush}"
+                       HorizontalAlignment="Center"
+                       TextWrapping="Wrap"
+                       TextAlignment="Center" />
+
+            <TextBlock Text="{Binding Tutorial.StepDescription}"
+                       FontSize="14"
+                       Foreground="{DynamicResource TextSecondaryBrush}"
+                       TextWrapping="Wrap"
+                       TextAlignment="Center"
+                       LineHeight="22" />
+
+            <!-- Acciones para omitir, retroceder o avanzar en el tutorial. -->
+            <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,6,0,0">
+              <Button Grid.Column="0"
+                      Command="{Binding Tutorial.SkipCommand}"
+                      Background="Transparent"
+                      Foreground="{DynamicResource TextMutedBrush}"
+                      FontSize="13"
+                      Content="Skip"
+                      Padding="8,6" />
+
+              <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
+                <Button Command="{Binding Tutorial.BackCommand}"
+                        Background="{DynamicResource ButtonSecondaryBackgroundBrush}"
+                        Foreground="{DynamicResource ButtonSecondaryForegroundBrush}"
+                        CornerRadius="20"
+                        Padding="16,8"
+                        FontSize="13"
+                        BorderThickness="0"
+                        IsVisible="{Binding Tutorial.IsFirstStep, Converter={x:Static BoolConverters.Not}}">
+                  <TextBlock Text="Back" />
+                </Button>
+
+                <Button Command="{Binding Tutorial.NextCommand}"
+                        Background="{DynamicResource ButtonPrimaryBackgroundBrush}"
+                        Foreground="{DynamicResource ButtonPrimaryForegroundBrush}"
+                        CornerRadius="20"
+                        Padding="20,8"
+                        FontSize="13"
+                        BorderThickness="0">
+                  <TextBlock Text="{Binding Tutorial.NextButtonText}" />
+                </Button>
+              </StackPanel>
+            </Grid>
           </StackPanel>
-
-          <!-- Título y descripción del paso actual. -->
-          <TextBlock Text="{Binding Tutorial.StepTitle}"
-                     FontSize="20" FontWeight="Bold"
-                     Foreground="{DynamicResource TextPrimaryBrush}"
-                     HorizontalAlignment="Center"
-                     TextWrapping="Wrap"
-                     TextAlignment="Center" />
-
-          <TextBlock Text="{Binding Tutorial.StepDescription}"
-                     FontSize="14"
-                     Foreground="{DynamicResource TextSecondaryBrush}"
-                     TextWrapping="Wrap"
-                     TextAlignment="Center"
-                     LineHeight="22" />
-
-          <!-- Acciones para omitir, retroceder o avanzar en el tutorial. -->
-          <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,8,0,0">
-            <Button Grid.Column="0"
-                    Command="{Binding Tutorial.SkipCommand}"
-                    Background="Transparent"
-                    Foreground="{DynamicResource TextMutedBrush}"
-                    FontSize="13"
-                    Content="Skip"
-                    Padding="8,6" />
-
-            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
-              <Button Command="{Binding Tutorial.BackCommand}"
-                      Background="{DynamicResource ButtonSecondaryBackgroundBrush}"
-                      Foreground="{DynamicResource ButtonSecondaryForegroundBrush}"
-                      CornerRadius="20"
-                      Padding="16,8"
-                      FontSize="13"
-                      BorderThickness="0"
-                      IsVisible="{Binding Tutorial.IsFirstStep, Converter={x:Static BoolConverters.Not}}">
-                <TextBlock Text="Back" />
-              </Button>
-
-              <Button Command="{Binding Tutorial.NextCommand}"
-                      Background="{DynamicResource ButtonPrimaryBackgroundBrush}"
-                      Foreground="{DynamicResource ButtonPrimaryForegroundBrush}"
-                      CornerRadius="20"
-                      Padding="20,8"
-                      FontSize="13"
-                      BorderThickness="0">
-                <TextBlock Text="{Binding Tutorial.NextButtonText}" />
-              </Button>
-            </StackPanel>
-          </Grid>
-        </StackPanel>
+        </ScrollViewer>
       </Border>
     </Border>
   </Grid>

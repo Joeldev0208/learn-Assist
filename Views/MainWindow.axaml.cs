@@ -31,6 +31,8 @@ public partial class MainWindow : Window
         UpdateInternalLogo();
         ThemeService.ThemeChanged += OnThemeChanged;
         Closed += OnClosed;
+        Opened += OnOpened;
+        KeyDown += OnKeyDown;
         _workspaceGrid = this.FindControl<Grid>("WorkspaceGrid");
         SizeChanged += OnWindowSizeChanged;
     }
@@ -56,6 +58,23 @@ public partial class MainWindow : Window
     {
         ThemeService.ThemeChanged -= OnThemeChanged;
         Closed -= OnClosed;
+        Opened -= OnOpened;
+        KeyDown -= OnKeyDown;
+    }
+
+    private void OnOpened(object? sender, EventArgs e)
+    {
+        if (DataContext is MainViewModel vm && vm.Tutorial.IsVisible)
+            Dispatcher.UIThread.Post(() => TutorialOverlay?.Focus(), DispatcherPriority.Loaded);
+    }
+
+    private void OnKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.Key != Key.Escape || DataContext is not MainViewModel vm || !vm.Tutorial.IsVisible)
+            return;
+
+        e.Handled = true;
+        vm.Tutorial.SkipCommand.Execute(null);
     }
 
     protected override void OnDataContextChanged(EventArgs e)
