@@ -9,6 +9,7 @@
         mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="700"
         x:Class="learn_Assist.Views.MainWindow"
         x:DataType="vm:MainViewModel"
+        d:DataContext="{d:DesignInstance Type=vm:MainViewModel, IsDesignTimeCreatable=True}"
         Icon="/Assets/learn-assist.ico"
         Title="learn_Assist"
         WindowStartupLocation="CenterScreen"
@@ -359,18 +360,18 @@
                            Foreground="{DynamicResource BrandTextBrush}" TextWrapping="Wrap" FontSize="13" />
               </Border>
               <ItemsControl ItemsSource="{Binding Chat.Messages}"
-                            HorizontalAlignment="Stretch">
+                            HorizontalAlignment="Center">
                 <ItemsControl.ItemTemplate>
                   <DataTemplate DataType="models:ChatMessage">
-                    <Grid HorizontalAlignment="Stretch" Margin="0,0,0,10">
+                    <Grid HorizontalAlignment="Center" Margin="0,0,0,10">
                       <Border MaxWidth="720"
                               HorizontalAlignment="{Binding Role, Converter={StaticResource RoleToAlignment}}"
                               Padding="14,12" CornerRadius="12"
                               Background="{Binding Role, Converter={StaticResource RoleToBubble}}"
                               BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
-                        <controls:MarkdownView Markdown="{Binding Content}"
-                                                HorizontalAlignment="Stretch"
-                                                VerticalAlignment="Top" />
+                        <controls:MarkdownView x:Name="MarkdownView"
+                                                Markdown="{Binding Content}"
+                                                HorizontalAlignment="Stretch" />
                       </Border>
                     </Grid>
                   </DataTemplate>
