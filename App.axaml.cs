@@ -67,7 +67,7 @@ public partial class App : Application
     {
         if (_authService.IsAuthenticated)
         {
-            ShowMainWindow(desktop);
+            ShowAuthenticatedExperience(desktop);
             return;
         }
 
@@ -76,7 +76,7 @@ public partial class App : Application
 
         loginVm.LoginSucceeded += () =>
         {
-            ShowMainWindow(desktop);
+            ShowAuthenticatedExperience(desktop);
             loginView.Close();
         };
 
@@ -99,7 +99,7 @@ public partial class App : Application
             if (!string.IsNullOrEmpty(emailAddressId))
                 ShowVerifyEmailWindow(desktop, email, emailAddressId, userId);
             else
-                ShowMainWindow(desktop);
+                ShowAuthenticatedExperience(desktop);
 
             registerView.Close();
         };
@@ -113,10 +113,70 @@ public partial class App : Application
         registerView.Show();
     }
 
-    private async void ShowMainWindow(IClassicDesktopStyleApplicationLifetime desktop)
+    private async void ShowAuthenticatedExperience(IClassicDesktopStyleApplicationLifetime desktop)
     {
         var user = _authService.CurrentUser;
         var email = user?.Email ?? "user@example.com";
+        var userId = user?.UserId;
+
+        if (string.IsNullOrWhiteSpace(userId))
+        {
+            ShowMainWindow(desktop, null, null, email, null);
+            return;
+        }
+
+        var profileService = new LearningProfileService();
+        await profileService.InitializeAsync();
+        var profile = await profileService.LoadAsync(userId);
+
+        if (profile is null || !profile.IsCompleted)
+        {
+            ShowLearningProfileWindow(desktop, profileService, userId, profile, email);
+            return;
+        }
+
+        ShowMainWindow(desktop, profileService, profile, email, userId);
+    }
+
+    private void ShowLearningProfileWindow(
+        IClassicDesktopStyleApplicationLifetime desktop,
+        LearningProfileService profileService,
+        string userId,
+        LearningProfile? existingProfile,
+        string email,
+        MainWindow? mainWindow = null,
+        MainViewModel? mainVm = null)
+    {
+        var profileVm = new LearningProfileViewModel(
+            profileService,
+            userId,
+            existingProfile,
+            isRequired: mainWindow is null);
+        var profileView = new LearningProfileView { DataContext = profileVm };
+
+        profileVm.ProfileSaved += profile =>
+        {
+            profileView.Close();
+            if (mainVm is not null)
+            {
+                mainVm.ApplyLearningProfile(profile);
+                return;
+            }
+
+            ShowMainWindow(desktop, profileService, profile, email, userId);
+        };
+
+        profileVm.Cancelled += profileView.Close;
+        profileView.Show();
+    }
+
+    private async void ShowMainWindow(
+        IClassicDesktopStyleApplicationLifetime desktop,
+        LearningProfileService? profileService,
+        LearningProfile? profile,
+        string email,
+        string? userId)
+    {
 
         var config = ConfigEncryption.LoadConfig();
         SessionPersistenceService? persistence = null;
@@ -133,7 +193,15 @@ public partial class App : Application
             aiService = new MockAiService();
         }
 
-        var mainVm = new MainViewModel(aiService, email, user?.UserId, config, persistence, new UpdateService());
+        var mainVm = new MainViewModel(
+            aiService,
+            email,
+            userId,
+            config,
+            persistence,
+            new UpdateService(),
+            profileService,
+            profile);
         await mainVm.InitializeAsync();
 
         var mainWindow = new MainWindow
@@ -141,6 +209,15 @@ public partial class App : Application
             DataContext = mainVm,
         };
         mainVm.SignOutRequested += () => _ = SignOutAndShowLoginAsync(mainWindow, desktop);
+        mainVm.EditLearningProfileRequested += () =>
+            ShowLearningProfileWindow(
+                desktop,
+                profileService ?? new LearningProfileService(),
+                mainVm.UserId,
+                mainVm.LearningProfile,
+                email,
+                mainWindow,
+                mainVm);
         desktop.MainWindow = mainWindow;
         mainWindow.Show();
     }
@@ -159,7 +236,7 @@ public partial class App : Application
 
         verifyVm.VerificationSucceeded += () =>
         {
-            ShowMainWindow(desktop);
+            ShowAuthenticatedExperience(desktop);
             verifyView.Close();
         };
 
