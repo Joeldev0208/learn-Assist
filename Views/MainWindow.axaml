@@ -9,6 +9,7 @@
         mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="700"
         x:Class="learn_Assist.Views.MainWindow"
         x:DataType="vm:MainViewModel"
+        d:DataContext="{d:DesignInstance Type=vm:MainViewModel, IsDesignTimeCreatable=True}"
         Icon="/Assets/learn-assist.ico"
         Title="learn_Assist"
         WindowStartupLocation="CenterScreen"
