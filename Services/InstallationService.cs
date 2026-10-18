@@ -264,7 +264,32 @@ public static class InstallationService
         return dir;
     }
 
-    private static string GetMarkerPath() => Path.Combine(GetConfigDir(), MarkerFileName);
+    private static string GetMarkerPath()
+    {
+        // On Windows, the binary is installed to LocalApplicationData.
+        // Check LocalApplicationData first (new installs), then fall back to
+        // ApplicationData/Roaming (existing installs before this fix).
+        if (OperatingSystem.IsWindows())
+        {
+            var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            var localDir = Path.Combine(localAppData, "learn-assist");
+            var localPath = Path.Combine(localDir, MarkerFileName);
+            if (File.Exists(localPath))
+            {
+                Directory.CreateDirectory(localDir);
+                return localPath;
+            }
+
+            // Fall back to old location in Roaming for existing installations
+            var roamingAppData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            var roamingDir = Path.Combine(roamingAppData, "learn-assist");
+            var roamingPath = Path.Combine(roamingDir, MarkerFileName);
+            Directory.CreateDirectory(roamingDir);
+            return roamingPath;
+        }
+        // On Linux, use ApplicationData (Roaming) as before
+        return Path.Combine(GetConfigDir(), MarkerFileName);
+    }
 
     private static void SaveInstallInfo(InstallScope scope, string binaryPath)
     {

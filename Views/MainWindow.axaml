@@ -15,6 +15,10 @@
         Width="1200" Height="700" MinWidth="720" MinHeight="500"
         Background="{DynamicResource WindowBackgroundBrush}">
 
+  <Design.DataContext>
+    <vm:MainViewModel />
+  </Design.DataContext>
+
   <!--
     Recursos visuales y convertidores usados por toda la ventana.
     Los convertidores adaptan datos del modelo a valores presentables:
@@ -359,18 +363,18 @@
                            Foreground="{DynamicResource BrandTextBrush}" TextWrapping="Wrap" FontSize="13" />
               </Border>
               <ItemsControl ItemsSource="{Binding Chat.Messages}"
-                            HorizontalAlignment="Stretch">
+                            HorizontalAlignment="Center">
                 <ItemsControl.ItemTemplate>
                   <DataTemplate DataType="models:ChatMessage">
-                    <Grid HorizontalAlignment="Stretch" Margin="0,0,0,10">
+                    <Grid HorizontalAlignment="Center" Margin="0,0,0,10">
                       <Border MaxWidth="720"
                               HorizontalAlignment="{Binding Role, Converter={StaticResource RoleToAlignment}}"
                               Padding="14,12" CornerRadius="12"
                               Background="{Binding Role, Converter={StaticResource RoleToBubble}}"
                               BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
-                        <controls:MarkdownView Markdown="{Binding Content}"
-                                                HorizontalAlignment="Stretch"
-                                                VerticalAlignment="Top" />
+                        <controls:MarkdownView x:Name="MarkdownView"
+                                                Markdown="{Binding Content}"
+                                                HorizontalAlignment="Stretch" />
                       </Border>
                     </Grid>
                   </DataTemplate>
@@ -415,14 +419,14 @@
               Compositor de mensajes. Enter envía y Shift+Enter conserva
               el salto de línea.
             -->
-            <Border Height="88" Padding="20,10"
+            <Border Height="88" Padding="20,10" 
                     IsVisible="{Binding IsLearningSessionActive}">
               <DockPanel LastChildFill="True">
                 <Button DockPanel.Dock="Right" Width="38" Height="38" Margin="10,0,0,0"
                         Command="{Binding Chat.SendMessageCommand}"
                         IsEnabled="{Binding Chat.IsLoading, Converter={x:Static BoolConverters.Not}}"
                         Background="{DynamicResource ButtonPrimaryBackgroundBrush}" CornerRadius="19" BorderThickness="0"
-                        HorizontalAlignment="Center" VerticalAlignment="Center" Padding="0">
+                        HorizontalAlignment="Center" VerticalAlignment="Stretch" Padding="0">
                   <TextBlock Text="→" FontSize="18" Foreground="{DynamicResource ButtonPrimaryForegroundBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
                 </Button>
                 <TextBox Text="{Binding Chat.MessageText}"
@@ -431,7 +435,7 @@
                          FontSize="14" Padding="14,9" CornerRadius="22"
                          AcceptsReturn="True" TextWrapping="Wrap"
                          MinHeight="48" MaxHeight="64"
-                         VerticalContentAlignment="Center"
+                         VerticalContentAlignment="Stretch"
                          ScrollViewer.VerticalScrollBarVisibility="Auto"
                          BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1"
                          Background="{DynamicResource InputBackgroundBrush}"

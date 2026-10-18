@@ -18,6 +18,10 @@
     <Folder Include="Models\" />
     <AvaloniaResource Include="Assets\**" />
     <AvaloniaResource Include="Themes\**" />
+    <!-- Copy .env to output directory so it works when running the compiled exe directly -->
+    <None Include=".env" Condition="Exists('.env')">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
   <ItemGroup>
@@ -39,7 +43,6 @@
     <PackageReference Include="Microsoft.Extensions.Options" Version="10.0.9" />
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.9" />
     <PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" Version="10.0.9" />
-    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.9" />
     <PackageReference Include="OpenAI" Version="2.*" />
   </ItemGroup>
 </Project>

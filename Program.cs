@@ -62,8 +62,18 @@ sealed class Program
     private static AppSettings LoadSettings()
     {
         var builder = new ConfigurationBuilder();
+        // Try .env in the current directory first (works when running via `dotnet run`
+        // from the project root), then fall back to the app base directory (works for
+        // compiled/self-contained executables, including single-file publishes).
         if (File.Exists(".env"))
             builder.AddDotNetEnv(".env", LoadOptions.DEFAULT);
+        else
+        {
+            var appDir = System.AppContext.BaseDirectory;
+            var envPath = Path.Combine(appDir, ".env");
+            if (File.Exists(envPath))
+                builder.AddDotNetEnv(envPath, LoadOptions.DEFAULT);
+        }
         builder.AddEnvironmentVariables();
 
         var config = builder.Build();

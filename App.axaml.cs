@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -50,17 +51,23 @@ public partial class App : Application
 
         installVm.InstallationFinished += () =>
         {
-            ShowLoginWindow(desktop);
+            _ = ShowLoginAfterInstallAsync(desktop);
             installView.Close();
         };
 
         installVm.InstallationSkipped += () =>
         {
-            ShowLoginWindow(desktop);
+            _ = ShowLoginAfterInstallAsync(desktop);
             installView.Close();
         };
 
         installView.Show();
+    }
+
+    private async Task ShowLoginAfterInstallAsync(IClassicDesktopStyleApplicationLifetime desktop)
+    {
+        await _authService.SignOutAsync();
+        ShowLoginWindow(desktop);
     }
 
     private void ShowLoginWindow(IClassicDesktopStyleApplicationLifetime desktop)
@@ -115,27 +122,34 @@ public partial class App : Application
 
     private async void ShowAuthenticatedExperience(IClassicDesktopStyleApplicationLifetime desktop)
     {
-        var user = _authService.CurrentUser;
-        var email = user?.Email ?? "user@example.com";
-        var userId = user?.UserId;
-
-        if (string.IsNullOrWhiteSpace(userId))
+        try
         {
-            ShowMainWindow(desktop, null, null, email, null);
-            return;
+            var user = _authService.CurrentUser;
+            var email = user?.Email ?? "user@example.com";
+            var userId = user?.UserId;
+
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                ShowMainWindow(desktop, null, null, email, null);
+                return;
+            }
+
+            var profileService = new LearningProfileService();
+            var profile = await profileService.LoadAsync(userId);
+
+            if (profile is null || !profile.IsCompleted)
+            {
+                ShowLearningProfileWindow(desktop, profileService, userId, profile, email);
+                return;
+            }
+
+            ShowMainWindow(desktop, profileService, profile, email, userId);
         }
-
-        var profileService = new LearningProfileService();
-        await profileService.InitializeAsync();
-        var profile = await profileService.LoadAsync(userId);
-
-        if (profile is null || !profile.IsCompleted)
+        catch (Exception ex)
         {
-            ShowLearningProfileWindow(desktop, profileService, userId, profile, email);
-            return;
+            LogStartupError(ex);
+            ShowMainWindow(desktop, null, null, _authService.CurrentUser?.Email ?? "user@example.com", null);
         }
-
-        ShowMainWindow(desktop, profileService, profile, email, userId);
     }
 
     private void ShowLearningProfileWindow(
@@ -227,6 +241,24 @@ public partial class App : Application
         await _authService.SignOutAsync();
         ShowLoginWindow(desktop);
         mainWindow.Close();
+    }
+
+    private static void LogStartupError(Exception exception)
+    {
+        try
+        {
+            var directory = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "learn-assist");
+            Directory.CreateDirectory(directory);
+            File.AppendAllText(
+                Path.Combine(directory, "startup-error.log"),
+                $"{DateTime.UtcNow:O}{Environment.NewLine}{exception}{Environment.NewLine}{Environment.NewLine}");
+        }
+        catch
+        {
+            // Diagnostics must not prevent the fallback window from opening.
+        }
     }
 
     private void ShowVerifyEmailWindow(IClassicDesktopStyleApplicationLifetime desktop, string email, string emailAddressId, string userId)

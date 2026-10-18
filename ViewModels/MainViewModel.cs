@@ -255,7 +255,6 @@ public partial class MainViewModel : ViewModelBase
     {
         if (_profileService is not null && !string.IsNullOrWhiteSpace(_userKey))
         {
-            await _profileService.InitializeAsync();
             LearningProfile ??= await _profileService.LoadAsync(_userKey);
             if (LearningProfile is not null)
                 ApplyLearningProfile(LearningProfile);
