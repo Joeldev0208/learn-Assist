@@ -113,6 +113,7 @@ public partial class MainWindow : Window
         if (_previousVm is not null)
         {
             _previousVm.Chat.ScrollToBottomRequested -= OnScrollToBottom;
+            _previousVm.Chat.PropertyChanged -= OnChatPropertyChanged;
             _previousVm.DocumentList.ImportDialogRequested -= OnImportDialog;
             _previousVm.ConfigureAiRequested -= OnConfigureAi;
             _previousVm.RestartRequested -= OnRestartRequested;
@@ -124,6 +125,7 @@ public partial class MainWindow : Window
             // El code-behind atiende eventos que requieren controles o ventanas:
             // scroll, diálogos, reinicio y cambios del layout.
             vm.Chat.ScrollToBottomRequested += OnScrollToBottom;
+            vm.Chat.PropertyChanged += OnChatPropertyChanged;
             vm.DocumentList.ImportDialogRequested += OnImportDialog;
             vm.ConfigureAiRequested += OnConfigureAi;
             vm.RestartRequested += OnRestartRequested;
@@ -136,6 +138,12 @@ public partial class MainWindow : Window
             _previousVm = null;
             _lastBreakpoint = null;
         }
+    }
+
+    private void OnChatPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(ChatViewModel.IsLoading))
+            OnScrollToBottom(true);
     }
 
     /// <summary>
