@@ -1,17 +1,12 @@
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Security.Cryptography;
-using System.Text.Json;
 using System.Threading.Tasks;
 using learn_Assist.Models;
 
 namespace learn_Assist.Services;
 
 /// <summary>
-/// Local-accounts auth: users live in a JSON file on this PC
-/// (<c>users.json</c> next to the encrypted AI config), passwords stored as
+/// Local-accounts auth backed by SQLite on this PC. Passwords are stored as
 /// PBKDF2-SHA256 hashes (never plaintext). No cloud, no email verification.
 /// <para/>
 /// <c>ClerkAuthService</c> is kept in the repo unused so Clerk can be
@@ -20,26 +15,8 @@ namespace learn_Assist.Services;
 public class LocalAuthService : IAuthService
 {
     private const int Iterations = 210_000;
-    private const string SessionFileName = "session.json";
-
-    private sealed class LocalUser
-    {
-        public string Id { get; set; } = string.Empty;
-        public string Email { get; set; } = string.Empty;
-        public string Name { get; set; } = string.Empty;
-        public string PasswordHash { get; set; } = string.Empty;
-        public bool HasPassword { get; set; }
-        public DateTime CreatedAt { get; set; }
-    }
-
-    private sealed class RememberedSession
-    {
-        public string UserId { get; set; } = string.Empty;
-        public string Email { get; set; } = string.Empty;
-        public string SessionId { get; set; } = string.Empty;
-    }
-
     private readonly object _lock = new();
+    private readonly UserDatabase _database = UserDatabase.Current;
     private UserSession? _currentUser;
 
     public LocalAuthService()
@@ -57,21 +34,17 @@ public class LocalAuthService : IAuthService
 
         lock (_lock)
         {
-            var users = LoadUsers();
-
-            if (users.Any(u => string.Equals(u.Email, email, StringComparison.OrdinalIgnoreCase)))
+            if (_database.FindUserByEmail(email) is not null)
                 return Task.FromResult(new AuthResult { Success = false, Error = "An account with this email already exists" });
 
-            var user = new LocalUser
-            {
-                Id = Guid.NewGuid().ToString("N"),
-                Email = email,
-                PasswordHash = HashPassword(password),
-                HasPassword = true,
-                CreatedAt = DateTime.UtcNow,
-            };
-            users.Add(user);
-            SaveUsers(users);
+            var user = new UserDatabase.UserRecord(
+                Guid.NewGuid().ToString("N"),
+                email,
+                string.Empty,
+                HashPassword(password),
+                true,
+                DateTime.UtcNow);
+            _database.AddUser(user);
 
             return Task.FromResult(ToSessionResult(user));
         }
@@ -83,8 +56,7 @@ public class LocalAuthService : IAuthService
 
         lock (_lock)
         {
-            var user = LoadUsers().FirstOrDefault(u =>
-                string.Equals(u.Email, email, StringComparison.OrdinalIgnoreCase));
+            var user = _database.FindUserByEmail(email);
 
             if (user is null || !user.HasPassword || !VerifyPassword(password, user.PasswordHash))
                 return Task.FromResult(new AuthResult { Success = false, Error = "Invalid email or password" });
@@ -119,7 +91,7 @@ public class LocalAuthService : IAuthService
     {
         lock (_lock)
         {
-            var user = LoadUsers().FirstOrDefault(u => u.Id == userId);
+            var user = _database.FindUserById(userId);
             if (user is null)
                 return Task.FromResult(new AuthResult { Success = false, Error = "Account not found" });
 
@@ -137,22 +109,18 @@ public class LocalAuthService : IAuthService
 
         lock (_lock)
         {
-            var users = LoadUsers();
-            var user = users.FirstOrDefault(u =>
-                string.Equals(u.Email, email, StringComparison.OrdinalIgnoreCase));
+            var user = _database.FindUserByEmail(email);
 
             if (user is null)
             {
-                user = new LocalUser
-                {
-                    Id = Guid.NewGuid().ToString("N"),
-                    Email = email,
-                    Name = name ?? string.Empty,
-                    HasPassword = false,
-                    CreatedAt = DateTime.UtcNow,
-                };
-                users.Add(user);
-                SaveUsers(users);
+                user = new UserDatabase.UserRecord(
+                    Guid.NewGuid().ToString("N"),
+                    email,
+                    name ?? string.Empty,
+                    string.Empty,
+                    false,
+                    DateTime.UtcNow);
+                _database.AddUser(user);
             }
 
             return Task.FromResult(ToSessionResult(user));
@@ -169,7 +137,7 @@ public class LocalAuthService : IAuthService
         return Task.CompletedTask;
     }
 
-    private AuthResult ToSessionResult(LocalUser user)
+    private AuthResult ToSessionResult(UserDatabase.UserRecord user)
     {
         var session = new UserSession
         {
@@ -188,24 +156,20 @@ public class LocalAuthService : IAuthService
         {
             try
             {
-                var path = GetSessionPath();
-                if (!File.Exists(path))
-                    return;
-
-                var remembered = JsonSerializer.Deserialize<RememberedSession>(File.ReadAllText(path));
+                var remembered = _database.LoadRememberedSession();
                 if (remembered is null
                     || string.IsNullOrWhiteSpace(remembered.UserId)
                     || string.IsNullOrWhiteSpace(remembered.SessionId))
                 {
-                    DeleteRememberedSession();
+                    _database.DeleteRememberedSession();
                     return;
                 }
 
-                var user = LoadUsers().FirstOrDefault(u => u.Id == remembered.UserId);
+                var user = _database.FindUserById(remembered.UserId);
                 if (user is null
                     || !string.Equals(user.Email, remembered.Email, StringComparison.OrdinalIgnoreCase))
                 {
-                    DeleteRememberedSession();
+                    _database.DeleteRememberedSession();
                     return;
                 }
 
@@ -216,46 +180,37 @@ public class LocalAuthService : IAuthService
                     SessionId = remembered.SessionId,
                 };
             }
-            catch (JsonException)
+            catch
             {
-                DeleteRememberedSession();
-            }
-            catch (IOException)
-            {
-                // A temporarily unavailable session file must not block startup.
+                // A temporarily unavailable database must not block startup.
             }
         }
     }
 
-    private static void SaveRememberedSession(UserSession session)
+    private void SaveRememberedSession(UserSession session)
     {
         try
         {
-            var json = JsonSerializer.Serialize(new RememberedSession
-            {
-                UserId = session.UserId,
-                Email = session.Email,
-                SessionId = session.SessionId,
-            }, new JsonSerializerOptions { WriteIndented = true });
-            File.WriteAllText(GetSessionPath(), json);
+            _database.SaveRememberedSession(new UserDatabase.RememberedSession(
+                session.UserId,
+                session.Email,
+                session.SessionId));
         }
-        catch (IOException)
+        catch
         {
             // The authenticated session remains usable for this process.
         }
     }
 
-    private static void DeleteRememberedSession()
+    private void DeleteRememberedSession()
     {
         try
         {
-            var path = GetSessionPath();
-            if (File.Exists(path))
-                File.Delete(path);
+            _database.DeleteRememberedSession();
         }
-        catch (IOException)
+        catch
         {
-            // The next successful sign-in can overwrite the session file.
+            // The next successful sign-in can overwrite the database row.
         }
     }
 
@@ -283,41 +238,4 @@ public class LocalAuthService : IAuthService
         }
     }
 
-    private static string GetUsersPath()
-    {
-        var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        var dir = Path.Combine(appData, "learn-assist");
-        Directory.CreateDirectory(dir);
-        return Path.Combine(dir, "users.json");
-    }
-
-    private static string GetSessionPath()
-    {
-        var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        var dir = Path.Combine(appData, "learn-assist");
-        Directory.CreateDirectory(dir);
-        return Path.Combine(dir, SessionFileName);
-    }
-
-    private static List<LocalUser> LoadUsers()
-    {
-        try
-        {
-            var path = GetUsersPath();
-            if (!File.Exists(path))
-                return [];
-            var json = File.ReadAllText(path);
-            return JsonSerializer.Deserialize<List<LocalUser>>(json) ?? [];
-        }
-        catch
-        {
-            return [];
-        }
-    }
-
-    private static void SaveUsers(List<LocalUser> users)
-    {
-        var json = JsonSerializer.Serialize(users, new JsonSerializerOptions { WriteIndented = true });
-        File.WriteAllText(GetUsersPath(), json);
-    }
 }
