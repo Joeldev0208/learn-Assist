@@ -103,6 +103,7 @@ public partial class LearningProfileViewModel : ViewModelBase
 
     public event Action<LearningProfile>? ProfileSaved;
     public event Action? Cancelled;
+    public event Action? SemesterImportRequested;
 
     partial void OnCurrentStepChanged(int value)
     {
@@ -168,6 +169,12 @@ public partial class LearningProfileViewModel : ViewModelBase
     {
         if (IsEditing)
             Cancelled?.Invoke();
+    }
+
+    [RelayCommand]
+    private void SemesterImport()
+    {
+        SemesterImportRequested?.Invoke();
     }
 
     private async Task SaveAsync()

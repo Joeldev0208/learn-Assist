@@ -15,6 +15,7 @@
         Width="1200" Height="700" MinWidth="720" MinHeight="500"
         Background="{DynamicResource WindowBackgroundBrush}">
 
+  
   <Design.DataContext>
     <vm:MainViewModel />
   </Design.DataContext>
@@ -46,14 +47,14 @@
             Padding="14,10" IsVisible="{Binding IsUpdateAvailable}">
       <DockPanel LastChildFill="True">
         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-          <Button Width="30" Height="30"
+<!--            <Button Width="30" Height="30"
                   Command="{Binding EndLearningSessionCommand}"
                   IsVisible="{Binding IsLearningSessionActive}"
                   Background="Transparent" BorderThickness="0" Padding="0"
                   Foreground="{DynamicResource TextMutedBrush}"
                   ToolTip.Tip="Return to learning home">
             <TextBlock Text="←" FontSize="17" HorizontalAlignment="Center" VerticalAlignment="Center" />
-          </Button>
+          </Button> -->
           <Button Command="{Binding ApplyUpdateCommand}"
                   IsEnabled="{Binding IsUpdating, Converter={x:Static BoolConverters.Not}}"
                   Background="{DynamicResource ButtonPrimaryBackgroundBrush}"
@@ -316,17 +317,16 @@
           Muestra el progreso, las acciones de la etapa actual y los mensajes
           de Chat.Messages dentro de una lista desplazable.
         -->
-        <Grid Grid.Row="1" MinHeight="0"
+        <Grid Grid.Row="1" 
               RowDefinitions="Auto,*"
               IsVisible="{Binding IsLearningSessionActive}"
               ClipToBounds="True">
-          <Border Grid.Row="0" Padding="24,16,24,8"
+         <!-- <Border Grid.Row="0" Padding="24,16,24,8"
                   BorderBrush="{DynamicResource DividerBrush}" BorderThickness="1,0"
                   Background="{DynamicResource WindowBackgroundBrush}">
-            <Border MaxWidth="720" HorizontalAlignment="Center" Padding="14,12"
+               <Border MaxWidth="720" HorizontalAlignment="Center" Padding="14,12"
                     CornerRadius="12" Background="{DynamicResource SurfaceBrush}"
-                    BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
-              <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+                    BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">               <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
                 <StackPanel Spacing="2">
                   <TextBlock Text="{Binding LearningStepLabel}" FontSize="11"
                              Foreground="{DynamicResource BrandBrush}" FontWeight="SemiBold" />
@@ -346,8 +346,8 @@
                   <TextBlock Text="{Binding LearningActionText}" FontSize="12" />
                 </Button>
               </Grid>
-            </Border>
-          </Border>
+            </Border> 
+          </Border> -->
 
           <Border Grid.Row="1" MinHeight="0"
                 BorderBrush="{DynamicResource DividerBrush}" BorderThickness="1,0"
@@ -365,17 +365,17 @@
                         HorizontalAlignment="Stretch"
                         MinHeight="0"
                         VerticalAlignment="Top">
-              <Border MaxWidth="720" HorizontalAlignment="Center" Padding="14,12"
+              <!--               <Border MaxWidth="720" HorizontalAlignment="Center" Padding="14,12"
                       CornerRadius="12" Background="{DynamicResource SuccessTextBrush}"
                       IsVisible="{Binding IsLearningSessionComplete}">
                 <TextBlock Text="Nice work. You completed this focused session. Return when you are ready for the next idea."
                            Foreground="{DynamicResource BrandTextBrush}" TextWrapping="Wrap" FontSize="13" />
-              </Border>
+              </Border> -->
               <ItemsControl ItemsSource="{Binding Chat.Messages}"
                             HorizontalAlignment="Stretch" VerticalAlignment="Top" MinHeight="0">
                 <ItemsControl.ItemTemplate>
                   <DataTemplate DataType="models:ChatMessage">
-                    <Grid HorizontalAlignment="Stretch" Margin="0,0,0,10">
+                    <Grid HorizontalAlignment="Stretch" Margin="0,0,0,50">
                       <Border MaxWidth="720"
                               HorizontalAlignment="{Binding Role, Converter={StaticResource RoleToAlignment}}"
                               Padding="14,12" CornerRadius="12"

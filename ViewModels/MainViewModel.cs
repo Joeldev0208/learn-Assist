@@ -72,7 +72,7 @@ public partial class MainViewModel : ViewModelBase
     [ObservableProperty]
     public partial int LearningStep { get; set; } = 1;
 
-    [ObservableProperty]
+/*     [ObservableProperty]
     public partial bool IsLearningSessionComplete { get; set; }
 
     public string LearningStepLabel => $"Step {LearningStep} of 3";
@@ -83,7 +83,7 @@ public partial class MainViewModel : ViewModelBase
         _ => "Explain it in your own words",
     };
     public string LearningActionText => LearningStep == 3 ? "Finish session" : "Next step";
-
+ */
     [ObservableProperty]
     public partial string? UpdateError { get; set; }
 
@@ -130,7 +130,7 @@ public partial class MainViewModel : ViewModelBase
             LearningGoal = "A topic I want to understand";
 
         IsLearningSessionActive = true;
-        IsLearningSessionComplete = false;
+/*         IsLearningSessionComplete = false; */
         LearningStep = 1;
         Chat.AddWelcomeMessage();
         Chat.MessageText = $"Help me learn {LearningGoal.Trim()} in a short focused session.";
@@ -146,7 +146,7 @@ public partial class MainViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private async Task CompleteLearningStepAsync()
+/*     private async Task CompleteLearningStepAsync()
     {
         if (LearningStep < 3)
         {
@@ -158,30 +158,30 @@ public partial class MainViewModel : ViewModelBase
         }
 
         await SaveLearningProfileAsync();
-    }
+    } */
 
-    [RelayCommand]
+ /*    [RelayCommand]
     private async Task EndLearningSessionAsync()
     {
         IsLearningSessionActive = false;
         IsLearningSessionComplete = false;
         LearningStep = 1;
         await SaveLearningProfileAsync();
-    }
+    } */
 
-    [RelayCommand]
+/*     [RelayCommand] */
     private void NeedLearningHelp()
     {
         Chat.MessageText = $"Explain {LearningGoal} with a simpler example and one short practice question.";
     }
 
-    partial void OnLearningStepChanged(int value)
+/*     partial void OnLearningStepChanged(int value)
     {
         OnPropertyChanged(nameof(LearningStepLabel));
         OnPropertyChanged(nameof(LearningProgressText));
         OnPropertyChanged(nameof(LearningActionText));
     }
-
+ */
     public MainViewModel()
         : this(new MockAiService(), "preview@example.com")
     {
@@ -327,7 +327,7 @@ public partial class MainViewModel : ViewModelBase
         LearningGoal = profile.LearningGoal;
         LearningStep = profile.LearningStep;
         IsLearningSessionActive = profile.IsLearningSessionActive;
-        IsLearningSessionComplete = profile.IsLearningSessionComplete;
+/*         IsLearningSessionComplete = profile.IsLearningSessionComplete; */
         OnPropertyChanged(nameof(LearningProfile));
     }
 
@@ -357,7 +357,7 @@ public partial class MainViewModel : ViewModelBase
     private void OnSessionSelected(Models.ChatSession session)
     {
         IsLearningSessionActive = true;
-        IsLearningSessionComplete = false;
+/*         IsLearningSessionComplete = false; */
         Chat.LoadSession(session);
     }
 
@@ -370,7 +370,7 @@ public partial class MainViewModel : ViewModelBase
         profile.LearningGoal = LearningGoal;
         profile.IsLearningSessionActive = IsLearningSessionActive;
         profile.LearningStep = LearningStep;
-        profile.IsLearningSessionComplete = IsLearningSessionComplete;
+/*         profile.IsLearningSessionComplete = IsLearningSessionComplete; */
         await _profileService.SaveAsync(profile);
         LearningProfile = profile;
     }
