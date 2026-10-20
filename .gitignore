@@ -8,6 +8,7 @@
 
 # Publish artifacts
 dist/
+packages/
 
 # User-specific files
 *.rsuser

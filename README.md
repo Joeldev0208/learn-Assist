@@ -74,6 +74,43 @@ LEARN_ASSIST_FORCE_INSTALL=1 dotnet run   # force the install wizard in dev
 
 > No tests. Release artifacts are produced by CI on `v*` tag push (linux-x64 + win-x64 self-contained single-file). Local equivalent: `scripts/publish.sh` → `dist/`.
 
+## GitHub Packages (NuGet)
+
+The project also publishes a **NuGet package to GitHub Packages**, so it shows up under the repository's **Packages** tab (`https://github.com/Joeldev0208?tab=packages`).
+
+- **Feed:** `https://nuget.pkg.github.com/Joeldev0208/index.json`
+- **Package ID:** `learn-assist` (metadata in `learn-Assist.csproj`)
+- **Trigger:** `.github/workflows/packages.yml` runs on push to `master` and on `v*` tags. Tag builds use the tag as the version (`v1.2.3` → `1.2.3`); branch builds use a prerelease (`1.0.0-ci.<run>`).
+
+### Install the package
+
+GitHub Packages requires authentication even for public packages. Add the feed once:
+
+```sh
+dotnet nuget add source --username Joeldev0208 --password <YOUR_PAT> \
+  --store-password-in-clear-text --name github \
+  "https://nuget.pkg.github.com/Joeldev0208/index.json"
+```
+
+Then reference it in a project:
+
+```xml
+<PackageReference Include="learn-assist" Version="1.0.0" />
+```
+
+> The token needs the `read:packages` scope (`write:packages` to publish). Create it at GitHub → Settings → Developer settings → Personal access tokens. `NuGet.config` in this repo already maps `learn-assist*` to the GitHub feed so public dependencies still come from nuget.org.
+
+### Publish manually
+
+```sh
+dotnet pack learn-Assist.csproj -c Release -o packages
+dotnet nuget push "packages/*.nupkg" \
+  --source "https://nuget.pkg.github.com/Joeldev0208/index.json" \
+  --api-key <YOUR_PAT>
+```
+
+> Packages are **private by default**. The workflow tries to make them public for public repos; you can also change visibility later in the package's settings on GitHub.
+
 ## Docker / Windows Defender Workaround
 
 En **Windows 11**, el binario self-contained de `learn-Assist` puede ser **bloqueado por Windows Defender** (SmartScreen). Para evitar el bloqueo, usa el `Dockerfile` incluido en el repositorio:
