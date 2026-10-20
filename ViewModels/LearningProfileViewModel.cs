@@ -87,6 +87,12 @@ public partial class LearningProfileViewModel : ViewModelBase
     public partial string Semester { get; set; } = string.Empty;
 
     [ObservableProperty]
+    public partial string? SemesterContent { get; set; }
+
+    [ObservableProperty]
+    public partial string? SemesterImportFeedback { get; set; }
+
+    [ObservableProperty]
     public partial string ProfessionalArea { get; set; } = string.Empty;
 
     [ObservableProperty]

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Net.Http;
@@ -15,6 +16,7 @@ public partial class ChatViewModel : ViewModelBase
     private IAiService _aiService;
     private SessionPersistenceService? _persistence;
     private ChatSession? _currentSession;
+    private string? _documentContext;
 
     public ChatViewModel(IAiService aiService, SessionPersistenceService? persistence = null)
     {
@@ -41,6 +43,11 @@ public partial class ChatViewModel : ViewModelBase
         _aiService = service;
         if (persistence is not null)
             _persistence = persistence;
+    }
+
+    public void SetDocumentContext(string? context)
+    {
+        _documentContext = context;
     }
 
     public void SetCurrentSession(ChatSession? session)
@@ -70,7 +77,18 @@ public partial class ChatViewModel : ViewModelBase
         ErrorMessage = null;
         IsLoading = true;
 
-        var history = Messages.ToList();
+        var history = new List<ChatMessage>();
+
+        if (!string.IsNullOrWhiteSpace(_documentContext))
+        {
+            history.Add(new ChatMessage
+            {
+                Role = MessageRole.System,
+                Content = _documentContext,
+            });
+        }
+
+        history.AddRange(Messages.ToList());
 
         var userMsg = new ChatMessage
         {

@@ -38,7 +38,9 @@ public class OpenAiService : IAiService
 
         foreach (var msg in history)
         {
-            if (msg.Role == MessageRole.User)
+            if (msg.Role == MessageRole.System)
+                messages.Add(OpenAI.Chat.ChatMessage.CreateSystemMessage(msg.Content));
+            else if (msg.Role == MessageRole.User)
                 messages.Add(OpenAI.Chat.ChatMessage.CreateUserMessage(msg.Content));
             else
                 messages.Add(OpenAI.Chat.ChatMessage.CreateAssistantMessage(msg.Content));

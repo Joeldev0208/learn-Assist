@@ -36,6 +36,9 @@ public class AnthropicService : IAiService
 
         foreach (var msg in history)
         {
+            if (msg.Role == MessageRole.System)
+                continue;
+
             messages.Add(new
             {
                 role = msg.Role == MessageRole.User ? "user" : "assistant",
@@ -45,11 +48,15 @@ public class AnthropicService : IAiService
 
         messages.Add(new { role = "user", content = message });
 
+        var systemContext = AiPrompt.System;
+        if (history.FirstOrDefault(m => m.Role == MessageRole.System) is { } sysMsg)
+            systemContext += "\n\n" + sysMsg.Content;
+
         var body = new
         {
             model = _model,
             max_tokens = 2048,
-            system = AiPrompt.System,
+            system = systemContext,
             messages,
         };
 

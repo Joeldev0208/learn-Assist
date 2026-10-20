@@ -84,9 +84,14 @@
                         Foreground="{DynamicResource ButtonSecondaryForegroundBrush}"
                         CornerRadius="8" Padding="14,9" BorderThickness="0" />
               </Grid>
+              <TextBlock Text="{Binding SemesterImportFeedback}"
+                         FontSize="12" Foreground="{DynamicResource TextMutedBrush}"
+                         TextWrapping="Wrap"
+                         IsVisible="{Binding SemesterImportFeedback, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
               <TextBlock Text="You can add your syllabus later from Resources."
                          FontSize="12" Foreground="{DynamicResource TextMutedBrush}"
-                         TextWrapping="Wrap" />
+                         TextWrapping="Wrap"
+                         IsVisible="{Binding SemesterImportFeedback, Converter={x:Static StringConverters.IsNullOrEmpty}}" />
             </StackPanel>
 
             <StackPanel Spacing="5" IsVisible="{Binding IsProfessional}">

@@ -1,4 +1,7 @@
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -238,6 +241,8 @@ public partial class MainViewModel : ViewModelBase
         SessionList.SessionSelected += OnSessionSelected;
         SessionList.NewSessionRequested += OnNewSessionRequested;
 
+        DocumentList.Documents.CollectionChanged += (_, _) => UpdateChatDocumentContext();
+
         Tutorial.TutorialFinished += OnTutorialFinished;
 
         if (!TutorialStateService.HasBeenSeen(_userKey))
@@ -261,12 +266,25 @@ public partial class MainViewModel : ViewModelBase
         }
 
         await SessionList.LoadSessionsAsync();
+        await DocumentList.LoadDocumentsAsync();
 
         if (SessionList.ActiveSession is null)
         {
             var initialSession = SessionList.CreateNewSession();
             Chat.SetCurrentSession(initialSession);
         }
+    }
+
+    private void UpdateChatDocumentContext()
+    {
+        var docs = DocumentList.Documents
+            .Where(d => !string.IsNullOrWhiteSpace(d.Content))
+            .Select(d => $"### {d.Name}\n{d.Content}")
+            .ToList();
+
+        Chat.SetDocumentContext(docs.Count > 0
+            ? "Documentos importados como contexto:\n\n" + string.Join("\n\n---\n\n", docs)
+            : null);
     }
 
     private async void CheckForUpdates()

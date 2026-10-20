@@ -1,10 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Platform.Storage;
 using learn_Assist.Models;
+using learn_Assist.Services;
 using learn_Assist.ViewModels;
 
 namespace learn_Assist.Views;
@@ -77,6 +79,9 @@ public partial class ImportDocumentView : Window
             ContentType = type,
             ImportedAt = DateTime.Now,
         };
+
+        if (type == DocumentContentType.Document)
+            doc.Content = FileContentReader.ExtractText(filePath);
 
         Result = doc;
         Close(doc);
