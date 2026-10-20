@@ -32,6 +32,9 @@ public class GeminiService : IAiService
 
         foreach (var msg in history)
         {
+            if (msg.Role == MessageRole.System)
+                continue;
+
             contents.Add(new
             {
                 role = msg.Role == MessageRole.User ? "user" : "model",
@@ -45,12 +48,16 @@ public class GeminiService : IAiService
             parts = new[] { new { text = message } },
         });
 
+        var systemContent = AiPrompt.System;
+        if (history.FirstOrDefault(m => m.Role == MessageRole.System) is { } sysMsg)
+            systemContent += "\n\n" + sysMsg.Content;
+
         var body = new
         {
             contents,
             systemInstruction = new
             {
-                parts = new[] { new { text = AiPrompt.System } },
+                parts = new[] { new { text = systemContent } },
             },
         };
 

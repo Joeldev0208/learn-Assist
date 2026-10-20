@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Net.Http;
@@ -15,6 +16,7 @@ public partial class ChatViewModel : ViewModelBase
     private IAiService _aiService;
     private SessionPersistenceService? _persistence;
     private ChatSession? _currentSession;
+    private string? _documentContext;
 
     public ChatViewModel(IAiService aiService, SessionPersistenceService? persistence = null)
     {
@@ -33,7 +35,7 @@ public partial class ChatViewModel : ViewModelBase
     [ObservableProperty]
     public partial string? ErrorMessage { get; set; }
 
-    public event Action? ScrollToBottomRequested;
+    public event Action<bool>? ScrollToBottomRequested;
 
     public void SetAiService(IAiService service, SessionPersistenceService? persistence = null)
     {
@@ -41,6 +43,11 @@ public partial class ChatViewModel : ViewModelBase
         _aiService = service;
         if (persistence is not null)
             _persistence = persistence;
+    }
+
+    public void SetDocumentContext(string? context)
+    {
+        _documentContext = context;
     }
 
     public void SetCurrentSession(ChatSession? session)
@@ -52,8 +59,11 @@ public partial class ChatViewModel : ViewModelBase
     {
         _currentSession = session;
         Messages.Clear();
+        MessageText = string.Empty;
+        ErrorMessage = null;
         foreach (var msg in session.Messages)
             Messages.Add(msg);
+        ScrollToBottomRequested?.Invoke(true);
     }
 
     [RelayCommand]
@@ -67,7 +77,18 @@ public partial class ChatViewModel : ViewModelBase
         ErrorMessage = null;
         IsLoading = true;
 
-        var history = Messages.ToList();
+        var history = new List<ChatMessage>();
+
+        if (!string.IsNullOrWhiteSpace(_documentContext))
+        {
+            history.Add(new ChatMessage
+            {
+                Role = MessageRole.System,
+                Content = _documentContext,
+            });
+        }
+
+        history.AddRange(Messages.ToList());
 
         var userMsg = new ChatMessage
         {
@@ -76,7 +97,7 @@ public partial class ChatViewModel : ViewModelBase
             Timestamp = DateTime.Now,
         };
         Messages.Add(userMsg);
-        ScrollToBottomRequested?.Invoke();
+        ScrollToBottomRequested?.Invoke(true);
 
         try
         {
@@ -89,12 +110,17 @@ public partial class ChatViewModel : ViewModelBase
                 Timestamp = DateTime.Now,
             };
             Messages.Add(assistantMsg);
-            ScrollToBottomRequested?.Invoke();
+            ScrollToBottomRequested?.Invoke(true);
 
             if (_persistence is not null && _currentSession is not null)
             {
                 try
                 {
+                    if (string.Equals(_currentSession.Title, "New Chat", StringComparison.OrdinalIgnoreCase))
+                    {
+                        _currentSession.Title = CreateSessionTitle(text);
+                    }
+
                     _currentSession.Messages = new ObservableCollection<ChatMessage>(Messages);
                     await _persistence.SaveSessionAsync(_currentSession);
                 }
@@ -131,5 +157,12 @@ public partial class ChatViewModel : ViewModelBase
             Content = "Hi! I'm your learning assistant. We'll focus on one useful idea at a time.",
             Timestamp = DateTime.Now,
         });
+    }
+
+    private static string CreateSessionTitle(string message)
+    {
+        const int maxLength = 42;
+        var title = message.ReplaceLineEndings(" ").Trim();
+        return title.Length <= maxLength ? title : $"{title[..maxLength].TrimEnd()}...";
     }
 }

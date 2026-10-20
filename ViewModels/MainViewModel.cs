@@ -1,4 +1,7 @@
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -9,8 +12,10 @@ namespace learn_Assist.ViewModels;
 
 public partial class MainViewModel : ViewModelBase
 {
-    private static bool _isFirstLogin = true;
     private readonly string _userEmail;
+    private readonly string _userKey;
+    private readonly bool _hasAiConfig;
+    private readonly LearningProfileService? _profileService;
     private SessionPersistenceService? _persistence;
     private readonly UpdateService? _updateService;
     private Action? _configureAiRequested;
@@ -20,6 +25,8 @@ public partial class MainViewModel : ViewModelBase
     public ChatViewModel Chat { get; }
     public DocumentListViewModel DocumentList { get; }
     public TutorialViewModel Tutorial { get; }
+    public LearningProfile? LearningProfile { get; private set; }
+    public string UserId => _userKey;
 
     public event Action? ConfigureAiRequested
     {
@@ -36,6 +43,7 @@ public partial class MainViewModel : ViewModelBase
     }
     public event Action? RestartRequested;
     public event Action? SignOutRequested;
+    public event Action? EditLearningProfileRequested;
     public IRelayCommand SignOutCommand { get; }
 
     public string ThemeGlyph => ThemeService.IsDark ? "☀️" : "🌙";
@@ -67,7 +75,7 @@ public partial class MainViewModel : ViewModelBase
     [ObservableProperty]
     public partial int LearningStep { get; set; } = 1;
 
-    [ObservableProperty]
+/*     [ObservableProperty]
     public partial bool IsLearningSessionComplete { get; set; }
 
     public string LearningStepLabel => $"Step {LearningStep} of 3";
@@ -78,7 +86,7 @@ public partial class MainViewModel : ViewModelBase
         _ => "Explain it in your own words",
     };
     public string LearningActionText => LearningStep == 3 ? "Finish session" : "Next step";
-
+ */
     [ObservableProperty]
     public partial string? UpdateError { get; set; }
 
@@ -119,65 +127,110 @@ public partial class MainViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void StartLearningSession()
+    private async Task StartLearningSessionAsync()
     {
         if (string.IsNullOrWhiteSpace(LearningGoal))
             LearningGoal = "A topic I want to understand";
 
         IsLearningSessionActive = true;
-        IsLearningSessionComplete = false;
+/*         IsLearningSessionComplete = false; */
         LearningStep = 1;
         Chat.AddWelcomeMessage();
         Chat.MessageText = $"Help me learn {LearningGoal.Trim()} in a short focused session.";
         Chat.SendMessageCommand.Execute(null);
+        await SaveLearningProfileAsync();
     }
 
     [RelayCommand]
-    private void StartQuickSession()
+    private async Task StartQuickSessionAsync()
     {
         LearningGoal = "one useful idea in five minutes";
-        StartLearningSession();
+        await StartLearningSessionAsync();
     }
 
     [RelayCommand]
-    private void CompleteLearningStep()
+/*     private async Task CompleteLearningStepAsync()
     {
         if (LearningStep < 3)
         {
             LearningStep++;
-            return;
+        }
+        else
+        {
+            IsLearningSessionComplete = true;
         }
 
-        IsLearningSessionComplete = true;
-    }
+        await SaveLearningProfileAsync();
+    } */
 
-    [RelayCommand]
-    private void EndLearningSession()
+ /*    [RelayCommand]
+    private async Task EndLearningSessionAsync()
     {
         IsLearningSessionActive = false;
         IsLearningSessionComplete = false;
         LearningStep = 1;
-    }
+        await SaveLearningProfileAsync();
+    } */
 
-    [RelayCommand]
+/*     [RelayCommand] */
     private void NeedLearningHelp()
     {
         Chat.MessageText = $"Explain {LearningGoal} with a simpler example and one short practice question.";
     }
 
-    partial void OnLearningStepChanged(int value)
+/*     partial void OnLearningStepChanged(int value)
     {
         OnPropertyChanged(nameof(LearningStepLabel));
         OnPropertyChanged(nameof(LearningProgressText));
         OnPropertyChanged(nameof(LearningActionText));
     }
+ */
+    public MainViewModel()
+        : this(new MockAiService(), "preview@example.com")
+    {
+        IsLearningSessionActive = true;
+        Tutorial.IsVisible = false;
+        LearningGoal = "C# async and await";
+        Chat.Messages.Add(new ChatMessage
+        {
+            Role = MessageRole.User,
+            Content = "Can you explain how async and await work in C#?",
+        });
+        Chat.Messages.Add(new ChatMessage
+        {
+            Role = MessageRole.Assistant,
+            Content = """
+                ## Async and await
 
-    public MainViewModel(IAiService aiService, string userEmail, ApiConfig? config = null, SessionPersistenceService? persistence = null, UpdateService? updateService = null)
+                `async` lets a method perform asynchronous work without blocking the UI thread.
+
+                ```csharp
+                var result = await LoadAsync();
+                ```
+
+                The `await` keyword pauses this method until the operation completes, then continues with the result.
+                """,
+        });
+    }
+
+    public MainViewModel(
+        IAiService aiService,
+        string userEmail,
+        string? userId = null,
+        ApiConfig? config = null,
+        SessionPersistenceService? persistence = null,
+        UpdateService? updateService = null,
+        LearningProfileService? profileService = null,
+        LearningProfile? learningProfile = null)
     {
         SignOutCommand = new RelayCommand(SignOut);
         _userEmail = userEmail;
+        _userKey = string.IsNullOrWhiteSpace(userId) ? userEmail.Trim().ToLowerInvariant() : userId;
+        _hasAiConfig = config is not null;
+        _profileService = profileService;
         _persistence = persistence;
         _updateService = updateService;
+        LearningProfile = learningProfile;
 
         Chat = new ChatViewModel(aiService, persistence);
         SessionList = new SessionListViewModel(persistence);
@@ -188,16 +241,12 @@ public partial class MainViewModel : ViewModelBase
         SessionList.SessionSelected += OnSessionSelected;
         SessionList.NewSessionRequested += OnNewSessionRequested;
 
-        var initialSession = SessionList.CreateNewSession();
-        Chat.SetCurrentSession(initialSession);
+        DocumentList.Documents.CollectionChanged += (_, _) => UpdateChatDocumentContext();
 
         Tutorial.TutorialFinished += OnTutorialFinished;
 
-        if (_isFirstLogin)
-        {
-            _isFirstLogin = false;
+        if (!TutorialStateService.HasBeenSeen(_userKey))
             Tutorial.IsVisible = true;
-        }
         else if (config is null)
         {
             _configureAiPending = true;
@@ -205,6 +254,37 @@ public partial class MainViewModel : ViewModelBase
 
         if (_updateService is { IsSupported: true })
             CheckForUpdates();
+    }
+
+    public async Task InitializeAsync()
+    {
+        if (_profileService is not null && !string.IsNullOrWhiteSpace(_userKey))
+        {
+            LearningProfile ??= await _profileService.LoadAsync(_userKey);
+            if (LearningProfile is not null)
+                ApplyLearningProfile(LearningProfile);
+        }
+
+        await SessionList.LoadSessionsAsync();
+        await DocumentList.LoadDocumentsAsync();
+
+        if (SessionList.ActiveSession is null)
+        {
+            var initialSession = SessionList.CreateNewSession();
+            Chat.SetCurrentSession(initialSession);
+        }
+    }
+
+    private void UpdateChatDocumentContext()
+    {
+        var docs = DocumentList.Documents
+            .Where(d => !string.IsNullOrWhiteSpace(d.Content))
+            .Select(d => $"### {d.Name}\n{d.Content}")
+            .ToList();
+
+        Chat.SetDocumentContext(docs.Count > 0
+            ? "Documentos importados como contexto:\n\n" + string.Join("\n\n---\n\n", docs)
+            : null);
     }
 
     private async void CheckForUpdates()
@@ -253,13 +333,31 @@ public partial class MainViewModel : ViewModelBase
         UpdateError = null;
     }
 
+    [RelayCommand]
+    private void EditLearningProfile()
+    {
+        EditLearningProfileRequested?.Invoke();
+    }
+
+    public void ApplyLearningProfile(LearningProfile profile)
+    {
+        LearningProfile = profile;
+        LearningGoal = profile.LearningGoal;
+        LearningStep = profile.LearningStep;
+        IsLearningSessionActive = profile.IsLearningSessionActive;
+/*         IsLearningSessionComplete = profile.IsLearningSessionComplete; */
+        OnPropertyChanged(nameof(LearningProfile));
+    }
+
     private void OnTutorialFinished()
     {
-        if (!ConfigEncryption.ConfigExists())
+        TutorialStateService.MarkSeen(_userKey);
+
+        if (!_hasAiConfig)
             _configureAiRequested?.Invoke();
     }
 
-    public void ApplyConfig(ApiConfig config)
+    public async Task ApplyConfigAsync(ApiConfig config)
     {
         var aiService = AiServiceFactory.Create(config);
 
@@ -268,7 +366,7 @@ public partial class MainViewModel : ViewModelBase
         {
             persistence = new SessionPersistenceService(config.SessionsDirectory);
             _persistence = persistence;
-            SessionList.SetPersistence(persistence);
+            await SessionList.SetPersistenceAsync(persistence);
         }
 
         Chat.SetAiService(aiService, persistence);
@@ -276,7 +374,23 @@ public partial class MainViewModel : ViewModelBase
 
     private void OnSessionSelected(Models.ChatSession session)
     {
+        IsLearningSessionActive = true;
+/*         IsLearningSessionComplete = false; */
         Chat.LoadSession(session);
+    }
+
+    private async Task SaveLearningProfileAsync()
+    {
+        if (_profileService is null || string.IsNullOrWhiteSpace(_userKey))
+            return;
+
+        var profile = LearningProfile ?? new LearningProfile { UserId = _userKey };
+        profile.LearningGoal = LearningGoal;
+        profile.IsLearningSessionActive = IsLearningSessionActive;
+        profile.LearningStep = LearningStep;
+/*         profile.IsLearningSessionComplete = IsLearningSessionComplete; */
+        await _profileService.SaveAsync(profile);
+        LearningProfile = profile;
     }
 
     private void OnNewSessionRequested()

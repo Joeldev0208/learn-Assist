@@ -34,6 +34,7 @@ public partial class TutorialViewModel : ViewModelBase
     public bool IsLastStep => CurrentStep == Steps.Length - 1;
     public int TotalSteps => Steps.Length;
     public string NextButtonText => IsLastStep ? "Let's start!" : "Next";
+    public string StepIndicatorText => $"Step {CurrentStep + 1} of {TotalSteps}";
 
     public event Action? TutorialFinished;
 
@@ -44,6 +45,7 @@ public partial class TutorialViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsFirstStep));
         OnPropertyChanged(nameof(IsLastStep));
         OnPropertyChanged(nameof(NextButtonText));
+        OnPropertyChanged(nameof(StepIndicatorText));
     }
 
     [RelayCommand]

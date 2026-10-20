@@ -3,6 +3,7 @@
         xmlns:vm="using:learn_Assist.ViewModels"
         xmlns:models="using:learn_Assist.Models"
         xmlns:conv="using:learn_Assist.Converters"
+        xmlns:controls="using:learn_Assist.Controls"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="700"
@@ -13,6 +14,11 @@
         WindowStartupLocation="CenterScreen"
         Width="1200" Height="700" MinWidth="720" MinHeight="500"
         Background="{DynamicResource WindowBackgroundBrush}">
+
+  
+  <Design.DataContext>
+    <vm:MainViewModel />
+  </Design.DataContext>
 
   <!--
     Recursos visuales y convertidores usados por toda la ventana.
@@ -41,14 +47,14 @@
             Padding="14,10" IsVisible="{Binding IsUpdateAvailable}">
       <DockPanel LastChildFill="True">
         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-          <Button Width="30" Height="30"
+<!--            <Button Width="30" Height="30"
                   Command="{Binding EndLearningSessionCommand}"
                   IsVisible="{Binding IsLearningSessionActive}"
                   Background="Transparent" BorderThickness="0" Padding="0"
                   Foreground="{DynamicResource TextMutedBrush}"
                   ToolTip.Tip="Return to learning home">
             <TextBlock Text="←" FontSize="17" HorizontalAlignment="Center" VerticalAlignment="Center" />
-          </Button>
+          </Button> -->
           <Button Command="{Binding ApplyUpdateCommand}"
                   IsEnabled="{Binding IsUpdating, Converter={x:Static BoolConverters.Not}}"
                   Background="{DynamicResource ButtonPrimaryBackgroundBrush}"
@@ -148,7 +154,7 @@
 
       <!-- Área central: encabezado, inicio de aprendizaje, chat y entrada. -->
       <Grid Grid.Column="2" MinHeight="0"
-            RowDefinitions="Auto,*,Auto,Auto,Auto"
+            RowDefinitions="Auto,*,Auto"
             ClipToBounds="True">
         <!-- Encabezado principal y acciones de la aplicación. -->
         <Border Padding="14,10" BorderBrush="{DynamicResource DividerBrush}" BorderThickness="0,0,0,1" Background="{DynamicResource HeaderBackgroundBrush}">
@@ -311,11 +317,44 @@
           Muestra el progreso, las acciones de la etapa actual y los mensajes
           de Chat.Messages dentro de una lista desplazable.
         -->
-        <Border Grid.Row="1" MinHeight="0"
+        <Grid Grid.Row="1" 
+              RowDefinitions="Auto,*"
+              IsVisible="{Binding IsLearningSessionActive}"
+              ClipToBounds="True">
+         <!-- <Border Grid.Row="0" Padding="24,16,24,8"
+                  BorderBrush="{DynamicResource DividerBrush}" BorderThickness="1,0"
+                  Background="{DynamicResource WindowBackgroundBrush}">
+               <Border MaxWidth="720" HorizontalAlignment="Center" Padding="14,12"
+                    CornerRadius="12" Background="{DynamicResource SurfaceBrush}"
+                    BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">               <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+                <StackPanel Spacing="2">
+                  <TextBlock Text="{Binding LearningStepLabel}" FontSize="11"
+                             Foreground="{DynamicResource BrandBrush}" FontWeight="SemiBold" />
+                  <TextBlock Text="{Binding LearningProgressText}" FontSize="14"
+                             Foreground="{DynamicResource TextPrimaryBrush}" FontWeight="SemiBold" />
+                </StackPanel>
+                <Button Grid.Column="1" Command="{Binding NeedLearningHelpCommand}"
+                        Background="{DynamicResource ButtonSecondaryBackgroundBrush}"
+                        Foreground="{DynamicResource ButtonSecondaryForegroundBrush}"
+                        BorderThickness="0" CornerRadius="8" Padding="10,7">
+                  <TextBlock Text="Make it simpler" FontSize="12" />
+                </Button>
+                <Button Grid.Column="2" Command="{Binding CompleteLearningStepCommand}"
+                        Background="{DynamicResource ButtonPrimaryBackgroundBrush}"
+                        Foreground="{DynamicResource ButtonPrimaryForegroundBrush}"
+                        BorderThickness="0" CornerRadius="8" Padding="10,7">
+                  <TextBlock Text="{Binding LearningActionText}" FontSize="12" />
+                </Button>
+              </Grid>
+            </Border> 
+          </Border> -->
+
+          <Border Grid.Row="1" MinHeight="0"
                 BorderBrush="{DynamicResource DividerBrush}" BorderThickness="1,0"
                 ClipToBounds="True"
-                IsVisible="{Binding IsLearningSessionActive}">
-          <ScrollViewer Padding="24,16" x:Name="MessagesScroll"
+                Background="{DynamicResource WindowBackgroundBrush}">
+            <ScrollViewer Padding="24,8,24,24"
+                        x:Name="MessagesScroll"
                         HorizontalContentAlignment="Stretch"
                         VerticalContentAlignment="Top"
                         HorizontalScrollBarVisibility="Disabled"
@@ -324,53 +363,27 @@
                         ClipToBounds="True">
             <StackPanel Spacing="14"
                         HorizontalAlignment="Stretch"
-                        MinHeight="0">
-              <Border MaxWidth="720" HorizontalAlignment="Center" Padding="14,12"
-                      CornerRadius="12" Background="{DynamicResource SurfaceBrush}"
-                      BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
-                <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
-                  <StackPanel Spacing="2">
-                    <TextBlock Text="{Binding LearningStepLabel}" FontSize="11"
-                               Foreground="{DynamicResource BrandBrush}" FontWeight="SemiBold" />
-                    <TextBlock Text="{Binding LearningProgressText}" FontSize="14"
-                               Foreground="{DynamicResource TextPrimaryBrush}" FontWeight="SemiBold" />
-                  </StackPanel>
-                  <Button Grid.Column="1" Command="{Binding NeedLearningHelpCommand}"
-                          Background="{DynamicResource ButtonSecondaryBackgroundBrush}"
-                          Foreground="{DynamicResource ButtonSecondaryForegroundBrush}"
-                          BorderThickness="0" CornerRadius="8" Padding="10,7">
-                    <TextBlock Text="Make it simpler" FontSize="12" />
-                  </Button>
-                  <Button Grid.Column="2" Command="{Binding CompleteLearningStepCommand}"
-                          Background="{DynamicResource ButtonPrimaryBackgroundBrush}"
-                          Foreground="{DynamicResource ButtonPrimaryForegroundBrush}"
-                          BorderThickness="0" CornerRadius="8" Padding="10,7">
-                    <TextBlock Text="{Binding LearningActionText}" FontSize="12" />
-                  </Button>
-                </Grid>
-              </Border>
-              <Border MaxWidth="720" HorizontalAlignment="Center" Padding="14,12"
+                        MinHeight="0"
+                        VerticalAlignment="Top">
+              <!--               <Border MaxWidth="720" HorizontalAlignment="Center" Padding="14,12"
                       CornerRadius="12" Background="{DynamicResource SuccessTextBrush}"
                       IsVisible="{Binding IsLearningSessionComplete}">
                 <TextBlock Text="Nice work. You completed this focused session. Return when you are ready for the next idea."
                            Foreground="{DynamicResource BrandTextBrush}" TextWrapping="Wrap" FontSize="13" />
-              </Border>
+              </Border> -->
               <ItemsControl ItemsSource="{Binding Chat.Messages}"
-                            HorizontalAlignment="Stretch">
+                            HorizontalAlignment="Stretch" VerticalAlignment="Top" MinHeight="0">
                 <ItemsControl.ItemTemplate>
                   <DataTemplate DataType="models:ChatMessage">
-                    <Grid HorizontalAlignment="Stretch" Margin="0,0,0,10">
+                    <Grid HorizontalAlignment="Stretch" Margin="0,0,0,50">
                       <Border MaxWidth="720"
                               HorizontalAlignment="{Binding Role, Converter={StaticResource RoleToAlignment}}"
                               Padding="14,12" CornerRadius="12"
                               Background="{Binding Role, Converter={StaticResource RoleToBubble}}"
                               BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
-                        <TextBlock Text="{Binding Content}" FontSize="14"
-                                   Foreground="{DynamicResource TextPrimaryBrush}"
-                                   TextWrapping="Wrap"
-                                   HorizontalAlignment="Stretch"
-                                   VerticalAlignment="Top"
-                                   LineHeight="22" />
+                        <controls:MarkdownView x:Name="MarkdownView"
+                                                Markdown="{Binding Content}"
+                                                HorizontalAlignment="Stretch" />
                       </Border>
                     </Grid>
                   </DataTemplate>
@@ -378,55 +391,70 @@
               </ItemsControl>
             </StackPanel>
           </ScrollViewer>
-        </Border>
-
-        <!-- Error visible de la conversación, si Chat.ErrorMessage no está vacío. -->
-        <Border Grid.Row="2" Padding="20,8" Background="{DynamicResource ErrorBackgroundBrush}" BorderBrush="{DynamicResource ErrorBorderBrush}" BorderThickness="0,1,0,0"
-                IsVisible="{Binding Chat.ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-          <TextBlock Text="{Binding Chat.ErrorMessage}" Foreground="{DynamicResource ErrorTextBrush}" FontSize="12" TextWrapping="Wrap" />
-        </Border>
-
-        <!-- Indicador de actividad mientras el proveedor de IA está respondiendo. -->
-        <Border Grid.Row="3" Padding="20,8"
-                Background="{DynamicResource HeaderBackgroundBrush}"
-                BorderBrush="{DynamicResource DividerBrush}" BorderThickness="0,1,0,0"
-                IsVisible="{Binding Chat.IsLoading}">
-          <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-            <ProgressBar Width="72" Height="5" IsIndeterminate="True"
-                         Foreground="{DynamicResource BrandBrush}"
-                         Background="{DynamicResource InputBorderBrush}" />
-            <TextBlock Text="Thinking..." FontSize="12"
-                       Foreground="{DynamicResource TextMutedBrush}" />
-          </StackPanel>
-        </Border>
+          </Border>
+        </Grid>
 
         <!--
-          Compositor de mensajes.
-          El botón ejecuta SendMessageCommand y el TextBox permite texto
-          multilínea; Enter envía y Shift+Enter conserva el salto de línea.
+          Barra de entrada fija debajo del historial. Al estar en una fila
+          propia, no se superpone al ScrollViewer.
         -->
-        <Border Grid.Row="4" Padding="20,14" BorderBrush="{DynamicResource DividerBrush}" BorderThickness="0,1,0,0"
+        <Border Grid.Row="2"
                 Background="{DynamicResource HeaderBackgroundBrush}"
-                IsVisible="{Binding IsLearningSessionActive}">
-          <DockPanel LastChildFill="True">
-            <Button DockPanel.Dock="Right" Width="38" Height="38" Margin="10,0,0,0"
-                    Command="{Binding Chat.SendMessageCommand}"
-                    IsEnabled="{Binding Chat.IsLoading, Converter={x:Static BoolConverters.Not}}"
-                    Background="{DynamicResource ButtonPrimaryBackgroundBrush}" CornerRadius="19" BorderThickness="0"
-                    HorizontalAlignment="Center" VerticalAlignment="Center" Padding="0">
-              <TextBlock Text="→" FontSize="18" Foreground="{DynamicResource ButtonPrimaryForegroundBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
-            </Button>
-            <TextBox Text="{Binding Chat.MessageText}"
-                     PlaceholderText="What's up with the learning?"
-                     FontSize="14" Padding="14,9" CornerRadius="22"
-                     AcceptsReturn="True" TextWrapping="Wrap"
-                     MinHeight="42" MaxHeight="120"
-                     BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1"
-                     Background="{DynamicResource InputBackgroundBrush}"
-                     Foreground="{DynamicResource TextPrimaryBrush}"
-                     IsEnabled="{Binding Chat.IsLoading, Converter={x:Static BoolConverters.Not}}"
-                     KeyDown="OnMessageTextBoxKeyDown" />
-          </DockPanel>
+                BorderBrush="{DynamicResource DividerBrush}" BorderThickness="0,1,0,0"
+                IsVisible="{Binding IsLearningSessionActive}"
+                ClipToBounds="True">
+          <Grid RowDefinitions="Auto,64">
+            <StackPanel Grid.Row="0">
+              <!-- Error visible de la conversación, si existe. -->
+              <Border Padding="20,8"
+                      Background="{DynamicResource ErrorBackgroundBrush}"
+                      BorderBrush="{DynamicResource ErrorBorderBrush}" BorderThickness="0,1,0,0"
+                      IsVisible="{Binding Chat.ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                <TextBlock Text="{Binding Chat.ErrorMessage}" Foreground="{DynamicResource ErrorTextBrush}" FontSize="12" TextWrapping="Wrap" />
+              </Border>
+
+              <!-- Indicador de actividad mientras el proveedor de IA responde. -->
+              <Border Padding="20,8"
+                      IsVisible="{Binding Chat.IsLoading}">
+                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                  <ProgressBar Width="72" Height="5" IsIndeterminate="True"
+                               Foreground="{DynamicResource BrandBrush}"
+                               Background="{DynamicResource InputBorderBrush}" />
+                  <TextBlock Text="Thinking..." FontSize="12"
+                             Foreground="{DynamicResource TextMutedBrush}" />
+                </StackPanel>
+              </Border>
+            </StackPanel>
+
+            <!--
+              Compositor de mensajes. Enter envía y Shift+Enter conserva
+              el salto de línea.
+            -->
+            <Border Grid.Row="1" Padding="12,6"
+                    IsVisible="{Binding IsLearningSessionActive}">
+              <DockPanel LastChildFill="True">
+                <Button DockPanel.Dock="Right" Width="34" Height="34" Margin="8,0,0,0"
+                        Command="{Binding Chat.SendMessageCommand}"
+                        IsEnabled="{Binding Chat.IsLoading, Converter={x:Static BoolConverters.Not}}"
+                        Background="{DynamicResource ButtonPrimaryBackgroundBrush}" CornerRadius="19" BorderThickness="0"
+                        HorizontalAlignment="Center" VerticalAlignment="Center" Padding="0">
+                  <TextBlock Text="→" FontSize="16" Foreground="{DynamicResource ButtonPrimaryForegroundBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                </Button>
+                <TextBox Text="{Binding Chat.MessageText}"
+                         x:Name="MessageTextBox"
+                         PlaceholderText="What's up with the learning?"
+                         FontSize="13" Padding="12,7" CornerRadius="18"
+                         AcceptsReturn="True" TextWrapping="Wrap"
+                         MinHeight="40" MaxHeight="48"
+                         VerticalContentAlignment="Stretch"
+                         ScrollViewer.VerticalScrollBarVisibility="Auto"
+                         BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1"
+                         Background="{DynamicResource InputBackgroundBrush}"
+                         Foreground="{DynamicResource TextPrimaryBrush}"
+                         IsEnabled="{Binding Chat.IsLoading, Converter={x:Static BoolConverters.Not}}" />
+              </DockPanel>
+            </Border>
+          </Grid>
         </Border>
       </Grid>
 
@@ -495,83 +523,81 @@
       ZIndex 10 lo coloca sobre el espacio de trabajo y IsVisible depende
       de Tutorial.IsVisible. Contiene indicadores, texto y navegación.
     -->
-    <Border IsVisible="{Binding Tutorial.IsVisible}"
+    <Border x:Name="TutorialOverlay"
+            Grid.Row="1"
+            IsVisible="{Binding Tutorial.IsVisible}"
             Background="{DynamicResource OverlayBrush}"
-            ZIndex="10">
+            ZIndex="10"
+            Focusable="True">
       <Border Background="{DynamicResource SurfaceBrush}"
               CornerRadius="16"
               MaxWidth="440"
-              MaxHeight="400"
-              Padding="32"
+              MaxHeight="440"
+              Margin="20"
+              Padding="28"
               HorizontalAlignment="Center"
               VerticalAlignment="Center"
               BoxShadow="0 8 24 #26000000">
-        <StackPanel Spacing="20">
-          <!-- Indicadores visuales de los pasos disponibles. -->
-          <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="6">
-            <ItemsControl ItemsSource="{Binding Tutorial.Steps}">
-              <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                  <StackPanel Orientation="Horizontal" Spacing="6" />
-                </ItemsPanelTemplate>
-              </ItemsControl.ItemsPanel>
-              <ItemsControl.ItemTemplate>
-                <DataTemplate DataType="x:Object">
-                  <Ellipse Width="8" Height="8" Fill="{DynamicResource InputBorderBrush}" />
-                </DataTemplate>
-              </ItemsControl.ItemTemplate>
-            </ItemsControl>
+        <ScrollViewer MaxHeight="380"
+                      VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled">
+          <StackPanel Spacing="18">
+            <!-- Indicador del paso actual. -->
+            <TextBlock Text="{Binding Tutorial.StepIndicatorText}"
+                       FontSize="12"
+                       Foreground="{DynamicResource TextMutedBrush}"
+                       HorizontalAlignment="Center" />
+
+            <!-- Título y descripción del paso actual. -->
+            <TextBlock Text="{Binding Tutorial.StepTitle}"
+                       FontSize="20" FontWeight="Bold"
+                       Foreground="{DynamicResource TextPrimaryBrush}"
+                       HorizontalAlignment="Center"
+                       TextWrapping="Wrap"
+                       TextAlignment="Center" />
+
+            <TextBlock Text="{Binding Tutorial.StepDescription}"
+                       FontSize="14"
+                       Foreground="{DynamicResource TextSecondaryBrush}"
+                       TextWrapping="Wrap"
+                       TextAlignment="Center"
+                       LineHeight="22" />
+
+            <!-- Acciones para omitir, retroceder o avanzar en el tutorial. -->
+            <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,6,0,0">
+              <Button Grid.Column="0"
+                      Command="{Binding Tutorial.SkipCommand}"
+                      Background="Transparent"
+                      Foreground="{DynamicResource TextMutedBrush}"
+                      FontSize="13"
+                      Content="Skip"
+                      Padding="8,6" />
+
+              <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
+                <Button Command="{Binding Tutorial.BackCommand}"
+                        Background="{DynamicResource ButtonSecondaryBackgroundBrush}"
+                        Foreground="{DynamicResource ButtonSecondaryForegroundBrush}"
+                        CornerRadius="20"
+                        Padding="16,8"
+                        FontSize="13"
+                        BorderThickness="0"
+                        IsVisible="{Binding Tutorial.IsFirstStep, Converter={x:Static BoolConverters.Not}}">
+                  <TextBlock Text="Back" />
+                </Button>
+
+                <Button Command="{Binding Tutorial.NextCommand}"
+                        Background="{DynamicResource ButtonPrimaryBackgroundBrush}"
+                        Foreground="{DynamicResource ButtonPrimaryForegroundBrush}"
+                        CornerRadius="20"
+                        Padding="20,8"
+                        FontSize="13"
+                        BorderThickness="0">
+                  <TextBlock Text="{Binding Tutorial.NextButtonText}" />
+                </Button>
+              </StackPanel>
+            </Grid>
           </StackPanel>
-
-          <!-- Título y descripción del paso actual. -->
-          <TextBlock Text="{Binding Tutorial.StepTitle}"
-                     FontSize="20" FontWeight="Bold"
-                     Foreground="{DynamicResource TextPrimaryBrush}"
-                     HorizontalAlignment="Center"
-                     TextWrapping="Wrap"
-                     TextAlignment="Center" />
-
-          <TextBlock Text="{Binding Tutorial.StepDescription}"
-                     FontSize="14"
-                     Foreground="{DynamicResource TextSecondaryBrush}"
-                     TextWrapping="Wrap"
-                     TextAlignment="Center"
-                     LineHeight="22" />
-
-          <!-- Acciones para omitir, retroceder o avanzar en el tutorial. -->
-          <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,8,0,0">
-            <Button Grid.Column="0"
-                    Command="{Binding Tutorial.SkipCommand}"
-                    Background="Transparent"
-                    Foreground="{DynamicResource TextMutedBrush}"
-                    FontSize="13"
-                    Content="Skip"
-                    Padding="8,6" />
-
-            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
-              <Button Command="{Binding Tutorial.BackCommand}"
-                      Background="{DynamicResource ButtonSecondaryBackgroundBrush}"
-                      Foreground="{DynamicResource ButtonSecondaryForegroundBrush}"
-                      CornerRadius="20"
-                      Padding="16,8"
-                      FontSize="13"
-                      BorderThickness="0"
-                      IsVisible="{Binding Tutorial.IsFirstStep, Converter={x:Static BoolConverters.Not}}">
-                <TextBlock Text="Back" />
-              </Button>
-
-              <Button Command="{Binding Tutorial.NextCommand}"
-                      Background="{DynamicResource ButtonPrimaryBackgroundBrush}"
-                      Foreground="{DynamicResource ButtonPrimaryForegroundBrush}"
-                      CornerRadius="20"
-                      Padding="20,8"
-                      FontSize="13"
-                      BorderThickness="0">
-                <TextBlock Text="{Binding Tutorial.NextButtonText}" />
-              </Button>
-            </StackPanel>
-          </Grid>
-        </StackPanel>
+        </ScrollViewer>
       </Border>
     </Border>
   </Grid>

@@ -74,6 +74,56 @@ LEARN_ASSIST_FORCE_INSTALL=1 dotnet run   # force the install wizard in dev
 
 > No tests. Release artifacts are produced by CI on `v*` tag push (linux-x64 + win-x64 self-contained single-file). Local equivalent: `scripts/publish.sh` → `dist/`.
 
+## Docker / Windows Defender Workaround
+
+En **Windows 11**, el binario self-contained de `learn-Assist` puede ser **bloqueado por Windows Defender** (SmartScreen). Para evitar el bloqueo, usa el `Dockerfile` incluido en el repositorio:
+
+```sh
+# 1. Publicar el binario linux-x64 self-contained
+dotnet publish -c Release -r linux-x64 --self-contained true -o publish
+
+# 2. Construir la imagen
+docker build -t learn-assist .
+
+# 3. Ejecutar (Windows Defender ya no interviene)
+docker run --rm -it \
+  -e DISPLAY=host.docker.internal:0 \
+  -v "${APPDATA}/learn-assist:/root/.config/learn-assist" \
+  learn-assist
+```
+
+### Autoinicio en Windows 11
+
+Para que la app se ejecute automáticamente al encender el PC:
+
+```sh
+# 1. Crear el contenedor con política de reinicio (una sola vez)
+docker run -d \
+  --name learn-assist \
+  --restart always \
+  -e DISPLAY=host.docker.internal:0 \
+  -v "${APPDATA}/learn-assist:/root/.config/learn-assist" \
+  learn-assist
+```
+
+```sh
+# 2. Configurar Docker Desktop para que arranque con Windows
+#    Docker Desktop → Settings → General → ✅ "Start Docker Desktop when you sign in"
+```
+
+Con `--restart always` + Docker Desktop iniciándose con Windows, el contenedor se lanza solo en cada arranque.
+
+```sh
+# Comandos útiles de gestión
+docker ps -a --filter name=learn-assist   # ver estado
+docker stop learn-assist                    # detener
+docker start learn-assist                   # iniciar
+docker logs learn-assist                    # ver logs
+docker rm learn-assist                       # eliminar el contenedor
+```
+
+Requisitos: [Docker Desktop](https://www.docker.com/products/docker-desktop/) con backend WSL2 y un servidor X para la UI (WSLg en Win11 funciona out-of-the-box, o usa [X410](https://x410.dev/) / VcXsrv).
+
 ## Startup & Installation (first-run wizard)
 
 On startup `App.OnFrameworkInitializationCompleted` calls `InstallationService.IsInstalled()`; if not installed (or `LEARN_ASSIST_FORCE_INSTALL=1` in dev) the **InstallView** wizard runs **before** login.

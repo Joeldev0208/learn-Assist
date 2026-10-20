@@ -4,6 +4,7 @@ namespace learn_Assist.Models;
 
 public enum MessageRole
 {
+    System,
     User,
     Assistant,
 }

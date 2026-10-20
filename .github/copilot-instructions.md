@@ -2,7 +2,7 @@
 
 ## Project profile
 
-This repository is a single-project Avalonia desktop application targeting .NET 10. The project folder is `learn-Assist`, while the C# root namespace is `learn_Assist`. There is no solution file, DI container, test project, or dedicated lint configuration.
+This repository is a single-project Avalonia desktop application targeting .NET 10. The project folder is `learn-Assist`, while the C# root namespace is `learn_Assist`. There is no solution file, test project, or dedicated lint configuration. Although some Clerk integration remains in the repository, the active desktop authentication path is local accounts.
 
 ## Build, run, and validation
 
@@ -12,20 +12,25 @@ Run commands from the repository root:
 - `dotnet run` — launch the application.
 - `LEARN_ASSIST_FORCE_INSTALL=1 dotnet run` — force the first-run installer during development.
 - `scripts/publish.sh` — local self-contained publish to the ignored `dist/` directory.
+- `dotnet publish -c Release -r linux-x64 --self-contained -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true` — produce a Linux release-style publish.
+- `dotnet publish -c Release -r win-x64 --self-contained -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true` — produce a Windows release-style publish.
 
-There is no single-test command because the repository currently has no test project. Release CI runs on `v*` tags and publishes self-contained `linux-x64` and `win-x64` artifacts.
+There is no test project, so there is no full-suite or single-test command. Validation is currently `dotnet build`; no separate lint command is configured. Release CI runs on `v*` tags and publishes self-contained `linux-x64` and `win-x64` artifacts.
 
 ## Architecture
 
 - `Program.cs` bootstraps Avalonia and handles `--install-elevated <src> <target>` before normal settings or UI initialization. Do not move that branch.
+- `Program.LoadSettings` reads an optional `.env` first and then real environment variables, so real environment variables take precedence; settings are bound and DataAnnotations-validated before Avalonia starts.
 - `App.axaml.cs` manually constructs views/view-models and wires authentication and navigation callbacks; do not introduce a DI container for new flows.
+- Startup flows through installation check, login/register, optional learning-profile completion, and then the main window. `LocalAuthService` persists account/session data under the platform application-data directory; `ClerkAuthService` is retained for deferred integration.
 - `MainViewModel` composes the session list, chat, document list, and tutorial child view-models.
 - `MainWindow.OnDataContextChanged` subscribes to child view-model events such as scrolling, import dialogs, and AI configuration. Keep those subscriptions out of constructors.
 - `ViewLocator.cs` maps `*ViewModel` types to matching `*View` types by reflection over `ViewModelBase`.
 - `Services/` contains authentication, installation/update, persistence, encryption, OAuth, and AI-provider boundaries. `AiServiceFactory` selects the provider from `ApiConfig`.
 - AI providers are intentionally heterogeneous: `OpenAiService` uses the OpenAI SDK, while Anthropic, Gemini, Ollama, NVIDIA, and OpenCode use raw `HttpClient`/JSON integrations.
-- Local authentication is the active desktop path through `LocalAuthService`; Clerk-related services remain for deferred integration. Google sign-in uses a loopback OAuth flow when configured.
+- Google sign-in, when configured, uses a loopback OAuth flow and can create or adopt a local account; OAuth-related views/services are separate from the normal local password flow.
 - Session conversations persist as Markdown files, and AI configuration is encrypted in the user configuration directory. The UI falls back to `MockAiService` when no real AI configuration is available.
+- `InstallationService` owns user/system installation, the install marker, and platform menu entries. `UpdateService` is intentionally limited to supported Windows user-scope installs and stages a replacement executable before restart.
 
 ## Repository-specific conventions
 
@@ -36,6 +41,9 @@ There is no single-test command because the repository currently has no test pro
 - Add environment-backed settings to `Models/AppSettings.cs` with `[ConfigurationKeyName("UPPERCASE_KEY")]` and the existing DataAnnotations validation pattern.
 - Real environment variables take precedence over the optional, gitignored `.env`.
 - Add new window flows through `App.axaml.cs`, and follow the existing event-callback pattern.
+- Keep control-dependent event subscriptions in `MainWindow.OnDataContextChanged`, and unsubscribe the previous view model before attaching a new one.
+- Keep `IAiService` provider-independent: implement `AskAsync(message, history)` behind the interface and register provider selection in `AiServiceFactory` rather than in view models.
+- When changing session persistence, preserve the Markdown format and atomic temporary-file replacement used by `SessionPersistenceService`.
 - Preserve the install marker, user/system install behavior, and self-update assumptions in `InstallationService` and `UpdateService`.
 
 ## MCP configuration

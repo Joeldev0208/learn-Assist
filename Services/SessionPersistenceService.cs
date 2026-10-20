@@ -27,12 +27,13 @@ public class SessionPersistenceService
         if (string.IsNullOrEmpty(_sessionsDir))
             return;
 
-        var fileName = SanitizeFileName(session.Title) + ".md";
+        var fileName = session.StorageFileName ?? GetSessionFileName(session);
         var filePath = Path.Combine(_sessionsDir, fileName);
 
         var sb = new StringBuilder();
         sb.AppendLine($"# {session.Title}");
         sb.AppendLine();
+        sb.AppendLine($"Id: {session.Id}");
         sb.AppendLine($"Created: {session.CreatedAt:yyyy-MM-dd HH:mm:ss}");
         sb.AppendLine();
 
@@ -83,11 +84,16 @@ public class SessionPersistenceService
             return null;
 
         var title = lines[0].TrimStart('#', ' ').Trim();
+        var id = Guid.Empty;
         var createdAt = DateTime.Now;
 
         foreach (var line in lines)
         {
-            if (line.StartsWith("Created:", StringComparison.OrdinalIgnoreCase))
+            if (line.StartsWith("Id:", StringComparison.OrdinalIgnoreCase))
+            {
+                Guid.TryParse(line["Id:".Length..].Trim(), out id);
+            }
+            else if (line.StartsWith("Created:", StringComparison.OrdinalIgnoreCase))
             {
                 var dateStr = line["Created:".Length..].Trim();
                 if (DateTime.TryParseExact(dateStr, "yyyy-MM-dd HH:mm:ss",
@@ -101,10 +107,12 @@ public class SessionPersistenceService
 
         var session = new ChatSession
         {
+            Id = id == Guid.Empty ? Guid.NewGuid() : id,
             Title = string.IsNullOrEmpty(title) && filePath is not null
                 ? Path.GetFileNameWithoutExtension(filePath)
                 : title,
             CreatedAt = createdAt,
+            StorageFileName = filePath is null ? null : Path.GetFileName(filePath),
         };
 
         MessageRole? currentRole = null;
@@ -136,7 +144,9 @@ public class SessionPersistenceService
                 FlushMessage();
                 currentRole = MessageRole.Assistant;
             }
-            else if (currentRole is not null && !line.StartsWith('#') && !line.StartsWith("Created:", StringComparison.OrdinalIgnoreCase))
+            else if (currentRole is not null
+                && !line.StartsWith("Id:", StringComparison.OrdinalIgnoreCase)
+                && !line.StartsWith("Created:", StringComparison.OrdinalIgnoreCase))
             {
                 contentLines.Add(line);
             }
@@ -149,13 +159,9 @@ public class SessionPersistenceService
 
     public async Task<ChatSession?> LoadSessionAsync(string title)
     {
-        var fileName = SanitizeFileName(title) + ".md";
-        var filePath = Path.Combine(_sessionsDir, fileName);
-        if (!File.Exists(filePath))
-            return null;
-
-        var lines = await File.ReadAllLinesAsync(filePath);
-        return ParseSessionLines(lines, filePath);
+        var sessions = await LoadSessionsAsync();
+        return sessions.FirstOrDefault(session =>
+            string.Equals(session.Title, title, StringComparison.OrdinalIgnoreCase));
     }
 
     public string GetSessionFilePath(string title)
@@ -163,6 +169,9 @@ public class SessionPersistenceService
         var fileName = SanitizeFileName(title) + ".md";
         return Path.Combine(_sessionsDir, fileName);
     }
+
+    private static string GetSessionFileName(ChatSession session) =>
+        $"{SanitizeFileName(session.Title)}-{session.Id:N}.md";
 
     public static string SanitizeFileName(string name)
     {

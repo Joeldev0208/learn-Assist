@@ -41,6 +41,13 @@
       <SolidColorBrush x:Key="WarningBorderBrush" Color="#FFE082" />
       <SolidColorBrush x:Key="WarningTextBrush" Color="#B26A00" />
       <SolidColorBrush x:Key="SuccessTextBrush" Color="#2E7D32" />
+      <SolidColorBrush x:Key="MarkdownCodeBackgroundBrush" Color="#F0F0F2" />
+      <SolidColorBrush x:Key="MarkdownCodeForegroundBrush" Color="#242424" />
+      <SolidColorBrush x:Key="MarkdownCodeBorderBrush" Color="#D8D8DC" />
+      <SolidColorBrush x:Key="MarkdownQuoteBorderBrush" Color="#8A8A8E" />
+      <SolidColorBrush x:Key="MarkdownFormulaBackgroundBrush" Color="#F8F8FA" />
+      <SolidColorBrush x:Key="MarkdownFormulaForegroundBrush" Color="#242424" />
+      <SolidColorBrush x:Key="MarkdownFormulaBorderBrush" Color="#E1E1E3" />
 
       <SolidColorBrush x:Key="BubbleUserBrush" Color="#E3F2FD" />
       <SolidColorBrush x:Key="BubbleAssistantBrush" Color="#FFFFFF" />
@@ -86,6 +93,13 @@
       <SolidColorBrush x:Key="WarningBorderBrush" Color="#5C4A1E" />
       <SolidColorBrush x:Key="WarningTextBrush" Color="#FFD54F" />
       <SolidColorBrush x:Key="SuccessTextBrush" Color="#81C784" />
+      <SolidColorBrush x:Key="MarkdownCodeBackgroundBrush" Color="#15161A" />
+      <SolidColorBrush x:Key="MarkdownCodeForegroundBrush" Color="#E6E7EA" />
+      <SolidColorBrush x:Key="MarkdownCodeBorderBrush" Color="#3B3C44" />
+      <SolidColorBrush x:Key="MarkdownQuoteBorderBrush" Color="#8A7B70" />
+      <SolidColorBrush x:Key="MarkdownFormulaBackgroundBrush" Color="#202127" />
+      <SolidColorBrush x:Key="MarkdownFormulaForegroundBrush" Color="#F0F1F4" />
+      <SolidColorBrush x:Key="MarkdownFormulaBorderBrush" Color="#34353D" />
 
       <SolidColorBrush x:Key="BubbleUserBrush" Color="#1E3A5F" />
       <SolidColorBrush x:Key="BubbleAssistantBrush" Color="#2A2B31" />

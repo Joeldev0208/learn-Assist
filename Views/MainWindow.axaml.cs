@@ -3,9 +3,11 @@ using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using Avalonia.Threading;
+using learn_Assist.Controls;
 using learn_Assist.Models;
 using learn_Assist.Services;
 using learn_Assist.ViewModels;
@@ -20,6 +22,12 @@ public partial class MainWindow : Window
     private Grid? _workspaceGrid;
     // Breakpoint aplicado anteriormente; evita reasignaciones innecesarias.
     private int? _lastBreakpoint;
+    // Identifica la solicitud de scroll más reciente y evita intentos obsoletos.
+    private int _scrollRequestVersion;
+    private double _lastMessagesExtentHeight = -1;
+    private int _stableMessagesLayoutPasses;
+    private bool _scrollToBottomPending;
+    private int _scrollLayoutPasses;
 
     /// <summary>
     /// Inicializa los controles generados por XAML y conecta el seguimiento
@@ -28,9 +36,14 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        MessageTextBox.AddHandler(InputElement.KeyDownEvent, OnMessageTextBoxKeyDown,
+            RoutingStrategies.Tunnel, handledEventsToo: true);
         UpdateInternalLogo();
         ThemeService.ThemeChanged += OnThemeChanged;
         Closed += OnClosed;
+        Opened += OnOpened;
+        KeyDown += OnKeyDown;
+        MarkdownView.RenderCompleted += OnMarkdownRendered;
         _workspaceGrid = this.FindControl<Grid>("WorkspaceGrid");
         SizeChanged += OnWindowSizeChanged;
     }
@@ -56,6 +69,40 @@ public partial class MainWindow : Window
     {
         ThemeService.ThemeChanged -= OnThemeChanged;
         Closed -= OnClosed;
+        Opened -= OnOpened;
+        KeyDown -= OnKeyDown;
+        MessageTextBox.RemoveHandler(InputElement.KeyDownEvent, OnMessageTextBoxKeyDown);
+        MarkdownView.RenderCompleted -= OnMarkdownRendered;
+        if (MessagesScroll is not null)
+            MessagesScroll.LayoutUpdated -= OnLayoutUpdated;
+    }
+
+    private void OnOpened(object? sender, EventArgs e)
+    {
+        if (DataContext is MainViewModel vm && vm.Tutorial.IsVisible)
+            Dispatcher.UIThread.Post(() => TutorialOverlay?.Focus(), DispatcherPriority.Loaded);
+
+        if (DataContext is MainViewModel { IsLearningSessionActive: true })
+            OnScrollToBottom(true);
+    }
+
+    private void OnKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.Key != Key.Escape || DataContext is not MainViewModel vm || !vm.Tutorial.IsVisible)
+            return;
+
+        e.Handled = true;
+        vm.Tutorial.SkipCommand.Execute(null);
+    }
+
+    private void OnMarkdownRendered()
+    {
+        if (DataContext is MainViewModel vm
+            && vm.IsLearningSessionActive
+            && vm.Chat.Messages.Count > 0)
+        {
+            OnScrollToBottom(true);
+        }
     }
 
     protected override void OnDataContextChanged(EventArgs e)
@@ -66,6 +113,7 @@ public partial class MainWindow : Window
         if (_previousVm is not null)
         {
             _previousVm.Chat.ScrollToBottomRequested -= OnScrollToBottom;
+            _previousVm.Chat.PropertyChanged -= OnChatPropertyChanged;
             _previousVm.DocumentList.ImportDialogRequested -= OnImportDialog;
             _previousVm.ConfigureAiRequested -= OnConfigureAi;
             _previousVm.RestartRequested -= OnRestartRequested;
@@ -77,6 +125,7 @@ public partial class MainWindow : Window
             // El code-behind atiende eventos que requieren controles o ventanas:
             // scroll, diálogos, reinicio y cambios del layout.
             vm.Chat.ScrollToBottomRequested += OnScrollToBottom;
+            vm.Chat.PropertyChanged += OnChatPropertyChanged;
             vm.DocumentList.ImportDialogRequested += OnImportDialog;
             vm.ConfigureAiRequested += OnConfigureAi;
             vm.RestartRequested += OnRestartRequested;
@@ -91,6 +140,12 @@ public partial class MainWindow : Window
         }
     }
 
+    private void OnChatPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(ChatViewModel.IsLoading))
+            OnScrollToBottom(true);
+    }
+
     /// <summary>
     /// Recalcula la visibilidad y el ancho de las barras laterales cuando
     /// cambia el tamaño de la ventana.
@@ -98,7 +153,12 @@ public partial class MainWindow : Window
     private void OnWindowSizeChanged(object? sender, SizeChangedEventArgs e)
     {
         if (DataContext is MainViewModel vm)
+        {
             UpdateResponsiveLayout(vm);
+
+            if (vm.IsLearningSessionActive)
+                OnScrollToBottom(true);
+        }
     }
 
     /// <summary>
@@ -174,12 +234,56 @@ public partial class MainWindow : Window
     /// <summary>
     /// Desplaza la lista de mensajes hasta el último mensaje en el hilo de UI.
     /// </summary>
-    private void OnScrollToBottom()
+    private void OnScrollToBottom(bool force)
     {
-        // El mensaje debe estar medido antes de calcular el final del scroll.
+        if (!force)
+            return;
+
+        var requestVersion = ++_scrollRequestVersion;
+        _lastMessagesExtentHeight = -1;
+        _stableMessagesLayoutPasses = 0;
+        _scrollToBottomPending = true;
+        _scrollLayoutPasses = 0;
+        if (MessagesScroll is not null)
+        {
+            MessagesScroll.LayoutUpdated -= OnLayoutUpdated;
+            MessagesScroll.LayoutUpdated += OnLayoutUpdated;
+        }
         Dispatcher.UIThread.Post(
-            () => MessagesScroll?.ScrollToEnd(),
+            () => ScrollMessagesToBottom(requestVersion),
             DispatcherPriority.Loaded);
+    }
+
+    private void OnLayoutUpdated(object? sender, EventArgs e)
+    {
+        if (_scrollToBottomPending)
+            ScrollMessagesToBottom(_scrollRequestVersion);
+    }
+
+    private void ScrollMessagesToBottom(int requestVersion)
+    {
+        if (requestVersion != _scrollRequestVersion || MessagesScroll is null)
+            return;
+
+        MessagesScroll.ScrollToEnd();
+        _scrollLayoutPasses++;
+
+        var extentHeight = MessagesScroll.Extent.Height;
+        if (Math.Abs(extentHeight - _lastMessagesExtentHeight) < 0.5)
+            _stableMessagesLayoutPasses++;
+        else
+            _stableMessagesLayoutPasses = 0;
+
+        _lastMessagesExtentHeight = extentHeight;
+
+        if (extentHeight <= 0
+            || MessagesScroll.Viewport.Height <= 0
+            || _stableMessagesLayoutPasses < 3
+            || _scrollLayoutPasses < 8)
+            return;
+
+        _scrollToBottomPending = false;
+        MessagesScroll.LayoutUpdated -= OnLayoutUpdated;
     }
 
     /// <summary>
@@ -190,10 +294,10 @@ public partial class MainWindow : Window
         if (e.Key != Key.Enter || (e.KeyModifiers & KeyModifiers.Shift) != 0)
             return;
 
+        e.Handled = true;
         if (DataContext is MainViewModel vm &&
             vm.Chat.SendMessageCommand.CanExecute(null))
         {
-            e.Handled = true;
             vm.Chat.SendMessageCommand.Execute(null);
         }
     }
@@ -262,6 +366,6 @@ public partial class MainWindow : Window
         await dialog.ShowDialog<ApiConfig?>(this);
 
         if (dialog.Result is not null)
-            vm.ApplyConfig(dialog.Result);
+            await vm.ApplyConfigAsync(dialog.Result);
     }
 }

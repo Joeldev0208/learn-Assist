@@ -19,6 +19,7 @@ public class UserDocument
     public DocumentContentType ContentType { get; set; } = DocumentContentType.Document;
     public DateTime ImportedAt { get; set; } = DateTime.Now;
     public string? LocalPath { get; set; }
+    public string? Content { get; set; }
 
     public string SizeDisplay => FileSize switch
     {

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
@@ -39,13 +40,20 @@ public class OpenCodeService : IAiService
 
     public async Task<string> AskAsync(string message, List<ChatMessage> history)
     {
+        var systemContent = AiPrompt.System;
+        if (history.FirstOrDefault(m => m.Role == MessageRole.System) is { } sysMsg)
+            systemContent += "\n\n" + sysMsg.Content;
+
         var messages = new List<object>
         {
-            new { role = "system", content = AiPrompt.System },
+            new { role = "system", content = systemContent },
         };
 
         foreach (var msg in history)
         {
+            if (msg.Role == MessageRole.System)
+                continue;
+
             messages.Add(new
             {
                 role = msg.Role == MessageRole.User ? "user" : "assistant",
