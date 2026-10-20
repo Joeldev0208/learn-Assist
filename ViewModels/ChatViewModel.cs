@@ -17,6 +17,7 @@ public partial class ChatViewModel : ViewModelBase
     private SessionPersistenceService? _persistence;
     private ChatSession? _currentSession;
     private string? _documentContext;
+    private string? _profileContext;
 
     public ChatViewModel(IAiService aiService, SessionPersistenceService? persistence = null)
     {
@@ -50,6 +51,11 @@ public partial class ChatViewModel : ViewModelBase
         _documentContext = context;
     }
 
+    public void SetProfileContext(string? context)
+    {
+        _profileContext = context;
+    }
+
     public void SetCurrentSession(ChatSession? session)
     {
         _currentSession = session;
@@ -78,6 +84,15 @@ public partial class ChatViewModel : ViewModelBase
         IsLoading = true;
 
         var history = new List<ChatMessage>();
+
+        if (!string.IsNullOrWhiteSpace(_profileContext))
+        {
+            history.Add(new ChatMessage
+            {
+                Role = MessageRole.System,
+                Content = _profileContext,
+            });
+        }
 
         if (!string.IsNullOrWhiteSpace(_documentContext))
         {
