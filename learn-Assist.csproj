@@ -6,6 +6,20 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>Assets\learn-assist.ico</ApplicationIcon>
     <Version>1.0.0</Version>
+
+    <!-- NuGet package metadata (published to GitHub Packages).
+         GitHub Packages links a NuGet package to this repo via RepositoryUrl. -->
+    <IsPackable>true</IsPackable>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <PackageId>learn-assist</PackageId>
+    <Authors>Joel Antonio González Ortíz</Authors>
+    <Company>Joeldev0208</Company>
+    <PackageDescription>AI-powered desktop learning assistant built with Avalonia 12 and .NET 10.</PackageDescription>
+    <PackageTags>avalonia dotnet ai learning-assistant desktop</PackageTags>
+    <RepositoryUrl>https://github.com/Joeldev0208/learn-Assist</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryBranch>master</RepositoryBranch>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
@@ -22,6 +36,8 @@
     <None Include=".env" Condition="Exists('.env')">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <!-- Include the README inside the .nupkg so it renders on the GitHub Packages page -->
+    <None Include="README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
   <ItemGroup>
