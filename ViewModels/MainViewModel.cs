@@ -233,6 +233,7 @@ public partial class MainViewModel : ViewModelBase
         LearningProfile = learningProfile;
 
         Chat = new ChatViewModel(aiService, persistence);
+        UpdateChatProfileContext();
         SessionList = new SessionListViewModel(persistence);
         DocumentList = new DocumentListViewModel();
         Tutorial = new TutorialViewModel();
@@ -273,6 +274,13 @@ public partial class MainViewModel : ViewModelBase
             var initialSession = SessionList.CreateNewSession();
             Chat.SetCurrentSession(initialSession);
         }
+    }
+
+    private void UpdateChatProfileContext()
+    {
+        Chat.SetProfileContext(FeatureFlags.ProfileContextEnabled
+            ? LearningProfileContext.Build(LearningProfile)
+            : null);
     }
 
     private void UpdateChatDocumentContext()
@@ -347,6 +355,8 @@ public partial class MainViewModel : ViewModelBase
         IsLearningSessionActive = profile.IsLearningSessionActive;
 /*         IsLearningSessionComplete = profile.IsLearningSessionComplete; */
         OnPropertyChanged(nameof(LearningProfile));
+
+        UpdateChatProfileContext();
     }
 
     private void OnTutorialFinished()

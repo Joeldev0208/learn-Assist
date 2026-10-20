@@ -55,4 +55,13 @@ public class AppSettings
     /// </summary>
     [ConfigurationKeyName("GOOGLE_CLIENT_SECRET_FILE")]
     public string? GoogleClientSecretFile { get; set; }
+
+    /// <summary>
+    /// Optional feature flag controlling whether the learner's
+    /// <see cref="LearningProfile"/> is summarized and injected into the AI
+    /// system prompt. Defaults to enabled; set
+    /// <c>LEARN_ASSIST_PROFILE_CONTEXT=0</c> (or "false") to disable.
+    /// </summary>
+    [ConfigurationKeyName("LEARN_ASSIST_PROFILE_CONTEXT")]
+    public string? ProfileContext { get; set; }
 }
