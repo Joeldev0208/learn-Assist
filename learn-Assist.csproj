@@ -6,6 +6,7 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>Assets\learn-assist.ico</ApplicationIcon>
     <Version>1.0.0</Version>
+    <RootNamespace>learn_Assist</RootNamespace>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
 
@@ -37,7 +38,7 @@
     <AvaloniaResource Include="Assets\**" />
     <AvaloniaResource Include="Themes\**" />
     <!-- Embedded teacher-profile rules-files for the AI conductor profile -->
-    <EmbeddedResource Include="prompts\**" />
+    <EmbeddedResource Include="prompts/**" />
     <!-- Copy .env to output directory so it works when running the compiled exe directly -->
     <None Include=".env" Condition="Exists('.env')">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

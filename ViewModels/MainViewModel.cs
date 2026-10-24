@@ -233,7 +233,7 @@ public partial class MainViewModel : ViewModelBase
         LearningProfile = learningProfile;
 
         Chat = new ChatViewModel(aiService, persistence);
-        UpdateChatProfileContext();
+        _ = UpdateChatSystemPromptAsync();
         SessionList = new SessionListViewModel(persistence);
         DocumentList = new DocumentListViewModel();
         Tutorial = new TutorialViewModel();
@@ -242,7 +242,7 @@ public partial class MainViewModel : ViewModelBase
         SessionList.SessionSelected += OnSessionSelected;
         SessionList.NewSessionRequested += OnNewSessionRequested;
 
-        DocumentList.Documents.CollectionChanged += (_, _) => UpdateChatDocumentContext();
+        DocumentList.Documents.CollectionChanged += async (_, _) => await UpdateChatSystemPromptAsync();
 
         Tutorial.TutorialFinished += OnTutorialFinished;
 
@@ -276,23 +276,33 @@ public partial class MainViewModel : ViewModelBase
         }
     }
 
-    private void UpdateChatProfileContext()
+    private async Task UpdateChatSystemPromptAsync(CancellationToken ct = default)
     {
-        Chat.SetProfileContext(FeatureFlags.ProfileContextEnabled
-            ? LearningProfileContext.Build(LearningProfile)
-            : null);
-    }
-
-    private void UpdateChatDocumentContext()
-    {
-        var docs = DocumentList.Documents
+        var level = MapToLearnerLevel(LearningProfile);
+        var programContent = LearningProfile?.SemesterContent;
+        var materials = DocumentList.Documents
             .Where(d => !string.IsNullOrWhiteSpace(d.Content))
-            .Select(d => $"### {d.Name}\n{d.Content}")
             .ToList();
 
-        Chat.SetDocumentContext(docs.Count > 0
-            ? "Documentos importados como contexto:\n\n" + string.Join("\n\n---\n\n", docs)
-            : null);
+        var built = await ProgramContextBuilder.Instance.BuildAsync(
+            level,
+            programContent,
+            materials,
+            ct);
+
+        Chat.SetSystemPrompt(built.SystemPrompt);
+    }
+
+    private static LearnerLevel MapToLearnerLevel(LearningProfile? profile)
+    {
+        if (profile is null)
+            return LearnerLevel.Student;
+
+        return profile.ProfileType switch
+        {
+            LearningProfileType.University => LearnerLevel.University,
+            _ => LearnerLevel.Student,
+        };
     }
 
     private async void CheckForUpdates()
@@ -356,7 +366,7 @@ public partial class MainViewModel : ViewModelBase
 /*         IsLearningSessionComplete = profile.IsLearningSessionComplete; */
         OnPropertyChanged(nameof(LearningProfile));
 
-        UpdateChatProfileContext();
+        _ = UpdateChatSystemPromptAsync();
     }
 
     private void OnTutorialFinished()

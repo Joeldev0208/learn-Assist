@@ -1,0 +1,33 @@
+Unidad 1: Fundamentos de C#
+- Variables y tipos de datos (int, string, bool, double, decimal)
+- Estructuras de control: if, switch, for, while, do-while
+- Métodos: firma, parámetros, valor de retorno, parámetros opcionales
+- Arreglos unidimensionales y multidimensionales
+
+Unidad 2: Programación Orientada a Objetos
+- Clases, objetos y constructores
+- Modificadores de acceso: public, private, protected, internal
+- Herencia y polimorfismo: clase base, clase derivada, override, virtual
+- Interfaces: definición e implementación
+- Clases abstractas vs interfaces
+- Encapsulamiento: propiedades con get/set
+
+Unidad 3: Colecciones y Genéricos
+- List<T> y Dictionary<K, V>
+- IEnumerable<T> y LINQ básico (Where, Select, FirstOrDefault)
+- Genéricos con restricciones: where T : class, where T : new()
+- Colas y pilas: Queue<T>, Stack<T>
+
+Unidad 4: Manejo de Errores y Excepciones
+- Bloques try-catch-finally
+- Excepciones personalizadas heredando de Exception
+- throw vs throw ex
+- Validación de entrada y excepciones de dominio
+- Logging básico de errores
+
+Unidad 5: Programación Asíncrona
+- Palabras clave async y await
+- Task y Task<T>
+- Task.WhenAll y Task.WhenAny
+- CancellationToken y CancellationTokenSource
+- Flujos asíncronos: IAsyncEnumerable<T>

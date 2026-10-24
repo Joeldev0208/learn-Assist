@@ -11,15 +11,14 @@ namespace learn_assist.Tests;
 public class ChatViewModelTests
 {
     [Fact]
-    public async Task SendMessage_WithProfileAndDocument_CreatesSingleSystemMessage()
+    public async Task SendMessage_WithSystemPrompt_CreatesSingleSystemMessage()
     {
         // Arrange
         var aiService = new MockAiServiceForTests();
         var vm = new ChatViewModel(aiService);
 
-        vm.SetProfileContext("Contexto del estudiante: Universidad X");
-        vm.SetDocumentContext("Documentos importados: syllabus.pdf");
         vm.MessageText = "¿Qué es una clase?";
+        vm.SetSystemPrompt("Contexto del estudiante: Universidad X\n\n---\n\nDocumentos importados: syllabus.pdf");
 
         var userMessage = new ChatMessage
         {
@@ -51,9 +50,8 @@ public class ChatViewModelTests
         var aiService = new MockAiServiceForTests();
         var vm = new ChatViewModel(aiService);
 
-        vm.SetProfileContext("Solo perfil");
-        vm.SetDocumentContext(null);
         vm.MessageText = "Hola";
+        vm.SetSystemPrompt("Solo perfil");
 
         var userMessage = new ChatMessage
         {
@@ -77,9 +75,8 @@ public class ChatViewModelTests
         var aiService = new MockAiServiceForTests();
         var vm = new ChatViewModel(aiService);
 
-        vm.SetProfileContext(null);
-        vm.SetDocumentContext("Solo documento");
         vm.MessageText = "Hola";
+        vm.SetSystemPrompt("Solo documento");
 
         var userMessage = new ChatMessage
         {
@@ -98,14 +95,13 @@ public class ChatViewModelTests
     }
 
     [Fact]
-    public async Task SendMessage_WithoutProfileAndDocument_NoSystemMessage()
+    public async Task SendMessage_WithoutSystemPrompt_NoSystemMessage()
     {
         var aiService = new MockAiServiceForTests();
         var vm = new ChatViewModel(aiService);
 
-        vm.SetProfileContext(null);
-        vm.SetDocumentContext(null);
         vm.MessageText = "Hola";
+        vm.SetSystemPrompt(null);
 
         var userMessage = new ChatMessage
         {
@@ -131,6 +127,7 @@ public class ChatViewModelTests
         var vm = new ChatViewModel(aiService);
 
         vm.MessageText = "Pregunta de prueba";
+        vm.SetSystemPrompt(null);
 
         var userMessage = new ChatMessage
         {

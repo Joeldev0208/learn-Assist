@@ -16,8 +16,7 @@ public partial class ChatViewModel : ViewModelBase
     private IAiService _aiService;
     private SessionPersistenceService? _persistence;
     private ChatSession? _currentSession;
-    private string? _documentContext;
-    private string? _profileContext;
+    private string? _systemPrompt;
 
     public ChatViewModel(IAiService aiService, SessionPersistenceService? persistence = null)
     {
@@ -46,14 +45,9 @@ public partial class ChatViewModel : ViewModelBase
             _persistence = persistence;
     }
 
-    public void SetDocumentContext(string? context)
+    public void SetSystemPrompt(string? systemPrompt)
     {
-        _documentContext = context;
-    }
-
-    public void SetProfileContext(string? context)
-    {
-        _profileContext = context;
+        _systemPrompt = systemPrompt;
     }
 
     public void SetCurrentSession(ChatSession? session)
@@ -85,20 +79,12 @@ public partial class ChatViewModel : ViewModelBase
 
         var history = new List<ChatMessage>();
 
-        var systemParts = new List<string>();
-
-        if (!string.IsNullOrWhiteSpace(_profileContext))
-            systemParts.Add(_profileContext);
-
-        if (!string.IsNullOrWhiteSpace(_documentContext))
-            systemParts.Add(_documentContext);
-
-        if (systemParts.Count > 0)
+        if (!string.IsNullOrWhiteSpace(_systemPrompt))
         {
             history.Add(new ChatMessage
             {
                 Role = MessageRole.System,
-                Content = string.Join("\n\n---\n\n", systemParts),
+                Content = _systemPrompt,
             });
         }
 

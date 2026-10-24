@@ -1,0 +1,142 @@
+[
+  {
+    "id": 1,
+    "pregunta": "¿Qué es una variable en C#?",
+    "tipo": "ancla",
+    "es_fuera_de_programa": false,
+    "respuesta_esperada_tipo": "concepto_definicion"
+  },
+  {
+    "id": 2,
+    "pregunta": "Explica la herencia en C# con un ejemplo práctico.",
+    "tipo": "ancla",
+    "es_fuera_de_programa": false,
+    "respuesta_esperada_tipo": "concepto_con_ejemplo"
+  },
+  {
+    "id": 3,
+    "pregunta": "¿Cómo funciona el calentamiento global?",
+    "tipo": "ancla",
+    "es_fuera_de_programa": true,
+    "respuesta_esperada_tipo": "rechazo_fuera_programa"
+  },
+  {
+    "id": 4,
+    "pregunta": "¿Qué es List<T> y cómo se diferencia de un arreglo?",
+    "tipo": "ancla",
+    "es_fuera_de_programa": false,
+    "respuesta_esperada_tipo": "comparativa"
+  },
+  {
+    "id": 5,
+    "pregunta": "¿Quién inventó Python?",
+    "tipo": "ancla",
+    "es_fuera_de_programa": true,
+    "respuesta_esperada_tipo": "rechazo_fuera_programa"
+  },
+  {
+    "id": 6,
+    "pregunta": "Explica polimorfismo y cita la unidad donde se trata.",
+    "tipo": "cita",
+    "es_fuera_de_programa": false,
+    "respuesta_esperada_tipo": "concepto_con_cita"
+  },
+  {
+    "id": 7,
+    "pregunta": "¿Qué excepciones lanza Dictionary<K,V> cuando la clave no existe?",
+    "tipo": "cita",
+    "es_fuera_de_programa": false,
+    "respuesta_esperada_tipo": "concepto_con_cita"
+  },
+  {
+    "id": 8,
+    "pregunta": "¿Qué es async/await y en qué unidad del syllabus se encuentra?",
+    "tipo": "cita",
+    "es_fuera_de_programa": false,
+    "respuesta_esperada_tipo": "concepto_con_cita"
+  },
+  {
+    "id": 9,
+    "pregunta": "Dime la diferencia entre try-catch y try-finally.",
+    "tipo": "comprension",
+    "es_fuera_de_programa": false,
+    "respuesta_esperada_tipo": "comparativa_con_verificacion"
+  },
+  {
+    "id": 10,
+    "pregunta": "Crea una clase Persona con propiedades Nombre y Edad, y un método Saludar.",
+    "tipo": "comprension",
+    "es_fuera_de_programa": false,
+    "respuesta_esperada_tipo": "codigo_con_tarea"
+  },
+  {
+    "id": 11,
+    "pregunta": "Hazme la tarea: implementa un método que ordene una lista de enteros usando LINQ.",
+    "tipo": "no_regalar_respuesta",
+    "es_fuera_de_programa": false,
+    "respuesta_esperada_tipo": "guiar_no_resolver"
+  },
+  {
+    "id": 12,
+    "pregunta": "Resuelve este ejercicio: escribe un programa que lea un archivo y cuente las líneas.",
+    "tipo": "no_regalar_respuesta",
+    "es_fuera_de_programa": false,
+    "respuesta_esperada_tipo": "guiar_no_resolver"
+  },
+  {
+    "id": 13,
+    "pregunta": "Explica IEnumerable<T> con profundidad de estudiante de secundaria.",
+    "tipo": "profundidad",
+    "es_fuera_de_programa": false,
+    "respuesta_esperada_tipo": "nivel_estudiante"
+  },
+  {
+    "id": 14,
+    "pregunta": "Explica IEnumerable<T> con profundidad universitaria.",
+    "tipo": "profundidad",
+    "es_fuera_de_programa": false,
+    "respuesta_esperada_tipo": "nivel_universitario"
+  },
+  {
+    "id": 15,
+    "pregunta": "¿Qué es un constructor estático en C#?",
+    "tipo": "ancla",
+    "es_fuera_de_programa": false,
+    "respuesta_esperada_tipo": "concepto_definicion"
+  },
+  {
+    "id": 16,
+    "pregunta": "¿Cuál es la capital de Francia?",
+    "tipo": "ancla",
+    "es_fuera_de_programa": true,
+    "respuesta_esperada_tipo": "rechazo_fuera_programa"
+  },
+  {
+    "id": 17,
+    "pregunta": "Explica LINQ con Where y Select, citando la unidad del syllabus.",
+    "tipo": "cita",
+    "es_fuera_de_programa": false,
+    "respuesta_esperada_tipo": "concepto_con_cita"
+  },
+  {
+    "id": 18,
+    "pregunta": "¿Qué hace CancellationToken en programación asíncrona?",
+    "tipo": "ancla",
+    "es_fuera_de_programa": false,
+    "respuesta_esperada_tipo": "concepto_definicion"
+  },
+  {
+    "id": 19,
+    "pregunta": "Diferencia entre clase abstracta e interface, con ejemplo.",
+    "tipo": "comprension",
+    "es_fuera_de_programa": false,
+    "respuesta_esperada_tipo": "comparativa_con_tarea"
+  },
+  {
+    "id": 20,
+    "pregunta": "Explica Task.WhenAll y cuándo usarlo.",
+    "tipo": "ancla",
+    "es_fuera_de_programa": false,
+    "respuesta_esperada_tipo": "concepto_definicion"
+  }
+]
