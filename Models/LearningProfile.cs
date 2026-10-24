@@ -22,6 +22,7 @@ public sealed class LearningProfile
     public string Career { get; set; } = string.Empty;
     public string University { get; set; } = string.Empty;
     public string Semester { get; set; } = string.Empty;
+    public string SemesterContent { get; set; } = string.Empty;
     public string ProfessionalArea { get; set; } = string.Empty;
     public string PreferredLanguage { get; set; } = "es";
     public int SessionMinutes { get; set; } = 15;

@@ -10,13 +10,17 @@ namespace learn_Assist.Services;
 /// system message. Empty fields are skipped so the message stays short and
 /// never grows unbounded.
 /// </summary>
-internal static class LearningProfileContext
+public static class LearningProfileContext
 {
     private const int MaxSubjects = 6;
 
     public static string? Build(LearningProfile? profile)
     {
         if (profile is null)
+            return null;
+
+        // Retorna null si el perfil está completamente vacío (todos los campos string vacíos).
+        if (IsEmpty(profile))
             return null;
 
         var lines = new List<string>();
@@ -31,11 +35,27 @@ internal static class LearningProfileContext
         AddSubjects(lines, profile.Subjects);
         AddIfPresent(lines, "- Meta de aprendizaje", profile.LearningGoal);
         AddIfPresent(lines, "- Idioma preferido", profile.PreferredLanguage);
+        AddIfPresent(lines, "- Contenido del programa", profile.SemesterContent);
 
         if (lines.Count == 0)
             return null;
 
         return "Contexto del estudiante (perfil de aprendizaje):\n" + string.Join("\n", lines);
+    }
+
+    private static bool IsEmpty(LearningProfile profile)
+    {
+        return string.IsNullOrWhiteSpace(profile.UserId)
+            && string.IsNullOrWhiteSpace(profile.Course)
+            && string.IsNullOrWhiteSpace(profile.Level)
+            && string.IsNullOrWhiteSpace(profile.Career)
+            && string.IsNullOrWhiteSpace(profile.University)
+            && string.IsNullOrWhiteSpace(profile.Semester)
+            && string.IsNullOrWhiteSpace(profile.ProfessionalArea)
+            && string.IsNullOrWhiteSpace(profile.PreferredLanguage)
+            && string.IsNullOrWhiteSpace(profile.LearningGoal)
+            && string.IsNullOrWhiteSpace(profile.SemesterContent)
+            && (profile.Subjects is null or { Count: 0 });
     }
 
     private static string? DescribeProgram(LearningProfile profile)

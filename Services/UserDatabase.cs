@@ -16,7 +16,7 @@ public sealed class UserDatabase
     {
         SQLitePCL.Batteries_V2.Init();
         var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        var directory = Path.Combine(appData, "learn-assist");
+        var directory = Path.Combine(appData, "learn_assist");
         Directory.CreateDirectory(directory);
         _databasePath = databasePath ?? Path.Combine(directory, "learn-assist.db");
         Initialize();
@@ -133,12 +133,12 @@ public sealed class UserDatabase
         command.CommandText = """
             INSERT INTO learning_profiles (
                 user_id, profile_type, learning_goal, course, level, subjects,
-                career, university, semester, professional_area, preferred_language,
+                career, university, semester, semester_content, professional_area, preferred_language,
                 session_minutes, is_completed, is_learning_session_active,
                 learning_step, is_learning_session_complete, updated_at_utc
             ) VALUES (
                 $user_id, $profile_type, $learning_goal, $course, $level, $subjects,
-                $career, $university, $semester, $professional_area, $preferred_language,
+                $career, $university, $semester, $semester_content, $professional_area, $preferred_language,
                 $session_minutes, $is_completed, $is_learning_session_active,
                 $learning_step, $is_learning_session_complete, $updated_at_utc
             )
@@ -151,6 +151,7 @@ public sealed class UserDatabase
                 career = excluded.career,
                 university = excluded.university,
                 semester = excluded.semester,
+                semester_content = excluded.semester_content,
                 professional_area = excluded.professional_area,
                 preferred_language = excluded.preferred_language,
                 session_minutes = excluded.session_minutes,
@@ -169,6 +170,7 @@ public sealed class UserDatabase
         command.Parameters.AddWithValue("$career", profile.Career);
         command.Parameters.AddWithValue("$university", profile.University);
         command.Parameters.AddWithValue("$semester", profile.Semester);
+        command.Parameters.AddWithValue("$semester_content", profile.SemesterContent);
         command.Parameters.AddWithValue("$professional_area", profile.ProfessionalArea);
         command.Parameters.AddWithValue("$preferred_language", profile.PreferredLanguage);
         command.Parameters.AddWithValue("$session_minutes", profile.SessionMinutes);
@@ -202,12 +204,13 @@ public sealed class UserDatabase
             reader.GetString(8),
             reader.GetString(9),
             reader.GetString(10),
-            reader.GetInt32(11),
-            reader.GetInt32(12) != 0,
+            reader.GetString(11),
+            reader.GetInt32(12),
             reader.GetInt32(13) != 0,
-            reader.GetInt32(14),
-            reader.GetInt32(15) != 0,
-            DateTime.Parse(reader.GetString(16)));
+            reader.GetInt32(14) != 0,
+            reader.GetInt32(15),
+            reader.GetInt32(16) != 0,
+            DateTime.Parse(reader.GetString(17)));
     }
 
     public void DeleteLearningProfile(string userId)
@@ -250,6 +253,7 @@ public sealed class UserDatabase
                     career TEXT NOT NULL,
                     university TEXT NOT NULL,
                     semester TEXT NOT NULL,
+                    semester_content TEXT NOT NULL DEFAULT '',
                     professional_area TEXT NOT NULL,
                     preferred_language TEXT NOT NULL,
                     session_minutes INTEGER NOT NULL,
@@ -268,6 +272,23 @@ public sealed class UserDatabase
             MigrateLegacyUsers(connection);
             MigrateLegacySession(connection);
             MigrateLegacyProfiles();
+            MigrateSemesterContentColumn(connection);
+        }
+    }
+
+    private void MigrateSemesterContentColumn(SqliteConnection connection)
+    {
+        using var command = connection.CreateCommand();
+        command.CommandText = """
+            ALTER TABLE learning_profiles ADD COLUMN semester_content TEXT NOT NULL DEFAULT '';
+            """;
+        try
+        {
+            command.ExecuteNonQuery();
+        }
+        catch (SqliteException ex) when (ex.Message.Contains("duplicate column"))
+        {
+            // La columna ya existe, ignorar.
         }
     }
 
@@ -296,6 +317,7 @@ public sealed class UserDatabase
                     profile.Career,
                     profile.University,
                     profile.Semester,
+                    profile.SemesterContent,
                     profile.ProfessionalArea,
                     profile.PreferredLanguage,
                     profile.SessionMinutes,
@@ -415,6 +437,7 @@ public sealed class UserDatabase
         string Career,
         string University,
         string Semester,
+        string SemesterContent,
         string ProfessionalArea,
         string PreferredLanguage,
         int SessionMinutes,

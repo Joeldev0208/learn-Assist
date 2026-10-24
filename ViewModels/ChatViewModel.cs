@@ -73,7 +73,7 @@ public partial class ChatViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private async Task SendMessageAsync()
+    public async Task SendMessageAsync()
     {
         var text = MessageText?.Trim();
         if (string.IsNullOrEmpty(text) || IsLoading)
@@ -85,21 +85,20 @@ public partial class ChatViewModel : ViewModelBase
 
         var history = new List<ChatMessage>();
 
+        var systemParts = new List<string>();
+
         if (!string.IsNullOrWhiteSpace(_profileContext))
-        {
-            history.Add(new ChatMessage
-            {
-                Role = MessageRole.System,
-                Content = _profileContext,
-            });
-        }
+            systemParts.Add(_profileContext);
 
         if (!string.IsNullOrWhiteSpace(_documentContext))
+            systemParts.Add(_documentContext);
+
+        if (systemParts.Count > 0)
         {
             history.Add(new ChatMessage
             {
                 Role = MessageRole.System,
-                Content = _documentContext,
+                Content = string.Join("\n\n---\n\n", systemParts),
             });
         }
 
