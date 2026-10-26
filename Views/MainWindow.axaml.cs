@@ -105,6 +105,27 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>
+    /// Handles the delete session button click.
+    /// </summary>
+    private void OnDeleteSessionClick(object? sender, global::Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (DataContext is MainViewModel vm && vm.SessionList is not null)
+        {
+            // Get the session from the parent ItemsControl
+            if (sender is global::Avalonia.Controls.Control control &&
+                control.Parent is global::Avalonia.Controls.ItemsControl itemsControl &&
+                itemsControl.Items.Count > 0)
+            {
+                var session = itemsControl.Items[itemsControl.Items.Count - 1] as ChatSession;
+                if (session is not null)
+                {
+                    vm.SessionList.DeleteSession(session);
+                }
+            }
+        }
+    }
+
     protected override void OnDataContextChanged(EventArgs e)
     {
         base.OnDataContextChanged(e);

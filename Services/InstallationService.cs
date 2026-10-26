@@ -12,9 +12,9 @@ public sealed record InstallPaths(string Binary, string MenuEntry, string Icon);
 /// <summary>
 /// Performs a real system installation of the running binary (Linux: .desktop
 /// menu entry, Windows: Start Menu shortcut) and tracks the state in a marker
-/// file under <c>~/.config/learn-assist/install.json</c>.
-/// System scope only elevates the privileged file copy (pkexec / UAC); the
-/// menu entry and icon are always written to user locations.
+/// file under <c>~/.config/learn-assist/install.json</c>. System scope only
+/// elevates the privileged file copy (pkexec / UAC); the menu entry and icon
+/// are always written to user locations.
 /// </summary>
 public static class InstallationService
 {
@@ -42,14 +42,6 @@ public static class InstallationService
         {
             return null;
         }
-    }
-
-    public static InstallPaths GetInstallPaths(InstallScope scope)
-    {
-        if (OperatingSystem.IsWindows())
-            return GetWindowsPaths(scope);
-
-        return GetLinuxPaths(scope);
     }
 
     /// <summary>
@@ -86,6 +78,56 @@ public static class InstallationService
         {
             return false;
         }
+    }
+
+    /// <summary>
+    /// Saves install info to the marker file.
+    /// </summary>
+    public static void SaveInstallInfo(InstallScope scope, string binaryPath)
+    {
+        var info = new InstallInfo
+        {
+            Scope = scope,
+            BinaryPath = binaryPath,
+            InstallDate = DateTime.Now,
+        };
+        File.WriteAllText(GetMarkerPath(), JsonSerializer.Serialize(info));
+    }
+
+    /// <summary>
+    /// Gets the install paths for the given scope.
+    /// </summary>
+    public static InstallPaths GetInstallPaths(InstallScope scope)
+    {
+        if (OperatingSystem.IsWindows())
+            return GetWindowsPaths(scope);
+
+        return GetLinuxPaths(scope);
+    }
+
+    /// <summary>
+    /// Gets the marker path file location.
+    /// </summary>
+    public static string GetMarkerPath()
+    {
+        if (OperatingSystem.IsWindows())
+        {
+            var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            var localDir = Path.Combine(localAppData, "learn-assist");
+            var localPath = Path.Combine(localDir, MarkerFileName);
+            if (File.Exists(localPath))
+            {
+                Directory.CreateDirectory(localDir);
+                return localPath;
+            }
+
+            var roamingAppData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            var roamingDir = Path.Combine(roamingAppData, "learn-assist");
+            var roamingPath = Path.Combine(roamingDir, MarkerFileName);
+            Directory.CreateDirectory(roamingDir);
+            return roamingPath;
+        }
+        return Path.Combine(GetConfigDir(), MarkerFileName);
     }
 
     private static bool IsSystemScope(InstallScope scope) =>
@@ -178,7 +220,7 @@ public static class InstallationService
 
         using var process = Process.Start(psi);
         if (process is null)
-            return false; // user cancelled the UAC prompt
+            return false;
         if (!process.WaitForExit(120_000))
         {
             process.Kill();
@@ -188,14 +230,14 @@ public static class InstallationService
         return process.ExitCode == 0 && File.Exists(target);
     }
 
-    private static bool ElevatedCopyWindows(string source, string target)
-        => RunUacWindows(source, target);
+    private static bool ElevatedCopyWindows(string source, string target) => RunUacWindows(source, target);
 
     private static void WriteIcon(string iconPath)
     {
         var dir = Path.GetDirectoryName(iconPath);
         if (string.IsNullOrEmpty(dir))
             return;
+
         Directory.CreateDirectory(dir);
 
         var assemblyName = System.Reflection.Assembly.GetExecutingAssembly().GetName().Name;
@@ -262,43 +304,5 @@ public static class InstallationService
         var dir = Path.Combine(appData, "learn-assist");
         Directory.CreateDirectory(dir);
         return dir;
-    }
-
-    private static string GetMarkerPath()
-    {
-        // On Windows, the binary is installed to LocalApplicationData.
-        // Check LocalApplicationData first (new installs), then fall back to
-        // ApplicationData/Roaming (existing installs before this fix).
-        if (OperatingSystem.IsWindows())
-        {
-            var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-            var localDir = Path.Combine(localAppData, "learn-assist");
-            var localPath = Path.Combine(localDir, MarkerFileName);
-            if (File.Exists(localPath))
-            {
-                Directory.CreateDirectory(localDir);
-                return localPath;
-            }
-
-            // Fall back to old location in Roaming for existing installations
-            var roamingAppData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            var roamingDir = Path.Combine(roamingAppData, "learn-assist");
-            var roamingPath = Path.Combine(roamingDir, MarkerFileName);
-            Directory.CreateDirectory(roamingDir);
-            return roamingPath;
-        }
-        // On Linux, use ApplicationData (Roaming) as before
-        return Path.Combine(GetConfigDir(), MarkerFileName);
-    }
-
-    private static void SaveInstallInfo(InstallScope scope, string binaryPath)
-    {
-        var info = new InstallInfo
-        {
-            Scope = scope,
-            BinaryPath = binaryPath,
-            InstallDate = DateTime.Now,
-        };
-        File.WriteAllText(GetMarkerPath(), JsonSerializer.Serialize(info));
     }
 }

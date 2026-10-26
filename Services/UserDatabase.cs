@@ -16,9 +16,9 @@ public sealed class UserDatabase
     {
         SQLitePCL.Batteries_V2.Init();
         var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        var directory = Path.Combine(appData, "learn_assist");
+        var directory = Path.Combine(appData, "learn-assist");
         Directory.CreateDirectory(directory);
-        _databasePath = databasePath ?? Path.Combine(directory, "learn-assist.db");
+        _databasePath = databasePath ?? Path.Combine(directory, "learn_assist.db");
         Initialize();
     }
 

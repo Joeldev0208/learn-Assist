@@ -200,6 +200,7 @@
                       HorizontalAlignment="Center" VerticalAlignment="Center">
                 <TextBlock Text="⇥" HorizontalAlignment="Center" VerticalAlignment="Center" />
               </Button>
+              
             </StackPanel>
             <StackPanel VerticalAlignment="Center">
               <StackPanel Orientation="Horizontal" Spacing="8">

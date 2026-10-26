@@ -79,6 +79,30 @@ public partial class SessionListViewModel : ViewModelBase
         NewSessionRequested?.Invoke();
     }
 
+    [RelayCommand]
+    public void DeleteSession(ChatSession session)
+    {
+        if (session == null) return;
+
+        try
+        {
+            // 1. Eliminamos el archivo físico del disco si existe
+            if (!string.IsNullOrEmpty(session.StorageFileName) && session.StorageFileName != "New Chat" && File.Exists(session.StorageFileName))
+            {
+                File.Delete(session.StorageFileName);
+            }
+
+            // 2. Eliminamos la sesión de la lista de la interfaz gráfica
+            Sessions.Remove(session);
+        }
+        catch (IOException ex)
+        {
+            // Manejar errores aquí (archivo abierto, sin permisos, etc.)
+            System.Diagnostics.Debug.WriteLine($"Error al borrar: {ex.Message}");
+        }
+        return;
+    }
+
     public ChatSession CreateNewSession()
     {
         var session = new ChatSession
