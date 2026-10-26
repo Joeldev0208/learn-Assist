@@ -138,6 +138,7 @@ public partial class MainWindow : Window
             _previousVm.DocumentList.ImportDialogRequested -= OnImportDialog;
             _previousVm.ConfigureAiRequested -= OnConfigureAi;
             _previousVm.RestartRequested -= OnRestartRequested;
+            _previousVm.UninstallRequested -= OnUninstallRequested;
             _previousVm.PropertyChanged -= OnViewModelPropertyChanged;
         }
 
@@ -150,6 +151,7 @@ public partial class MainWindow : Window
             vm.DocumentList.ImportDialogRequested += OnImportDialog;
             vm.ConfigureAiRequested += OnConfigureAi;
             vm.RestartRequested += OnRestartRequested;
+            vm.UninstallRequested += OnUninstallRequested;
             vm.PropertyChanged += OnViewModelPropertyChanged;
             _previousVm = vm;
             UpdateResponsiveLayout(vm);
@@ -346,6 +348,13 @@ public partial class MainWindow : Window
     {
         // The apply-update.cmd script waits for this window to close before
         // swapping the binary, then relaunches the new version.
+        Close();
+    }
+
+    private void OnUninstallRequested()
+    {
+        // UninstallService handles the removal; close the window so the
+        // installer/worker can replace or delete the binary.
         Close();
     }
 

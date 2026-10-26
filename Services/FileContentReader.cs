@@ -21,35 +21,63 @@ public static class FileContentReader
         ".dockerignore", ".editorconfig", ".csproj", ".sln", ".props", ".targets",
     ];
 
-    public static string? ExtractText(string filePath)
+    public static string? ExtractText(string filePath, out string? errorReason)
     {
+        errorReason = null;
+
         try
         {
-            if (string.IsNullOrWhiteSpace(filePath) || !File.Exists(filePath))
+            if (string.IsNullOrWhiteSpace(filePath))
+            {
+                errorReason = "Ruta de archivo vacía";
                 return null;
+            }
+
+            if (!File.Exists(filePath))
+            {
+                errorReason = "El archivo no existe";
+                return null;
+            }
 
             var fileInfo = new FileInfo(filePath);
             if (fileInfo.Length > MaxFileSize)
+            {
+                errorReason = $"El archivo supera los 5 MB ({fileInfo.Length / 1024 / 1024:N0} MB)";
                 return null;
+            }
 
             var extension = Path.GetExtension(filePath).ToLowerInvariant();
 
-            return extension switch
-            {
-                ".pdf" => ExtractPdfText(filePath),
-                ".docx" => ExtractDocxText(filePath),
-                ".xlsx" => ExtractXlsxText(filePath),
-                _ => PlainTextExtensions.Contains(extension) ? ExtractPlainText(filePath) : null,
-            };
+            if (extension == ".pdf")
+                return ExtractPdfText(filePath, out errorReason);
+            if (extension == ".docx")
+                return ExtractDocxText(filePath, out errorReason);
+            if (extension == ".xlsx")
+                return ExtractXlsxText(filePath, out errorReason);
+            if (PlainTextExtensions.Contains(extension))
+                return ExtractPlainText(filePath, out errorReason);
+
+            errorReason = $"Extensión no soportada: {extension}";
+            return null;
         }
-        catch
+        catch (Exception ex)
         {
+            errorReason = $"Error inesperado: {ex.Message}";
+            System.Diagnostics.Debug.WriteLine($"[FileContentReader] {errorReason} (archivo: {filePath})");
             return null;
         }
     }
 
-    private static string? ExtractPdfText(string filePath)
+    // Sobrecarga para compatibilidad con llamadas existentes que no necesitan el motivo
+    public static string? ExtractText(string filePath)
     {
+        return ExtractText(filePath, out _);
+    }
+
+    private static string? ExtractPdfText(string filePath, out string? errorReason)
+    {
+        errorReason = null;
+
         try
         {
             using var document = PdfDocument.Open(filePath);
@@ -61,22 +89,35 @@ public static class FileContentReader
             }
 
             var text = sb.ToString().Trim();
-            return string.IsNullOrWhiteSpace(text) ? null : text;
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                errorReason = "El PDF no contiene texto extractable (puede ser una imagen escaneada)";
+                return null;
+            }
+
+            return text;
         }
-        catch
+        catch (Exception ex)
         {
+            errorReason = $"Error al leer PDF: {ex.Message}";
+            System.Diagnostics.Debug.WriteLine($"[FileContentReader] {errorReason} (archivo: {filePath})");
             return null;
         }
     }
 
-    private static string? ExtractDocxText(string filePath)
+    private static string? ExtractDocxText(string filePath, out string? errorReason)
     {
+        errorReason = null;
+
         try
         {
             using var archive = ZipFile.OpenRead(filePath);
             var entry = archive.GetEntry("word/document.xml");
             if (entry is null)
+            {
+                errorReason = "El archivo DOCX no es válido o está corrupto";
                 return null;
+            }
 
             using var stream = entry.Open();
             using var reader = new StreamReader(stream, Encoding.UTF8);
@@ -93,22 +134,35 @@ public static class FileContentReader
             }
 
             var result = sb.ToString().Trim();
-            return string.IsNullOrWhiteSpace(result) ? null : result;
+            if (string.IsNullOrWhiteSpace(result))
+            {
+                errorReason = "El archivo DOCX no contiene texto";
+                return null;
+            }
+
+            return result;
         }
-        catch
+        catch (Exception ex)
         {
+            errorReason = $"Error al leer DOCX: {ex.Message}";
+            System.Diagnostics.Debug.WriteLine($"[FileContentReader] {errorReason} (archivo: {filePath})");
             return null;
         }
     }
 
-    private static string? ExtractXlsxText(string filePath)
+    private static string? ExtractXlsxText(string filePath, out string? errorReason)
     {
+        errorReason = null;
+
         try
         {
             using var archive = ZipFile.OpenRead(filePath);
             var entry = archive.GetEntry("xl/sharedStrings.xml");
             if (entry is null)
+            {
+                errorReason = "El archivo XLSX no es válido o está corrupto";
                 return null;
+            }
 
             using var stream = entry.Open();
             using var reader = new StreamReader(stream, Encoding.UTF8);
@@ -126,24 +180,42 @@ public static class FileContentReader
             }
 
             var result = sb.ToString().Trim();
-            return string.IsNullOrWhiteSpace(result) ? null : result;
+            if (string.IsNullOrWhiteSpace(result))
+            {
+                errorReason = "El archivo XLSX no contiene texto";
+                return null;
+            }
+
+            return result;
         }
-        catch
+        catch (Exception ex)
         {
+            errorReason = $"Error al leer XLSX: {ex.Message}";
+            System.Diagnostics.Debug.WriteLine($"[FileContentReader] {errorReason} (archivo: {filePath})");
             return null;
         }
     }
 
-    private static string? ExtractPlainText(string filePath)
+    private static string? ExtractPlainText(string filePath, out string? errorReason)
     {
+        errorReason = null;
+
         try
         {
             var text = File.ReadAllText(filePath, Encoding.UTF8);
             var result = text.Trim();
-            return string.IsNullOrWhiteSpace(result) ? null : result;
+            if (string.IsNullOrWhiteSpace(result))
+            {
+                errorReason = "El archivo de texto está vacío";
+                return null;
+            }
+
+            return result;
         }
-        catch
+        catch (Exception ex)
         {
+            errorReason = $"Error al leer archivo de texto: {ex.Message}";
+            System.Diagnostics.Debug.WriteLine($"[FileContentReader] {errorReason} (archivo: {filePath})");
             return null;
         }
     }

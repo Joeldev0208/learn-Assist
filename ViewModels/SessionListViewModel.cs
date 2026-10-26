@@ -79,7 +79,6 @@ public partial class SessionListViewModel : ViewModelBase
         NewSessionRequested?.Invoke();
     }
 
-    [RelayCommand]
     public async Task DeleteSessionAsync(ChatSession session)
     {
         if (session == null) return;
@@ -103,8 +102,9 @@ public partial class SessionListViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Wrapper síncrono para compatibilidad con el code-behind de MainWindow.
+    /// Wrapper síncrono para compatibilidad con el code-behind de MainWindow y el binding de XAML.
     /// </summary>
+    [RelayCommand]
     public void DeleteSession(ChatSession session)
     {
         _ = DeleteSessionAsync(session);

@@ -69,10 +69,23 @@ public partial class LearningProfileView : Window
         if (string.IsNullOrWhiteSpace(vm.Semester))
             vm.Semester = string.IsNullOrWhiteSpace(name) ? file.Name : name;
 
-        var extracted = FileContentReader.ExtractText(filePath);
+        var extracted = FileContentReader.ExtractText(filePath, out var errorReason);
         vm.SemesterContent = extracted ?? string.Empty;
-        vm.SemesterImportFeedback = string.IsNullOrWhiteSpace(extracted)
-            ? "File name saved — no extractable text found"
-            : "File processed — content available for AI context";
+
+        if (string.IsNullOrWhiteSpace(extracted))
+        {
+            vm.SemesterImportFeedback = errorReason switch
+            {
+                null => "No se pudo extraer texto del archivo",
+                var reason when reason.Contains("Extensión no soportada") => $"Formato no soportado: {Path.GetExtension(filePath)}",
+                var reason when reason.Contains("supera los 5 MB") => $"Archivo demasiado grande: {errorReason}",
+                var reason when reason.Contains("no contiene texto extractable") => "PDF sin texto (puede ser una imagen escaneada)",
+                _ => $"No se pudo extraer contenido: {errorReason ?? "motivo desconocido"}",
+            };
+        }
+        else
+        {
+            vm.SemesterImportFeedback = $"Contenido extraído ({extracted.Length} caracteres) — disponible para la IA";
+        }
     }
 }

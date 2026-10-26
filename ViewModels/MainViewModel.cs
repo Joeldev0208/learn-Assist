@@ -44,6 +44,7 @@ public partial class MainViewModel : ViewModelBase
     public event Action? RestartRequested;
     public event Action? SignOutRequested;
     public event Action? EditLearningProfileRequested;
+    public event Action? UninstallRequested;
     public IRelayCommand SignOutCommand { get; }
 
     public string ThemeGlyph => ThemeService.IsDark ? "☀️" : "🌙";
@@ -112,6 +113,16 @@ public partial class MainViewModel : ViewModelBase
     private void SignOut()
     {
         SignOutRequested?.Invoke();
+    }
+
+    [RelayCommand]
+    private void Uninstall()
+    {
+        var ok = UninstallService.Uninstall(removeUserData: false);
+        if (ok)
+        {
+            UninstallRequested?.Invoke();
+        }
     }
 
     [RelayCommand]

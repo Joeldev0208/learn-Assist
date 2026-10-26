@@ -8,6 +8,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="700"
         x:Class="learn_Assist.Views.MainWindow"
+        x:Name="RootWindow"
         x:DataType="vm:MainViewModel"
         Icon="/Assets/learn-assist.ico"
         Title="learn_Assist"
@@ -126,7 +127,18 @@
               <ListBox.ItemTemplate>
                 <DataTemplate DataType="models:ChatSession">
                   <Border Padding="12,10" Margin="0,2" CornerRadius="8" Background="Transparent" BorderThickness="0">
-                    <TextBlock Text="{Binding Title}" FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" />
+                    <DockPanel LastChildFill="True">
+                      <Button DockPanel.Dock="Right" Width="28" Height="28"
+                              Command="{Binding DataContext.SessionList.DeleteSessionCommand, ElementName=RootWindow}"
+                              CommandParameter="{Binding}"
+                              Background="Transparent" BorderThickness="0"
+                              CornerRadius="6" Padding="0"
+                              Foreground="{DynamicResource TextMutedBrush}"
+                              ToolTip.Tip="Eliminar sesión">
+                        <TextBlock Text="×" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                      </Button>
+                      <TextBlock Text="{Binding Title}" FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" VerticalAlignment="Center" />
+                    </DockPanel>
                   </Border>
                 </DataTemplate>
               </ListBox.ItemTemplate>
@@ -199,6 +211,14 @@
                       ToolTip.Tip="Sign out"
                       HorizontalAlignment="Center" VerticalAlignment="Center">
                 <TextBlock Text="⇥" HorizontalAlignment="Center" VerticalAlignment="Center" />
+              </Button>
+              <Button Width="30" Height="30"
+                      Command="{Binding UninstallCommand}"
+                      Background="Transparent" BorderThickness="0"
+                      FontSize="16" Foreground="{DynamicResource ErrorTextBrush}" Padding="0"
+                      ToolTip.Tip="Uninstall application"
+                      HorizontalAlignment="Center" VerticalAlignment="Center">
+                <TextBlock Text="🗑️" HorizontalAlignment="Center" VerticalAlignment="Center" />
               </Button>
               
             </StackPanel>
