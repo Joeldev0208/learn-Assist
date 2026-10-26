@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using learn_Assist.Models;
+using learn_Assist.Services;
 
 namespace learn_Assist.ViewModels;
 
@@ -27,34 +28,26 @@ public partial class DocumentListViewModel : ViewModelBase
 
     public event Action? ImportDialogRequested;
 
-    /*public DocumentListViewModel()
-    {
-        Documents.Add(new UserDocument { Name = "React Documentation.pdf", Type = "pdf", FileSize = 245000, ContentType = DocumentContentType.Document });
-        Documents.Add(new UserDocument { Name = "Design Tokens.fig", Type = "figma", FileSize = 12000, ContentType = DocumentContentType.Document });
-        Documents.Add(new UserDocument { Name = "Architecture Overview.md", Type = "md", FileSize = 3400, ContentType = DocumentContentType.Document });
-        Documents.Add(new UserDocument { Name = "API Reference.pdf", Type = "pdf", FileSize = 89000, ContentType = DocumentContentType.Document });
-        Documents.Add(new UserDocument { Name = "Component Library.zip", Type = "zip", FileSize = 1500000, ContentType = DocumentContentType.Document });
-    }
-*/
     [RelayCommand]
     private void ShowImportDialog()
     {
         ImportDialogRequested?.Invoke();
     }
 
-    public void AddDocument(UserDocument doc)
+    [RelayCommand]
+    public async Task AddDocumentAsync(UserDocument doc)
     {
         Documents.Insert(0, doc);
-        _ = SaveDocumentsAsync();
+        await SaveDocumentsAsync();
     }
 
     [RelayCommand]
-    private void RemoveDocument(UserDocument? doc)
+    private async Task RemoveDocumentAsync(UserDocument? doc)
     {
         if (doc is not null)
         {
             Documents.Remove(doc);
-            _ = SaveDocumentsAsync();
+            await SaveDocumentsAsync();
         }
     }
 
@@ -72,7 +65,18 @@ public partial class DocumentListViewModel : ViewModelBase
 
             Documents.Clear();
             foreach (var doc in docs)
+            {
+                // Re-extraer contenido si el documento tipo texto lo perdió en la serialización
+                if (doc.ContentType == DocumentContentType.Document
+                    && string.IsNullOrWhiteSpace(doc.Content)
+                    && !string.IsNullOrEmpty(doc.LocalPath)
+                    && File.Exists(doc.LocalPath))
+                {
+                    doc.Content = FileContentReader.ExtractText(doc.LocalPath);
+                }
+
                 Documents.Add(doc);
+            }
         }
         catch
         {

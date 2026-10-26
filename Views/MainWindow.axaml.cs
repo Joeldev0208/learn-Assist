@@ -365,7 +365,7 @@ public partial class MainWindow : Window
 
         var result = await dialog.ShowDialog<UserDocument?>(this);
         if (result is not null)
-            vm.DocumentList.AddDocument(result!);
+            await vm.DocumentList.AddDocumentAsync(result!);
     }
 
     /// <summary>

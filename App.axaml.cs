@@ -51,13 +51,13 @@ public partial class App : Application
 
         installVm.InstallationFinished += () =>
         {
-            _ = ShowLoginAfterInstallAsync(desktop);
+            FireAndForget(() => ShowLoginAfterInstallAsync(desktop));
             installView.Close();
         };
 
         installVm.InstallationSkipped += () =>
         {
-            _ = ShowLoginAfterInstallAsync(desktop);
+            FireAndForget(() => ShowLoginAfterInstallAsync(desktop));
             installView.Close();
         };
 
@@ -74,18 +74,18 @@ public partial class App : Application
     {
         if (_authService.IsAuthenticated)
         {
-            ShowAuthenticatedExperience(desktop);
+            FireAndForget(() => ShowAuthenticatedExperienceAsync(desktop));
             return;
         }
 
         var loginVm = new LoginViewModel(_authService);
         var loginView = new LoginView { DataContext = loginVm };
 
-        loginVm.LoginSucceeded += () =>
+        loginVm.LoginSucceeded += () => FireAndForget(async () =>
         {
-            ShowAuthenticatedExperience(desktop);
+            await ShowAuthenticatedExperienceAsync(desktop);
             loginView.Close();
-        };
+        });
 
         loginVm.GoToRegisterRequested += () =>
         {
@@ -101,15 +101,15 @@ public partial class App : Application
         var registerVm = new RegisterViewModel(_authService);
         var registerView = new RegisterView { DataContext = registerVm };
 
-        registerVm.RegisterSucceeded += (email, emailAddressId, userId) =>
+        registerVm.RegisterSucceeded += (email, emailAddressId, userId) => FireAndForget(async () =>
         {
             if (!string.IsNullOrEmpty(emailAddressId))
                 ShowVerifyEmailWindow(desktop, email, emailAddressId, userId);
             else
-                ShowAuthenticatedExperience(desktop);
+                await ShowAuthenticatedExperienceAsync(desktop);
 
             registerView.Close();
-        };
+        });
 
         registerVm.GoToLoginRequested += () =>
         {
@@ -120,7 +120,7 @@ public partial class App : Application
         registerView.Show();
     }
 
-    private async void ShowAuthenticatedExperience(IClassicDesktopStyleApplicationLifetime desktop)
+    private async Task ShowAuthenticatedExperienceAsync(IClassicDesktopStyleApplicationLifetime desktop)
     {
         try
         {
@@ -130,7 +130,7 @@ public partial class App : Application
 
             if (string.IsNullOrWhiteSpace(userId))
             {
-                ShowMainWindow(desktop, null, null, email, null);
+                await ShowMainWindowAsync(desktop, null, null, email, null);
                 return;
             }
 
@@ -143,12 +143,12 @@ public partial class App : Application
                 return;
             }
 
-            ShowMainWindow(desktop, profileService, profile, email, userId);
+            await ShowMainWindowAsync(desktop, profileService, profile, email, userId);
         }
         catch (Exception ex)
         {
             LogStartupError(ex);
-            ShowMainWindow(desktop, null, null, _authService.CurrentUser?.Email ?? "user@example.com", null);
+            await ShowMainWindowAsync(desktop, null, null, _authService.CurrentUser?.Email ?? "user@example.com", null);
         }
     }
 
@@ -168,7 +168,7 @@ public partial class App : Application
             isRequired: mainWindow is null);
         var profileView = new LearningProfileView { DataContext = profileVm };
 
-        profileVm.ProfileSaved += profile =>
+        profileVm.ProfileSaved += profile => FireAndForget(async () =>
         {
             profileView.Close();
             if (mainVm is not null)
@@ -177,14 +177,14 @@ public partial class App : Application
                 return;
             }
 
-            ShowMainWindow(desktop, profileService, profile, email, userId);
-        };
+            await ShowMainWindowAsync(desktop, profileService, profile, email, userId);
+        });
 
         profileVm.Cancelled += profileView.Close;
         profileView.Show();
     }
 
-    private async void ShowMainWindow(
+    private async Task ShowMainWindowAsync(
         IClassicDesktopStyleApplicationLifetime desktop,
         LearningProfileService? profileService,
         LearningProfile? profile,
@@ -222,7 +222,7 @@ public partial class App : Application
         {
             DataContext = mainVm,
         };
-        mainVm.SignOutRequested += () => _ = SignOutAndShowLoginAsync(mainWindow, desktop);
+        mainVm.SignOutRequested += () => FireAndForget(() => SignOutAndShowLoginAsync(mainWindow, desktop));
         mainVm.EditLearningProfileRequested += () =>
             ShowLearningProfileWindow(
                 desktop,
@@ -241,6 +241,18 @@ public partial class App : Application
         await _authService.SignOutAsync();
         ShowLoginWindow(desktop);
         mainWindow.Close();
+    }
+
+    private static async void FireAndForget(Func<Task> action)
+    {
+        try
+        {
+            await action();
+        }
+        catch (Exception ex)
+        {
+            LogStartupError(ex);
+        }
     }
 
     private static void LogStartupError(Exception exception)
@@ -266,11 +278,11 @@ public partial class App : Application
         var verifyVm = new VerifyEmailViewModel(_authService, email, emailAddressId, userId);
         var verifyView = new VerifyEmailView { DataContext = verifyVm };
 
-        verifyVm.VerificationSucceeded += () =>
+        verifyVm.VerificationSucceeded += () => FireAndForget(async () =>
         {
-            ShowAuthenticatedExperience(desktop);
+            await ShowAuthenticatedExperienceAsync(desktop);
             verifyView.Close();
-        };
+        });
 
         verifyVm.BackToRegisterRequested += () =>
         {

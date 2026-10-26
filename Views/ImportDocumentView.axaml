@@ -62,6 +62,7 @@
       </StackPanel>
     </Button>
 
+    <TextBlock Text="{Binding ImportResult}" FontSize="12" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Center" TextWrapping="Wrap" IsVisible="{Binding ImportResult, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" Margin="0,8,0,0" />
     <Button Content="Cancel" Command="{Binding CancelCommand}" HorizontalAlignment="Center" Background="Transparent" Foreground="{DynamicResource TextMutedBrush}" FontSize="13" Margin="0,4,0,0" />
   </StackPanel>
 </Window>

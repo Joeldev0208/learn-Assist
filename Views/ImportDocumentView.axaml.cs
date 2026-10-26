@@ -81,7 +81,17 @@ public partial class ImportDocumentView : Window
         };
 
         if (type == DocumentContentType.Document)
-            doc.Content = FileContentReader.ExtractText(filePath);
+        {
+            var extracted = FileContentReader.ExtractText(filePath);
+            doc.Content = string.IsNullOrWhiteSpace(extracted) ? string.Empty : extracted;
+            vm.ImportResult = string.IsNullOrWhiteSpace(extracted)
+                ? "No se pudo extraer texto del archivo"
+                : $"Contenido extraído ({extracted.Length} caracteres)";
+        }
+        else
+        {
+            vm.ImportResult = "Archivo importado correctamente";
+        }
 
         Result = doc;
         Close(doc);

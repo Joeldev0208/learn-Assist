@@ -24,6 +24,12 @@ sealed class Program
             return;
         }
 
+        if (args.Length >= 2 && args[0] == "--uninstall-elevated")
+        {
+            RunElevatedUninstall(args[1]);
+            return;
+        }
+
         AppSettings.Current = LoadSettings();
         BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
     }
@@ -52,6 +58,25 @@ sealed class Program
             Environment.Exit(1);
         }
     }
+
+        /// <summary>
+        /// Elevated worker mode (invoked on Windows by <c>UninstallService</c>
+        /// via a UAC "runas" relaunch): deletes the file at <c>path</c>
+        /// without opening any window, then exits.
+        /// </summary>
+        private static void RunElevatedUninstall(string path)
+        {
+            try
+            {
+                if (System.IO.File.Exists(path))
+                    System.IO.File.Delete(path);
+                Environment.Exit(0);
+            }
+            catch
+            {
+                Environment.Exit(1);
+            }
+        }
 
     /// <summary>
     /// Loads settings from <c>.env</c> (via DotNetEnv) and real environment

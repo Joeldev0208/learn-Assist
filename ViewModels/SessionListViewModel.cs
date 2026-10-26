@@ -80,7 +80,7 @@ public partial class SessionListViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    public void DeleteSession(ChatSession session)
+    public async Task DeleteSessionAsync(ChatSession session)
     {
         if (session == null) return;
 
@@ -100,7 +100,14 @@ public partial class SessionListViewModel : ViewModelBase
             // Manejar errores aquí (archivo abierto, sin permisos, etc.)
             System.Diagnostics.Debug.WriteLine($"Error al borrar: {ex.Message}");
         }
-        return;
+    }
+
+    /// <summary>
+    /// Wrapper síncrono para compatibilidad con el code-behind de MainWindow.
+    /// </summary>
+    public void DeleteSession(ChatSession session)
+    {
+        _ = DeleteSessionAsync(session);
     }
 
     public ChatSession CreateNewSession()

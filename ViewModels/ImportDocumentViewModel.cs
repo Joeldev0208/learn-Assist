@@ -10,6 +10,9 @@ public partial class ImportDocumentViewModel : ViewModelBase
     [ObservableProperty]
     public partial string SelectedTypeName { get; set; } = string.Empty;
 
+    [ObservableProperty]
+    public partial string ImportResult { get; set; } = string.Empty;
+
     public event Action<DocumentContentType>? ImportRequested;
     public event Action? CancelRequested;
 

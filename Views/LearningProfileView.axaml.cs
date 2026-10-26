@@ -65,10 +65,14 @@ public partial class LearningProfileView : Window
         var filePath = file.Path.AbsolutePath;
         var name = Path.GetFileNameWithoutExtension(file.Name);
 
-        vm.Semester = string.IsNullOrWhiteSpace(name) ? file.Name : name;
-        vm.SemesterContent = FileContentReader.ExtractText(filePath);
-        vm.SemesterImportFeedback = vm.SemesterContent is not null
-            ? "File processed — content available for AI context"
-            : "File name saved — no extractable text found";
+        // Only set the semester name if the field is empty
+        if (string.IsNullOrWhiteSpace(vm.Semester))
+            vm.Semester = string.IsNullOrWhiteSpace(name) ? file.Name : name;
+
+        var extracted = FileContentReader.ExtractText(filePath);
+        vm.SemesterContent = extracted ?? string.Empty;
+        vm.SemesterImportFeedback = string.IsNullOrWhiteSpace(extracted)
+            ? "File name saved — no extractable text found"
+            : "File processed — content available for AI context";
     }
 }

@@ -95,6 +95,62 @@ public static class InstallationService
     }
 
     /// <summary>
+    /// Elevates a file-delete operation on Windows via UAC "runas" relaunch,
+    /// or on Linux via pkexec. Used for system-scope uninstall where the
+    /// binary lives in a protected directory.
+    /// </summary>
+    public static bool ElevatedDelete(string path)
+    {
+        try
+        {
+            if (OperatingSystem.IsWindows())
+                return ElevatedDeleteWindows(path);
+
+            var psi = new ProcessStartInfo
+            {
+                FileName = "pkexec",
+                UseShellExecute = false,
+            };
+            psi.ArgumentList.Add("rm");
+            psi.ArgumentList.Add("-f");
+            psi.ArgumentList.Add(path);
+
+            using var process = Process.Start(psi);
+            if (process is null)
+                return false;
+            return process.WaitForExit(120_000) && process.ExitCode == 0;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private static bool ElevatedDeleteWindows(string path)
+    {
+        var psi = new ProcessStartInfo
+        {
+            FileName = Environment.ProcessPath!,
+            UseShellExecute = true,
+            Verb = "runas",
+            WorkingDirectory = Path.GetDirectoryName(Environment.ProcessPath!),
+        };
+        psi.ArgumentList.Add("--uninstall-elevated");
+        psi.ArgumentList.Add(path);
+
+        using var process = Process.Start(psi);
+        if (process is null)
+            return false; // user cancelled the UAC prompt
+        if (!process.WaitForExit(120_000))
+        {
+            process.Kill();
+            return false;
+        }
+
+        return !File.Exists(path);
+    }
+
+    /// <summary>
     /// Gets the install paths for the given scope.
     /// </summary>
     public static InstallPaths GetInstallPaths(InstallScope scope)
@@ -298,7 +354,7 @@ public static class InstallationService
         process?.WaitForExit();
     }
 
-    private static string GetConfigDir()
+    public static string GetConfigDir()
     {
         var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
         var dir = Path.Combine(appData, "learn-assist");

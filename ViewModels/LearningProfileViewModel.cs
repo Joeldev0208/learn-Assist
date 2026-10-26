@@ -284,6 +284,7 @@ public partial class LearningProfileViewModel : ViewModelBase
             Career = Career.Trim(),
             University = University.Trim(),
             Semester = Semester.Trim(),
+            SemesterContent = SemesterContent,
             ProfessionalArea = ProfessionalArea.Trim(),
             PreferredLanguage = string.Equals(SelectedLanguage, "English", StringComparison.OrdinalIgnoreCase)
                 ? "en"
@@ -302,6 +303,7 @@ public partial class LearningProfileViewModel : ViewModelBase
         Career = profile.Career;
         University = profile.University;
         Semester = profile.Semester;
+        SemesterContent = profile.SemesterContent;
         ProfessionalArea = profile.ProfessionalArea;
         SelectedLanguage = profile.PreferredLanguage == "en" ? "English" : "Español";
         SessionMinutes = profile.SessionMinutes;
