@@ -284,7 +284,7 @@ public partial class LearningProfileViewModel : ViewModelBase
             Career = Career.Trim(),
             University = University.Trim(),
             Semester = Semester.Trim(),
-            SemesterContent = SemesterContent,
+            SemesterContent = SemesterContent ?? string.Empty,
             ProfessionalArea = ProfessionalArea.Trim(),
             PreferredLanguage = string.Equals(SelectedLanguage, "English", StringComparison.OrdinalIgnoreCase)
                 ? "en"

@@ -39,7 +39,9 @@ AI-powered desktop learning assistant built with **Avalonia 12.1.0** and **.NET 
 ├── Converters/                 IValueConverter (message bubble alignment/color, content-type emoji)
 ├── Assets/                     Icons (avalonia-logo.ico/.png) and screenshots
 ├── scripts/publish.sh          Local self-contained build → dist/ (gitignored)
-└── .github/workflows/release.yml  CI: linux-x64 + win-x64 single-file artifacts on v* tag
+├── .github/workflows/release.yml   CI: linux-x64 + win-x64 single-file artifacts on v* tag
+├── .github/workflows/packages.yml  NuGet package build + test → GitHub Packages on push/tag
+└── .github/workflows/dotnet-desktop.yml  CI: build + unit tests on push/PR to master
 ```
 
 ## Setup
@@ -80,7 +82,7 @@ dotnet run          # normal launch (install wizard appears on first run)
 LEARN_ASSIST_FORCE_INSTALL=1 dotnet run   # force the install wizard in dev
 ```
 
-> No tests. Release artifacts are produced by CI on `v*` tag push (linux-x64 + win-x64 self-contained single-file). Local equivalent: `scripts/publish.sh` → `dist/`.
+> Unit tests are run by CI on every push/PR (`dotnet-desktop.yml`). Release artifacts are produced by CI on `v*` tag push (linux-x64 + win-x64 self-contained single-file). Local equivalent: `scripts/publish.sh` → `dist/`.
 
 ## GitHub Packages (NuGet)
 

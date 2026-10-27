@@ -211,7 +211,9 @@ public sealed class UpdateService
         if (string.IsNullOrEmpty(tag))
             return false;
         var cleaned = tag.TrimStart('v', 'V');
-        return Version.TryParse(cleaned, out version);
+        var success = Version.TryParse(cleaned, out var parsed);
+        version = parsed ?? new Version();
+        return success;
     }
 
     private static void TryDelete(string path)
