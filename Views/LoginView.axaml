@@ -47,15 +47,13 @@
           </StackPanel>
         </Button>
 
-        <Button Content="Sign in with Apple" Command="{Binding SignInWithAppleCommand}"
-                IsVisible="{Binding IsOAuthConfigured}"
-                HorizontalAlignment="Stretch" Padding="10,9" Background="Transparent" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" CornerRadius="20" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="13" />
-
         <Grid ColumnDefinitions="*,Auto,*" Margin="0,2">
           <Border Height="1" Background="{DynamicResource DividerBrush}" VerticalAlignment="Center" Grid.Column="0" />
           <TextBlock Text="Or" Grid.Column="1" Margin="12,0" Foreground="{DynamicResource TextMutedBrush}" FontSize="11" VerticalAlignment="Center" />
           <Border Height="1" Background="{DynamicResource DividerBrush}" VerticalAlignment="Center" Grid.Column="2" />
         </Grid>
+
+        <TextBlock Text="Local account — no email verification required" FontSize="10" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Center" Margin="0,0,0,4" TextWrapping="Wrap" TextAlignment="Center" />
 
         <TextBlock Text="Email" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0" />
         <Border CornerRadius="20" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" Background="{DynamicResource InputBackgroundBrush}">
@@ -93,7 +91,7 @@
         <Button Command="{Binding LoginCommand}" HorizontalAlignment="Stretch" Padding="12,9" Background="{DynamicResource ButtonPrimaryBackgroundBrush}" Foreground="{DynamicResource ButtonPrimaryForegroundBrush}" CornerRadius="20" Margin="0,2,0,0" FontSize="13" FontWeight="SemiBold">
           <Button.Styles>
             <Style Selector="Button">
-              <Setter Property="Content" Value="Sign in with the email" />
+              <Setter Property="Content" Value="Sign in" />
             </Style>
             <Style Selector="Button:disabled">
               <Setter Property="Content" Value="Signing in..." />

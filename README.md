@@ -10,8 +10,8 @@ AI-powered desktop learning assistant built with **Avalonia 12.1.0** and **.NET 
 | UI Toolkit | Avalonia Desktop 12.1.0 |
 | Theme | FluentTheme + Inter Font |
 | MVVM | CommunityToolkit.Mvvm 8.4.2 (source generators) |
-| Auth | Clerk Backend API 2.0.0 (`CLERK_SECRET_KEY` via `.env`) + Frontend API (OAuth) |
-| AI Providers | OpenAI SDK, Anthropic, Google Gemini, Ollama, NVIDIA, OpenCode |
+| Auth | Local PC accounts (`LocalAuthService`: PBKDF2-SHA256 hashes in SQLite, no cloud, no email verification) + optional Google OAuth (Google Cloud) |
+| AI Providers | OpenAI SDK, Anthropic, Google Gemini, Ollama, NVIDIA, OpenCode, MockAiService |
 | Settings | Microsoft.Extensions.Configuration + Options (validated, pydantic-settings-like) |
 
 ## Project Structure
@@ -25,12 +25,17 @@ AI-powered desktop learning assistant built with **Avalonia 12.1.0** and **.NET 
 │                               ChatSession, UserDocument, ApiConfig, AppSettings, InstallInfo)
 ├── ViewModels/                 View-models inheriting ViewModelBase : ObservableObject
 │                               (Main, SessionList, Chat, DocumentList, Tutorial,
-│                                Login, Register, VerifyEmail, ImportDocument, ApiConfig, Install)
+│                                Login, Register, ImportDocument, ApiConfig, Install,
+│                                Uninstall)
 ├── Views/                      Avalonia XAML + code-behind windows/controls
-├── Services/                   IAuthService (ClerkAuthService), IAiService (Mock + 5 providers),
+├── Services/                   LocalAuthService (PBKDF2 auth in SQLite), IAiService (Mock + 6 providers),
 │                               ConfigEncryption, SessionPersistenceService, AiServiceFactory,
-│                               InstallationService, OAuth: FapiOAuthClient, OAuthLoopbackListener, OAuthFlow
+│                               InstallationService, UninstallService (User/System scope, Windows/Linux),
+│                               TeacherProfileService, ProgramContextBuilder, FileContentReader,
+│                               OAuth: GoogleOAuthService, OAuthFlow, OAuthLoopbackListener
 ├── Services/Providers/         OpenAiService, AnthropicService, GeminiService, OllamaService, NvidiaService, OpenCodeService
+├── prompts/                    Embedded teacher-profile rules-files (teacher-profile.md,
+│                               teacher-profile.university.md) for the AI system prompt
 ├── Converters/                 IValueConverter (message bubble alignment/color, content-type emoji)
 ├── Assets/                     Icons (avalonia-logo.ico/.png) and screenshots
 ├── scripts/publish.sh          Local self-contained build → dist/ (gitignored)
@@ -39,29 +44,32 @@ AI-powered desktop learning assistant built with **Avalonia 12.1.0** and **.NET 
 
 ## Setup
 
-The app reads its configuration from a `.env` file next to the executable (or from real environment variables, which take precedence) using `Microsoft.Extensions.Configuration` + `Options` with DataAnnotations validation — the .NET equivalent of pydantic-settings. On startup it validates required keys and fails with a clear message (before opening any window) if `CLERK_SECRET_KEY` is missing.
+The app reads its configuration from a `.env` file next to the executable (or from real environment variables, which take precedence) using `Microsoft.Extensions.Configuration` + `Options` with DataAnnotations validation — the .NET equivalent of pydantic-settings. On startup it validates settings and fails with a clear message if required keys are missing.
+
+**Authentication is local** — no `CLERK_SECRET_KEY` is needed. The app uses `LocalAuthService` backed by SQLite (`%APPDATA%/learn-assist/users.json` on Windows, `~/.config/learn-assist/` on Linux) with PBKDF2-SHA256 password hashes (never plaintext). There is no email verification; registration goes straight to the app.
 
 Create a `.env` in the project root (gitignored):
 
 ```sh
-# Required — Backend API auth (email/password)
-CLERK_SECRET_KEY=sk_test_...
+# Optional — Clerk keys (kept so Clerk can be re-enabled later; not needed for local auth)
+# CLERK_SECRET_KEY=sk_test_...
+# CLERK_PUBLISHABLE_KEY=pk_test_...
 
-# Optional — Native OAuth (Apple via Clerk FAPI). Hidden if unset.
-CLERK_PUBLISHABLE_KEY=pk_test_...
-
-# Optional — Google Cloud OAuth (replaces Clerk FAPI for the Google button).
+# Optional — Google Cloud OAuth (shows the Google sign-in button when configured).
 # From Google Cloud Console → Credentials → OAuth client (Desktop app).
 # Must register http://127.0.0.1:53174/callback as an authorized redirect URI.
 GOOGLE_CLIENT_ID=xxxxx.apps.googleusercontent.com
 GOOGLE_CLIENT_SECRET=GOCSPX-...
 
 # ...or instead of the two above: point directly at the JSON you downloaded
-# (OAuth client → download JSON),  e.g. client_secret_xxx.apps.googleusercontent.com.json
+# (OAuth client → download JSON), e.g. client_secret_xxx.apps.googleusercontent.com.json
 #GOOGLE_CLIENT_SECRET_FILE=/ruta/a/client_secret_xxx.json
 
 # Optional — OAuth loopback port (default 53174)
 OAUTH_REDIRECT_PORT=53174
+
+# Optional — Disable injecting LearningProfile into the AI system prompt
+#LEARN_ASSIST_PROFILE_CONTEXT=0
 ```
 
 Then run:
@@ -171,43 +179,32 @@ On startup `App.OnFrameworkInitializationCompleted` calls `InstallationService.I
 - Elevated worker: `Program.cs` branches on `--install-elevated <source> <target>` **before** loading settings / starting Avalonia. Windows UAC relaunch uses `Verb = "runas"`. Don't reorder `Program.Main`.
 - Linux `.desktop` icon is the embedded `Assets/avalonia-logo.png`, read at runtime via `AssetLoader` (`avares://...`).
 
-## Auth
+## Authentication (local accounts)
 
-### Email / password (Backend API — direct)
+Auth runs on `Services/LocalAuthService.cs` (`IAuthService`): accounts in SQLite (`%APPDATA%/learn-assist/users.json` on Windows, `~/.config/learn-assist/` on Linux), PBKDF2-SHA256 hashes (never plaintext), no email verification — register goes straight to main.
 
-`ClerkAuthService` talks straight to Clerk Backend API 2.0.0 from the desktop app; the secret comes from the validated `AppSettings`.
+### Email / password (local)
 
-1. **LoginView** — email + password form, authenticates via `ClerkAuthService`.
-2. **RegisterView** — email/password/confirm (8+ char password), creates the user.
-3. **VerifyEmailView** — sends an email code and verifies the `idn_...` email-address id; routes back to login → main.
+1. **LoginView** — email + password form, authenticates via `LocalAuthService.SignInAsync`.
+2. **RegisterView** — email/password/confirm (8+ char password), creates the local account directly.
+3. **VerifyEmailView** — wired but **unused** for local accounts (no email verification).
 4. **MainWindow** — three-panel UI, launched after successful login.
-
-> ⚠️ Dev-instance sign-up is blocked by bot protection (`captcha_missing_token`). Fix in the Clerk dashboard: **User & Authentication → Attack Protection** → turn OFF **Bot sign-up protection**, or enable **Native API** under **Native applications**.
 
 ### Google (Google Cloud OAuth 2.0 — direct)
 
-**Google Cloud OAuth is the default for the Google button.** It runs a direct RFC 8252 authorization-code flow with Google Cloud credentials and guarantees the Clerk user is created for new emails (upsert via Backend API):
+**Google Cloud OAuth is the default for the Google button.** It runs a direct RFC 8252 authorization-code flow with Google Cloud credentials and creates a local passwordless account for new emails:
 
 - `GoogleOAuthService` builds the authorize URL with `state` + loopback `redirect_uri` (`http://127.0.0.1:<OAUTH_REDIRECT_PORT>/callback`), opens the system browser, captures `code`+`state` via `OAuthLoopbackListener`, exchanges the code for an access token, and fetches `userinfo` (validating `email_verified`).
-- `ClerkAuthService.SignInWithGoogleAsync(email, name)` upserts in Clerk (Backend API): existing email → new session; new email → `Users.CreateAsync` (no password, verified email) then session. **Signing in with a new Google email now always creates the Clerk account.**
-- No `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` → the Google buttons are hidden; email/password still works. Alternatively, set `GOOGLE_CLIENT_SECRET_FILE` to the path of the `client_secret_*.json` downloaded from the Google Cloud Console and the credentials are read from it (the direct env vars take precedence).
+- `LocalAuthService.SignInWithGoogleAsync(email, name)`: existing email → new session; new email → creates a local account (no password, linked to Google), then signs in.
+- No `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` → the Google buttons are hidden; email/password still works. Alternatively, set `GOOGLE_CLIENT_SECRET_FILE` to the path of the `client_secret_*.json` downloaded from the Google Cloud Console and the credentials are read from it (direct env vars take precedence).
 
 ### Remembered local session
 
-After a successful local or Google sign-in, Learn-Assist stores a session record in
-`%APPDATA%/learn-assist/session.json` (or the equivalent application-data
-directory on Linux). It stores only the local user id, email, and a random
-session id; passwords are never written to this file. On the next launch, the
-record is checked against `users.json` and the app opens directly in the main
-window when it is valid. The sign-out button in the main window removes the
-remembered session so another account can be used.
+After a successful local or Google sign-in, Learn-Assist stores a session record in SQLite. It stores only the local user id, email, and a random session id; passwords are never written to this file. On the next launch, the record is checked against the users table and the app opens directly in the main window when valid. The sign-out button in the main window removes the remembered session so another account can be used.
 
-### Apple (Clerk Frontend API + loopback)
+### Apple (Clerk FAPI)
 
-- The Apple button keeps using the Clerk **Frontend API** flow: `FapiOAuthClient` (`/v1/client/sign_ins`) with the real loopback `redirect_url` → `OAuthFlow` → `created_session_id` → `ClerkAuthService.AdoptOAuthSessionAsync`.
-- Clerk dashboard requirements for Apple: **Native API** ON under **Native applications**, Apple **connection** enabled. OAuth buttons are hidden unless `CLERK_PUBLISHABLE_KEY` is set.
-
-> ⚠️ Security tradeoff (user decision): the `CLERK_SECRET_KEY` ships with the app's runtime (`.env` beside the binary or a real env var) — not harder to extract than before. `ConfigEncryption` is unrelated: it encrypts the AI-provider config only.
+Apple sign-in is **disabled** for local accounts. `ClerkAuthService.cs` is kept in the repo unused so Clerk can be re-enabled later for a cloud feature.
 
 ## Chat / AI
 
@@ -219,16 +216,43 @@ Three-panel layout: **session list (left) / chat (center) / document list (right
   - **AnthropicService**, **GeminiService**, **OllamaService**, **NvidiaService**, **OpenCodeService** — call native endpoints via raw `HttpClient` + `JsonDocument`. Ollama is local (`http://localhost:11434`, model `llama3.2`, API key optional). NVIDIA uses the OpenAI-compatible endpoint `https://integrate.api.nvidia.com/v1` (model `nvidia/llama-3.3-nemotron-super-49b-v1`). OpenCode uses its OpenAI-compatible Zen endpoint `https://opencode.ai/zen/v1` (model `big-pickle`) by default; both URL and model can be changed in the AI configuration dialog.
   - Provider implementations are heterogeneous — don't assume SDK usage when editing.
 - `AiServiceFactory.Create(config)` returns the correct provider based on `ApiConfig.Provider`.
-- Provider selection + API key configured via `ApiConfigView` (modal dialog triggered by `MainViewModel.ConfigureAiRequested`) → encrypted via `ConfigEncryption` (AES-256 + PBKDF2-derived key) to `~/.config/learn-assist/config.enc`.
+- Provider selection + API key configured via `ApiConfigView` (modal dialog triggered by `MainViewModel.ConfigureAiRequested`) → encrypted via `ConfigEncryption` (AES-256 + PBKDF2-derived key) to `%APPDATA%/learn-assist/config.enc` (Windows) / `~/.config/learn-assist/config.enc` (Linux).
 - `TutorialViewModel` shows a step-through overlay on **first login only** (static `_isFirstLogin` flag in `MainViewModel`). Flow on first login: tutorial → API config dialog → chat. On return with config: chat skips straight to active.
 - `SessionPersistenceService` saves/loads `.md` conversation files in a user-chosen directory (default `~/.config/learn-assist/sessions/`); `SessionListViewModel` falls back to hardcoded sample data if empty.
 - `ChatViewModel` auto-saves after each assistant response when persistence is configured.
 - Chat bubbles with role-based alignment (user right/blue, assistant left/white) + auto-scroll on new messages.
 
+## Learning Profile & AI System Prompt
+
+On first login (or when the profile is incomplete), the user fills a **Learning Profile** (`LearningProfileView`). The profile is saved to SQLite and includes:
+
+- **ProfileType** (Student, University, Professional, Personal) → maps to `LearnerLevel.Student` or `LearnerLevel.University`
+- **SemesterContent** — syllabus text extracted from imported files (.txt, .md, .pdf, .docx, .xlsx)
+- Other learning preferences
+
+The AI system prompt is built by `ProgramContextBuilder` with 4 blocks:
+
+1. **System** — base assistant behavior
+2. **TeacherProfile** — conduct rules from `prompts/teacher-profile.md` (secondary level) or `prompts/teacher-profile.university.md` (university level)
+3. **Program** — the user's `SemesterContent` (syllabus)
+4. **Material** — imported documents (`documents.json`)
+
+The teacher-profile rules-files are embedded as resources (`<EmbeddedResource Include="prompts/**" />`) and loaded by `TeacherProfileService`. They are cached per level with SHA-256 hash invalidation.
+
+## Uninstall
+
+A dedicated **Uninstall** button (🗑️) is available in the main window header. Clicking it opens a confirmation dialog with the option to remove user data (config + accounts). `UninstallService` handles both **User** and **System** install scopes on **Windows** and **Linux**:
+
+- Removes the installed binary
+- Removes menu entry / shortcut
+- Removes icon
+- Removes marker file (`install.json`)
+- Optionally removes user data (config.enc + users.db)
+
 ## Architecture
 
 - `MainViewModel` composes child VMs: `SessionList`, `Chat`, `DocumentList`, `Tutorial` — new panels follow this pattern.
-- `MainWindow.OnDataContextChanged` subscribes to child VM events (scroll, import dialog, etc.) — **not** the constructor.
+- `MainWindow.OnDataContextChanged` subscribes to child VM events (scroll, import dialog, configure-AI, uninstall) — **not** the constructor.
 - `App.axaml.cs` manually wires windows/VMs via event callbacks — **no DI container**.
 - `ImportDocumentView` is a modal dialog that returns `UserDocument?`; file-picker filter patterns live in `GetFileFilters()`.
 - Sessions and documents use hardcoded sample data as fallback when no persisted data exists.
@@ -247,16 +271,17 @@ Three-panel layout: **session list (left) / chat (center) / document list (right
 
 | Feature | Status |
 |---------|--------|
-| Login / Register (email + password) | Done |
-| Clerk Backend API + typed `.env` settings | Done |
-| Email verification | Done (wired) |
-| Native OAuth (Apple via Clerk Frontend API) | Done (browser + loopback flow) |
-| Google OAuth (Google Cloud, direct; auto-creates Clerk user for new emails) | Done |
+| Login / Register (email + password, local accounts) | Done |
+| Local auth (PBKDF2-SHA256, SQLite, no email verification) | Done |
+| Google OAuth (Google Cloud, auto-creates local account for new emails) | Done |
+| Apple (Clerk FAPI) | Disabled (local accounts only) |
 | First-run install wizard (user + system scope) | Done |
+| Uninstall (User/System scope, Windows + Linux) | Done |
 | Chat UI (three-panel) | Done |
-| AI service (MockAiService) | Done |
-| Real AI integration (OpenAI, Anthropic, Gemini, Ollama, NVIDIA, OpenCode) | Done |
+| AI service (MockAiService + 6 real providers) | Done |
 | API config encryption (AES-256 + PBKDF2) | Done |
-| Document import | Done |
-| Session persistence (`.md` autosave) | Done |
+| Document import (documents.json persistence) | Done |
+| SemesterContent persistence (SQLite learn_assist.db) | Done |
+| Session persistence (.md autosave) | Done |
+| Teacher-profile prompts (secondary + university) | Done |
 | First-login tutorial overlay | Done |

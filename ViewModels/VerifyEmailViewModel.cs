@@ -92,7 +92,7 @@ public partial class VerifyEmailViewModel : ViewModelBase
 
             if (result.Success)
             {
-                // Create a Clerk session for the verified user
+                // Create a local session for the verified user
                 var sessionResult = await _authService.CreateSessionAsync(_userId, _email);
                 if (sessionResult.Success)
                 {
