@@ -9,6 +9,7 @@
     <RootNamespace>learn_Assist</RootNamespace>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+    <RuntimeIdentifiers>win-x64;linux-x64</RuntimeIdentifiers>
 
     <!-- NuGet package metadata (published to GitHub Packages).
          GitHub Packages links a NuGet package to this repo via RepositoryUrl. -->
