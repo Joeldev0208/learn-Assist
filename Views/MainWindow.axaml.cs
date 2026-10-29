@@ -139,6 +139,7 @@ public partial class MainWindow : Window
             _previousVm.ConfigureAiRequested -= OnConfigureAi;
             _previousVm.RestartRequested -= OnRestartRequested;
             _previousVm.UninstallRequested -= OnUninstallRequested;
+            _previousVm.ExamRequested -= OnExamRequested;
             _previousVm.PropertyChanged -= OnViewModelPropertyChanged;
         }
 
@@ -152,6 +153,7 @@ public partial class MainWindow : Window
             vm.ConfigureAiRequested += OnConfigureAi;
             vm.RestartRequested += OnRestartRequested;
             vm.UninstallRequested += OnUninstallRequested;
+            vm.ExamRequested += OnExamRequested;
             vm.PropertyChanged += OnViewModelPropertyChanged;
             _previousVm = vm;
             UpdateResponsiveLayout(vm);
@@ -356,6 +358,22 @@ public partial class MainWindow : Window
         // UninstallService handles the removal; close the window so the
         // installer/worker can replace or delete the binary.
         Close();
+    }
+
+    /// <summary>
+    /// Abre la ventana de creación de exámenes usando el ViewModel
+    /// compartido de MainViewModel (instancia única).
+    /// </summary>
+    private void OnExamRequested()
+    {
+        if (DataContext is MainViewModel vm)
+        {
+            var examView = new ExamView
+            {
+                DataContext = vm.Exam,
+            };
+            examView.Show();
+        }
     }
 
     /// <summary>

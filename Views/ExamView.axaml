@@ -1,0 +1,195 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:learn_Assist.ViewModels"
+        xmlns:models="using:learn_Assist.Models"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="700" d:DesignHeight="560"
+        x:Class="learn_Assist.Views.ExamView"
+        x:DataType="vm:ExamViewModel"
+        x:Name="Root"
+        Title="Crear Examen"
+        WindowStartupLocation="CenterOwner"
+        CanResize="True"
+        SizeToContent="WidthAndHeight"
+        MinWidth="700" MinHeight="500"
+        Background="{DynamicResource WindowBackgroundBrush}">
+
+  <Design.DataContext>
+    <vm:ExamViewModel />
+  </Design.DataContext>
+
+  <Grid RowDefinitions="Auto,*" ColumnDefinitions="300,1,*">
+
+    <!-- Barra de mensaje de error -->
+    <Border Grid.Row="0" Grid.ColumnSpan="3" Margin="0,0,0,12" Padding="12"
+            Background="{DynamicResource ErrorBackgroundBrush}"
+            BorderBrush="{DynamicResource ErrorBorderBrush}" BorderThickness="1" CornerRadius="6"
+            IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+      <TextBlock Text="{Binding ErrorMessage}" Foreground="{DynamicResource ErrorTextBrush}"
+                 FontSize="13" TextWrapping="Wrap" />
+    </Border>
+
+    <!-- ===================== Columna izquierda: configuración ===================== -->
+    <Border Grid.Row="1" Grid.Column="0"
+            Background="{DynamicResource SurfaceBrush}"
+            BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="8"
+            Padding="16"
+            IsVisible="{Binding IsLoading, Converter={x:Static BoolConverters.Not}}">
+      <StackPanel Spacing="14">
+
+        <TextBlock Text="Crear examen" FontSize="20" FontWeight="Bold"
+                   Foreground="{DynamicResource TextPrimaryBrush}" />
+
+        <StackPanel Spacing="6">
+          <TextBlock Text="Título del examen" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" />
+          <TextBox Text="{Binding ExamTitle, Mode=TwoWay}"
+                   Background="{DynamicResource InputBackgroundBrush}"
+                   BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" CornerRadius="6"
+                   Padding="10,11" FontSize="14" Foreground="{DynamicResource TextPrimaryBrush}" />
+        </StackPanel>
+
+        <StackPanel Spacing="6">
+          <TextBlock Text="Número de preguntas" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" />
+          <NumericUpDown Value="{Binding QuestionCount, Mode=TwoWay}" Minimum="1" Maximum="20" Increment="1"
+                         Background="{DynamicResource InputBackgroundBrush}"
+                         BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" CornerRadius="6" />
+        </StackPanel>
+
+        <StackPanel Spacing="6">
+          <TextBlock Text="Tipo de pregunta" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" />
+          <ComboBox ItemsSource="{Binding QuestionTypes}" SelectedItem="{Binding QuestionType, Mode=TwoWay}"
+                    Background="{DynamicResource InputBackgroundBrush}"
+                    BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" CornerRadius="6"
+                    Padding="10" FontSize="14" Foreground="{DynamicResource TextPrimaryBrush}">
+            <ComboBox.ItemTemplate>
+              <DataTemplate>
+                <TextBlock Text="{Binding}" Foreground="{DynamicResource TextPrimaryBrush}" />
+              </DataTemplate>
+            </ComboBox.ItemTemplate>
+          </ComboBox>
+        </StackPanel>
+
+        <Border BorderBrush="{DynamicResource DividerBrush}" BorderThickness="0,1" Margin="0,4" />
+
+        <CheckBox Content="Usar programa de estudios" IsChecked="{Binding UseProgramContent, Mode=TwoWay}"
+                  Foreground="{DynamicResource TextPrimaryBrush}" FontSize="14" Margin="0,2" />
+        <CheckBox Content="Usar documentos importados" IsChecked="{Binding UseDocuments, Mode=TwoWay}"
+                  Foreground="{DynamicResource TextPrimaryBrush}" FontSize="14" Margin="0,2" />
+        <CheckBox Content="Incluir soluciones" IsChecked="{Binding IncludeSolutions, Mode=TwoWay}"
+                  Foreground="{DynamicResource TextPrimaryBrush}" FontSize="14" Margin="0,2" />
+
+        <Button Content="Generar examen" Command="{Binding GenerateExamCommand}" IsEnabled="{Binding CanGenerate}"
+                Background="{DynamicResource ButtonPrimaryBackgroundBrush}"
+                Foreground="{DynamicResource ButtonPrimaryForegroundBrush}"
+                BorderThickness="0" CornerRadius="8" Padding="14" FontSize="14"
+                HorizontalAlignment="Stretch" />
+
+        <Button Content="Limpiar" Command="{Binding ClearCommand}"
+                Background="Transparent" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+                Foreground="{DynamicResource TextPrimaryBrush}" CornerRadius="8" Padding="12" FontSize="13"
+                HorizontalAlignment="Stretch" Margin="0,8,0,0" />
+
+        <Button Content="Guardar examen" Command="{Binding SaveExamCommand}"
+                Background="{DynamicResource ButtonPrimaryBackgroundBrush}"
+                Foreground="{DynamicResource ButtonPrimaryForegroundBrush}"
+                BorderThickness="0" CornerRadius="8" Padding="14" FontSize="14"
+                HorizontalAlignment="Stretch" Margin="0,8,0,0" />
+
+        <Border BorderBrush="{DynamicResource DividerBrush}" BorderThickness="0,1" Margin="0,14,0,6" />
+
+        <TextBlock Text="Cargar examen existente" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" />
+        <DockPanel LastChildFill="True">
+          <TextBox x:Name="LoadExamIdBox" DockPanel.Dock="Left" Width="130"
+                   Background="{DynamicResource InputBackgroundBrush}"
+                   BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" CornerRadius="6"
+                   Padding="10,11" FontSize="13" />
+          <Button Content="Cargar" Command="{Binding LoadExamCommand}"
+                  CommandParameter="{Binding Text, ElementName=LoadExamIdBox}"
+                  Background="{DynamicResource ButtonPrimaryBackgroundBrush}"
+                  Foreground="{DynamicResource ButtonPrimaryForegroundBrush}"
+                  BorderThickness="0" CornerRadius="6" Padding="10,11" FontSize="13"
+                  Margin="10,0,0,0" />
+        </DockPanel>
+      </StackPanel>
+    </Border>
+
+    <!-- Divisor vertical entre columnas -->
+    <Border Grid.Row="1" Grid.Column="1" Background="{DynamicResource DividerBrush}" />
+
+    <!-- ===================== Columna derecha: preguntas ===================== -->
+    <Border Grid.Row="1" Grid.Column="2"
+            Background="{DynamicResource SurfaceBrush}"
+            BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="8"
+            Padding="18"
+            IsVisible="{Binding IsLoading, Converter={x:Static BoolConverters.Not}}">
+      <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+        <StackPanel Spacing="12">
+
+          <TextBlock Text="{Binding CurrentExam.Title, FallbackValue='Preguntas del examen'}"
+                     FontSize="18" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" />
+          <TextBlock Text="{Binding CurrentExam.Questions.Count, StringFormat='({0} preguntas)', FallbackValue=''}"
+                     FontSize="12" Foreground="{DynamicResource TextMutedBrush}" Margin="0,0,0,4" />
+
+          <ItemsControl ItemsSource="{Binding CurrentExam.Questions}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate DataType="models:ExamQuestion">
+                <Border BorderBrush="{DynamicResource DividerBrush}" BorderThickness="1" CornerRadius="8"
+                        Padding="12" Margin="0,0,0,8">
+                  <StackPanel Spacing="8">
+
+                    <DockPanel LastChildFill="True">
+                      <TextBlock Text="{Binding Type, StringFormat='[{0}]'}" FontSize="11" FontWeight="Bold"
+                                 Foreground="{DynamicResource TextSecondaryBrush}" DockPanel.Dock="Right"
+                                 Margin="8,0,0,0" />
+                      <TextBlock Text="{Binding Prompt}" FontSize="14" Foreground="{DynamicResource TextPrimaryBrush}"
+                                 TextWrapping="Wrap" />
+                    </DockPanel>
+
+                    <TextBlock Text="{Binding Citation}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+                               IsVisible="{Binding Citation, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+                    <ItemsControl ItemsSource="{Binding Options}" Margin="0,4,0,0">
+                      <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                          <StackPanel Spacing="4" />
+                        </ItemsPanelTemplate>
+                      </ItemsControl.ItemsPanel>
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                          <TextBlock Text="• {Binding}" FontSize="13" Foreground="{DynamicResource TextPrimaryBrush}" />
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <StackPanel Orientation="Horizontal" Spacing="8"
+                                IsVisible="{Binding DataContext.IncludeSolutions, ElementName=Root}">
+                      <TextBlock Text="Respuesta correcta: " FontWeight="Bold" FontSize="13"
+                                 Foreground="{DynamicResource TextPrimaryBrush}" />
+                      <TextBlock Text="{Binding CorrectAnswer}" FontSize="13"
+                                 Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" />
+                    </StackPanel>
+
+                  </StackPanel>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+
+        </StackPanel>
+      </ScrollViewer>
+    </Border>
+
+    <!-- Overlay de carga (cubre toda la ventana mientras se genera el examen) -->
+    <Border Grid.RowSpan="2" Grid.ColumnSpan="3"
+            Background="{DynamicResource SurfaceBrush}" Opacity="0.85"
+            IsVisible="{Binding IsLoading}">
+      <StackPanel Orientation="Horizontal" Spacing="10"
+                  HorizontalAlignment="Center" VerticalAlignment="Center">
+        <ProgressBar IsIndeterminate="True" Width="200" Height="6" />
+        <TextBlock Text="Generando examen..." FontSize="14" Foreground="{DynamicResource TextPrimaryBrush}" Margin="12,0,0,0" />
+      </StackPanel>
+    </Border>
+
+  </Grid>
+</Window>

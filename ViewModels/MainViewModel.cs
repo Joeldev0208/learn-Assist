@@ -26,6 +26,7 @@ public partial class MainViewModel : ViewModelBase
     public ChatViewModel Chat { get; }
     public DocumentListViewModel DocumentList { get; }
     public TutorialViewModel Tutorial { get; }
+    public ExamViewModel Exam { get; }
     public LearningProfile? LearningProfile { get; private set; }
     public string UserId => _userKey;
 
@@ -46,6 +47,7 @@ public partial class MainViewModel : ViewModelBase
     public event Action? SignOutRequested;
     public event Action? EditLearningProfileRequested;
     public event Action? UninstallRequested;
+    public event Action? ExamRequested;
     public IRelayCommand SignOutCommand { get; }
 
     public string ThemeGlyph => ThemeService.IsDark ? "☀️" : "🌙";
@@ -248,6 +250,7 @@ public partial class MainViewModel : ViewModelBase
         _ = UpdateChatSystemPromptAsync();
         SessionList = new SessionListViewModel(persistence);
         DocumentList = new DocumentListViewModel();
+        Exam = new ExamViewModel(aiService, LearningProfile, DocumentList.Documents);
         Tutorial = new TutorialViewModel();
 
         SessionList.CurrentUserEmail = userEmail;
@@ -367,6 +370,12 @@ public partial class MainViewModel : ViewModelBase
     private void EditLearningProfile()
     {
         EditLearningProfileRequested?.Invoke();
+    }
+
+    [RelayCommand]
+    private void OpenExam()
+    {
+        ExamRequested?.Invoke();
     }
 
     public void ApplyLearningProfile(LearningProfile profile)
