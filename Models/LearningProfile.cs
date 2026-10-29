@@ -14,7 +14,7 @@ public enum LearningProfileType
 public sealed class LearningProfile
 {
     public string UserId { get; set; } = string.Empty;
-    public LearningProfileType ProfileType { get; set; } = LearningProfileType.Personal;
+    public LearningProfileType ProfileType { get; set; } = LearningProfileType.Student;
     public string LearningGoal { get; set; } = string.Empty;
     public string Course { get; set; } = string.Empty;
     public string Level { get; set; } = string.Empty;

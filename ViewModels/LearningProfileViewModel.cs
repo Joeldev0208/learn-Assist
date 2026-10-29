@@ -28,7 +28,7 @@ public partial class LearningProfileViewModel : ViewModelBase
         if (existingProfile is not null)
             LoadProfile(existingProfile);
         else
-            IsPersonal = true;
+            IsStudent = true;
     }
 
     public bool IsEditing => !_isRequired;
@@ -60,12 +60,6 @@ public partial class LearningProfileViewModel : ViewModelBase
     public partial bool IsUniversity { get; set; }
 
     [ObservableProperty]
-    public partial bool IsProfessional { get; set; }
-
-    [ObservableProperty]
-    public partial bool IsPersonal { get; set; }
-
-    [ObservableProperty]
     public partial string LearningGoal { get; set; } = string.Empty;
 
     [ObservableProperty]
@@ -91,9 +85,6 @@ public partial class LearningProfileViewModel : ViewModelBase
 
     [ObservableProperty]
     public partial string? SemesterImportFeedback { get; set; }
-
-    [ObservableProperty]
-    public partial string ProfessionalArea { get; set; } = string.Empty;
 
     [ObservableProperty]
     public partial string? SelectedLanguage { get; set; } = "Español";
@@ -132,18 +123,6 @@ public partial class LearningProfileViewModel : ViewModelBase
     {
         if (value)
             SelectOnly(LearningProfileType.University);
-    }
-
-    partial void OnIsProfessionalChanged(bool value)
-    {
-        if (value)
-            SelectOnly(LearningProfileType.Professional);
-    }
-
-    partial void OnIsPersonalChanged(bool value)
-    {
-        if (value)
-            SelectOnly(LearningProfileType.Personal);
     }
 
     [RelayCommand]
@@ -209,7 +188,7 @@ public partial class LearningProfileViewModel : ViewModelBase
 
     private bool ValidateCurrentStep()
     {
-        if (CurrentStep == 1 && !IsStudent && !IsUniversity && !IsProfessional && !IsPersonal)
+        if (CurrentStep == 1 && !IsStudent && !IsUniversity)
         {
             ErrorMessage = "Select the profile that best describes your learning context.";
             return false;
@@ -232,12 +211,6 @@ public partial class LearningProfileViewModel : ViewModelBase
             if (IsUniversity && string.IsNullOrWhiteSpace(Career))
             {
                 ErrorMessage = "Enter your university career.";
-                return false;
-            }
-
-            if (IsProfessional && string.IsNullOrWhiteSpace(ProfessionalArea))
-            {
-                ErrorMessage = "Enter the professional area you work in.";
                 return false;
             }
         }
@@ -264,11 +237,7 @@ public partial class LearningProfileViewModel : ViewModelBase
     {
         var profileType = IsStudent
             ? LearningProfileType.Student
-            : IsUniversity
-                ? LearningProfileType.University
-                : IsProfessional
-                    ? LearningProfileType.Professional
-                    : LearningProfileType.Personal;
+            : LearningProfileType.University;
 
         return new LearningProfile
         {
@@ -285,7 +254,6 @@ public partial class LearningProfileViewModel : ViewModelBase
             University = University.Trim(),
             Semester = Semester.Trim(),
             SemesterContent = SemesterContent ?? string.Empty,
-            ProfessionalArea = ProfessionalArea.Trim(),
             PreferredLanguage = string.Equals(SelectedLanguage, "English", StringComparison.OrdinalIgnoreCase)
                 ? "en"
                 : "es",
@@ -304,7 +272,6 @@ public partial class LearningProfileViewModel : ViewModelBase
         University = profile.University;
         Semester = profile.Semester;
         SemesterContent = profile.SemesterContent;
-        ProfessionalArea = profile.ProfessionalArea;
         SelectedLanguage = profile.PreferredLanguage == "en" ? "English" : "Español";
         SessionMinutes = profile.SessionMinutes;
 
@@ -313,14 +280,8 @@ public partial class LearningProfileViewModel : ViewModelBase
             case LearningProfileType.Student:
                 IsStudent = true;
                 break;
-            case LearningProfileType.University:
-                IsUniversity = true;
-                break;
-            case LearningProfileType.Professional:
-                IsProfessional = true;
-                break;
             default:
-                IsPersonal = true;
+                IsUniversity = true;
                 break;
         }
     }
@@ -331,9 +292,5 @@ public partial class LearningProfileViewModel : ViewModelBase
             IsStudent = false;
         if (selected != LearningProfileType.University)
             IsUniversity = false;
-        if (selected != LearningProfileType.Professional)
-            IsProfessional = false;
-        if (selected != LearningProfileType.Personal)
-            IsPersonal = false;
     }
 }

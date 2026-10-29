@@ -40,10 +40,6 @@
                          GroupName="ProfileType" FontSize="14" />
             <RadioButton Content="University student" IsChecked="{Binding IsUniversity}"
                          GroupName="ProfileType" FontSize="14" />
-            <RadioButton Content="Professional" IsChecked="{Binding IsProfessional}"
-                         GroupName="ProfileType" FontSize="14" />
-            <RadioButton Content="Personal learning" IsChecked="{Binding IsPersonal}"
-                         GroupName="ProfileType" FontSize="14" />
             <TextBlock Text="This choice determines the starting context used by the learning assistant."
                        FontSize="12" Foreground="{DynamicResource TextMutedBrush}"
                        TextWrapping="Wrap" />
@@ -93,18 +89,6 @@
                          TextWrapping="Wrap"
                          IsVisible="{Binding SemesterImportFeedback, Converter={x:Static StringConverters.IsNullOrEmpty}}" />
             </StackPanel>
-
-            <StackPanel Spacing="5" IsVisible="{Binding IsProfessional}">
-              <TextBlock Text="Professional area" FontSize="12"
-                         Foreground="{DynamicResource TextSecondaryBrush}" />
-              <TextBox Text="{Binding ProfessionalArea}"
-                       PlaceholderText="For example: DevOps, law, marketing"
-                       Padding="12,9" />
-            </StackPanel>
-
-            <TextBlock Text="Personal learners can continue without additional details."
-                       FontSize="12" Foreground="{DynamicResource TextMutedBrush}"
-                       IsVisible="{Binding IsPersonal}" TextWrapping="Wrap" />
           </StackPanel>
 
           <StackPanel Spacing="12" IsVisible="{Binding IsPreferencesStep}">
