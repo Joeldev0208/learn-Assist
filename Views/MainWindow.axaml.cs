@@ -368,7 +368,7 @@ public partial class MainWindow : Window
     {
         if (DataContext is MainViewModel vm)
         {
-            var examView = new ExamView
+            var examView = new ExamView(this) // ExamView es ventana hija de MainWindow
             {
                 DataContext = vm.Exam,
             };

@@ -4,8 +4,10 @@ namespace learn_Assist.Views;
 
 public partial class ExamView : Window
 {
-    public ExamView()
+    public ExamView(Window? owner = null)
     {
         InitializeComponent();
+        if (owner is not null)
+            Owner = owner;
     }
 }

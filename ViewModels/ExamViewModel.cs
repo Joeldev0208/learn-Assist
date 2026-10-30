@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -193,11 +195,59 @@ public partial class ExamViewModel : ViewModelBase
         }
     }
 
+    /// <summary>
+    /// Porcentaje de preguntas respondidas correctamente (0-100).
+    /// Solo cuenta preguntas con respuesta correcta conocida (modo solución o IA la proporcionó).
+    /// </summary>
+    public double ScorePercentage =>
+        CurrentExam is null || CurrentExam.Questions.Count == 0
+            ? 0
+            : (double)CurrentExam.Questions.Count(q => q.IsCorrect) / CurrentExam.Questions.Count * 100;
+
+    /// <summary>
+    /// Texto formateado del puntaje para mostrar en la UI (ej. "67% — 2 de 3 correctas").
+    /// </summary>
+    public string ScoreText =>
+        CurrentExam is null || CurrentExam.Questions.Count == 0
+            ? "Sin preguntas"
+            : $"{ScorePercentage:F0}% — {CorrectAnswersCount} de {TotalQuestionsCount} correctas";
+
+    /// <summary>
+    /// Número de preguntas respondidas correctamente.
+    /// </summary>
+    public int CorrectAnswersCount =>
+        CurrentExam is null ? 0 : CurrentExam.Questions.Count(q => q.IsCorrect);
+
+    /// <summary>
+    /// Número total de preguntas del examen actual.
+    /// </summary>
+    public int TotalQuestionsCount =>
+        CurrentExam is null ? 0 : CurrentExam.Questions.Count;
+
+    /// <summary>
+    /// Indica si todas las preguntas han sido respondidas.
+    /// </summary>
+    public bool AllQuestionsAnswered =>
+        CurrentExam is null || CurrentExam.Questions.Count == 0
+            ? false
+            : CurrentExam.Questions.All(q => q.IsAnswered);
+
     [RelayCommand]
     public void Clear()
     {
         CurrentExam = null;
         ErrorMessage = null;
+    }
+
+    [RelayCommand]
+    private void VerifyExam()
+    {
+        // La verificación es reactiva: IsCorrect e IsIncorrect son propiedades computadas
+        // que se evalúan automáticamente cuando SelectedOptionIndex o UserAnswer cambian.
+        // Este comando existe para notificar al usuario que se han evaluado las respuestas.
+        ErrorMessage = CorrectAnswersCount == TotalQuestionsCount
+            ? $"¡Excelente! Respondiste correctamente todas las {TotalQuestionsCount} preguntas."
+            : $"Llevas {CorrectAnswersCount} de {TotalQuestionsCount} respuestas correctas.";
     }
 
     private static LearnerLevel MapToLearnerLevel(LearningProfile? profile) =>
@@ -225,8 +275,49 @@ public partial class ExamViewModel : ViewModelBase
         GenerateExamCommand.NotifyCanExecuteChanged();
     }
 
+    private Exam? _previousExam;
+
     partial void OnCurrentExamChanged(Exam? value)
     {
+        // Desuscribirse de las preguntas del examen anterior para evitar fugas de memoria
+        if (_previousExam is not null)
+        {
+            foreach (var q in _previousExam.Questions)
+                q.PropertyChanged -= OnQuestionPropertyChanged;
+        }
+
+        // Suscribirse a las preguntas del nuevo examen
+        if (value is not null)
+        {
+            foreach (var q in value.Questions)
+                q.PropertyChanged += OnQuestionPropertyChanged;
+        }
+
+        _previousExam = value;
+
         SaveExamCommand.NotifyCanExecuteChanged();
+        OnPropertyChanged(nameof(ScorePercentage));
+        OnPropertyChanged(nameof(ScoreText));
+        OnPropertyChanged(nameof(CorrectAnswersCount));
+        OnPropertyChanged(nameof(TotalQuestionsCount));
+        OnPropertyChanged(nameof(AllQuestionsAnswered));
+    }
+
+    private void OnQuestionPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        // Cuando cambia SelectedOptionIndex o UserAnswer de cualquier pregunta,
+        // notificar que las propiedades computadas del ViewModel cambiaron.
+        if (e.PropertyName is nameof(ExamQuestion.SelectedOptionIndex)
+            or nameof(ExamQuestion.UserAnswer)
+            or nameof(ExamQuestion.IsCorrect)
+            or nameof(ExamQuestion.IsIncorrect)
+            or nameof(ExamQuestion.IsAnswered))
+        {
+            OnPropertyChanged(nameof(ScorePercentage));
+            OnPropertyChanged(nameof(ScoreText));
+            OnPropertyChanged(nameof(CorrectAnswersCount));
+            OnPropertyChanged(nameof(TotalQuestionsCount));
+            OnPropertyChanged(nameof(AllQuestionsAnswered));
+        }
     }
 }
