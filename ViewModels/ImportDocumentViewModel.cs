@@ -14,6 +14,7 @@ public partial class ImportDocumentViewModel : ViewModelBase
     public partial string ImportResult { get; set; } = string.Empty;
 
     public event Action<DocumentContentType>? ImportRequested;
+    public event Action<WebsiteContentType>? UrlImportRequested;
     public event Action? CancelRequested;
 
     [RelayCommand]
@@ -36,7 +37,13 @@ public partial class ImportDocumentViewModel : ViewModelBase
         SelectedTypeName = "Video";
         ImportRequested?.Invoke(DocumentContentType.Video);
     }
-
+    [RelayCommand]
+    private void SelectUrl()
+    {
+        SelectedTypeName = "URL";
+        UrlImportRequested?.Invoke(WebsiteContentType.Url);
+    }
+    
     [RelayCommand]
     private void Cancel()
     {

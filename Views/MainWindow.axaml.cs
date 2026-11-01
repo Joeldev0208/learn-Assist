@@ -328,6 +328,23 @@ public partial class MainWindow : Window
     }
 
     /// <summary>
+    /// Ejecuta el comando "Agregar URL" cuando el usuario presiona Enter
+    /// en el campo de URL de la barra de recursos.
+    /// </summary>
+    private void OnUrlTextBoxKeyDown(object? sender, Avalonia.Input.KeyEventArgs e)
+    {
+        if (e.Key == Avalonia.Input.Key.Enter)
+        {
+            e.Handled = true;
+
+            if (DataContext is MainViewModel vm)
+            {
+                vm.DocumentList.AddUrlCommand.Execute(null);
+            }
+        }
+    }
+
+    /// <summary>
     /// Inicia de forma asíncrona el diálogo para importar un documento.
     /// </summary>
     private void OnImportDialog()

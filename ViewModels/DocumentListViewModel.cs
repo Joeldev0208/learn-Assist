@@ -28,10 +28,94 @@ public partial class DocumentListViewModel : ViewModelBase
 
     public event Action? ImportDialogRequested;
 
+    private readonly IWebContentReader _webContentReader;
+
+    /// <summary>
+    /// URL nueva que el usuario quiere agregar como fuente de recurso.
+    /// </summary>
+    [ObservableProperty]
+    public partial string? NewUrl { get; set; }
+
+    [ObservableProperty]
+    public partial string? ImportError { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsImporting { get; set; }
+
+    public DocumentListViewModel(IWebContentReader? webContentReader = null)
+    {
+        _webContentReader = webContentReader ?? WebContentReader.Instance;
+    }
+
     [RelayCommand]
     private void ShowImportDialog()
     {
         ImportDialogRequested?.Invoke();
+    }
+
+    [RelayCommand]
+    public async Task AddUrlAsync()
+    {
+        ImportError = null;
+        IsImporting = true;
+
+        try
+        {
+            var url = NewUrl?.Trim();
+            if (string.IsNullOrWhiteSpace(url))
+            {
+                ImportError = "Ingrese una URL válida.";
+                return;
+            }
+
+            if (!url.StartsWith("http://", StringComparison.OrdinalIgnoreCase)
+                && !url.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+            {
+                ImportError = "La URL debe comenzar con http:// o https://";
+                NewUrl = null;
+                return;
+            }
+
+            if (Documents.Any(d => d.LocalPath == url || d.Name == url))
+            {
+                ImportError = "Esta URL ya fue agregada.";
+                NewUrl = null;
+                return;
+            }
+
+            var text = await _webContentReader.FetchTextAsync(url);
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                ImportError = $"No se pudo extraer contenido de: {url}";
+                NewUrl = null;
+                return;
+            }
+
+            var doc = new UserDocument
+            {
+                Id = Guid.NewGuid(),
+                Name = $"[Web] {url}",
+                Type = "web",
+                Content = text,
+                LocalPath = url,
+                ContentType = DocumentContentType.Document,
+                FileSize = text.Length,
+                ImportedAt = DateTime.Now
+            };
+
+            Documents.Insert(0, doc);
+            await SaveDocumentsAsync();
+            NewUrl = null;
+            ImportError = null;
+        }
+        catch (Exception ex)
+        {
+            ImportError = $"Error al importar: {ex.Message}";
+        }
+        finally
+        {
+            IsImporting = false;
+        }
     }
 
     [RelayCommand]

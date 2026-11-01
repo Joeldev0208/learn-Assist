@@ -510,6 +510,39 @@
                 <TextBlock Text="Resources" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
               </DockPanel>
               <Border Height="1" Background="{DynamicResource DividerBrush}" Margin="0,2,0,0" />
+
+              <!-- Agregar URL como recurso -->
+              <StackPanel Spacing="6" Margin="0,8,0,0">
+                <DockPanel LastChildFill="True">
+                  <TextBox Text="{Binding DocumentList.NewUrl, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                           PlaceholderText="https://ejemplo.com/articulo"
+                           DockPanel.Dock="Left"
+                           Background="{DynamicResource InputBackgroundBrush}"
+                           BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" CornerRadius="6"
+                           Padding="8,10" FontSize="13" MinHeight="36"
+                           KeyDown="OnUrlTextBoxKeyDown" />
+                  <Button Content="Agregar URL" Command="{Binding DocumentList.AddUrlCommand}"
+                          DockPanel.Dock="Right"
+                          Background="{DynamicResource ButtonSecondaryBackgroundBrush}"
+                          Foreground="{DynamicResource ButtonSecondaryForegroundBrush}"
+                          BorderThickness="0" CornerRadius="6" Padding="10,10" FontSize="12"
+                          MinHeight="36"
+                          IsEnabled="{Binding DocumentList.IsImporting, Converter={x:Static BoolConverters.Not}}" />
+                </DockPanel>
+
+                <!-- Mensaje de error de importación -->
+                <TextBlock Text="{Binding DocumentList.ImportError}"
+                           Foreground="{DynamicResource ErrorTextBrush}"
+                           FontSize="12"
+                           TextWrapping="Wrap"
+                           IsVisible="{Binding DocumentList.ImportError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                           Margin="0,4,0,0" />
+
+                <!-- Indicador de carga -->
+                <Border IsVisible="{Binding DocumentList.IsImporting}" Height="4" Margin="0,4,0,0">
+                  <ProgressBar IsIndeterminate="True" Height="4" />
+                </Border>
+              </StackPanel>
             </StackPanel>
           </Border>
 

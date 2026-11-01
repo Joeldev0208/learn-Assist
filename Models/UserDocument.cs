@@ -2,11 +2,22 @@ using System;
 
 namespace learn_Assist.Models;
 
+public enum WebsiteContentType
+{
+    Url,
+}
 public enum DocumentContentType
 {
     Document,
     Image,
     Video,
+}
+public class UserUrl
+{
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public string Url { get; set; } = string.Empty;
+    public WebsiteContentType ContentType { get; set; } = WebsiteContentType.Url;
+    public DateTime ImportedAt { get; set; } = DateTime.Now;
 }
 
 public class UserDocument
