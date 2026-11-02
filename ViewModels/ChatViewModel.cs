@@ -45,6 +45,11 @@ public partial class ChatViewModel : ViewModelBase
             _persistence = persistence;
     }
 
+    public void Dispose()
+    {
+        _aiService.Dispose();
+    }
+
     public void SetSystemPrompt(string? systemPrompt)
     {
         _systemPrompt = systemPrompt;

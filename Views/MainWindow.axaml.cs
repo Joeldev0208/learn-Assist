@@ -67,6 +67,9 @@ public partial class MainWindow : Window
 
     private void OnClosed(object? sender, EventArgs e)
     {
+        if (DataContext is MainViewModel vm)
+            vm.Dispose();
+
         ThemeService.ThemeChanged -= OnThemeChanged;
         Closed -= OnClosed;
         Opened -= OnOpened;

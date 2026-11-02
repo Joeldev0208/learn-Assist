@@ -3,14 +3,14 @@
         xmlns:vm="using:learn_Assist.ViewModels"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="520" d:DesignHeight="480"
+        mc:Ignorable="d"         d:DesignWidth="520" d:DesignHeight="700"
         x:Class="learn_Assist.Views.ApiConfigView"
         x:DataType="vm:ApiConfigViewModel"
         Icon="/Assets/learn-assist.ico"
         Title="Configure AI"
         WindowStartupLocation="CenterScreen"
         CanResize="False"
-        Width="520" Height="540"
+        Width="520" Height="700"
         Background="{DynamicResource WindowBackgroundBrush}">
 
   <Window.Styles>
@@ -36,26 +36,54 @@
                 SelectedItem="{Binding SelectedProvider}"
                 Padding="10,8" FontSize="13" CornerRadius="8" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" />
 
-      <TextBlock Text="Base URL" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" />
+      <TextBlock Text="Base URL" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"
+                 IsVisible="{Binding IsOpenCode, Converter={x:Static BoolConverters.Not}}" />
       <Border CornerRadius="8" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" Background="{DynamicResource InputBackgroundBrush}">
         <TextBox Text="{Binding BaseUrl}" PlaceholderText="https://api.openai.com"
-                 BorderThickness="0" Padding="10,8" FontSize="13" />
+                 BorderThickness="0" Padding="10,8" FontSize="13"
+                 IsVisible="{Binding IsOpenCode, Converter={x:Static BoolConverters.Not}}" />
       </Border>
-      <TextBlock Text="OpenCode uses https://opencode.ai/zen/v1 by default. You can replace it with another OpenAI-compatible endpoint."
+      <TextBlock Text="OpenCode runs locally through the terminal. Install OpenCode separately and authenticate it with opencode auth login; Learn-Assist does not store an API key."
                  FontSize="11" Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap"
                  IsVisible="{Binding IsOpenCode}" />
 
-      <TextBlock Text="API Key" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" />
+      <TextBlock Text="API Key" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"
+                 IsVisible="{Binding IsOpenCode, Converter={x:Static BoolConverters.Not}}" />
       <Border CornerRadius="8" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" Background="{DynamicResource InputBackgroundBrush}">
         <TextBox Text="{Binding ApiKey}" PlaceholderText="sk-..."
-                 BorderThickness="0" Padding="10,8" FontSize="13" PasswordChar="*" />
+                 BorderThickness="0" Padding="10,8" FontSize="13" PasswordChar="*"
+                 IsVisible="{Binding IsOpenCode, Converter={x:Static BoolConverters.Not}}" />
       </Border>
 
-      <TextBlock Text="Model" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" />
-      <Border CornerRadius="8" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" Background="{DynamicResource InputBackgroundBrush}">
+      <TextBlock Text="OpenCode model" FontSize="11" FontWeight="SemiBold"
+                 Foreground="{DynamicResource TextSecondaryBrush}"
+                 IsVisible="{Binding IsOpenCode}" />
+      <ComboBox ItemsSource="{Binding OpenCodeModels}"
+                SelectedItem="{Binding Model}"
+                IsVisible="{Binding IsOpenCode}"
+                Padding="10,8" FontSize="13"
+                CornerRadius="8" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" />
+
+      <TextBlock Text="Model" FontSize="11" FontWeight="SemiBold"
+                 Foreground="{DynamicResource TextSecondaryBrush}"
+                 IsVisible="{Binding IsOpenCode, Converter={x:Static BoolConverters.Not}}" />
+      <Border CornerRadius="8" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1"
+              Background="{DynamicResource InputBackgroundBrush}"
+              IsVisible="{Binding IsOpenCode, Converter={x:Static BoolConverters.Not}}">
         <TextBox Text="{Binding Model}" PlaceholderText="gpt-4o-mini"
                  BorderThickness="0" Padding="10,8" FontSize="13" />
       </Border>
+
+      <StackPanel Spacing="8" IsVisible="{Binding IsOpenCode}">
+        <TextBlock Text="OpenCode executable (optional)" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" />
+        <Border CornerRadius="8" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" Background="{DynamicResource InputBackgroundBrush}">
+          <TextBox Text="{Binding OpenCodeExecutablePath}" PlaceholderText="opencode" BorderThickness="0" Padding="10,8" FontSize="13" />
+        </Border>
+        <TextBlock Text="Workspace directory (optional)" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" />
+        <Border CornerRadius="8" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" Background="{DynamicResource InputBackgroundBrush}">
+          <TextBox Text="{Binding OpenCodeWorkspaceDirectory}" PlaceholderText="Current project directory" BorderThickness="0" Padding="10,8" FontSize="13" />
+        </Border>
+      </StackPanel>
 
       <TextBlock Text="Sessions Directory" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" />
       <DockPanel LastChildFill="True">

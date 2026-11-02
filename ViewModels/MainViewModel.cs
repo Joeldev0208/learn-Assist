@@ -413,6 +413,11 @@ public partial class MainViewModel : ViewModelBase
         Chat.SetAiService(aiService, persistence);
     }
 
+    public void Dispose()
+    {
+        Chat.Dispose();
+    }
+
     private void OnSessionSelected(Models.ChatSession session)
     {
         IsLearningSessionActive = true;

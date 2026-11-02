@@ -1,138 +1,211 @@
 using System;
+using System.ComponentModel;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
-using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using learn_Assist.Models;
-using learn_Assist.Services;
 
 namespace learn_Assist.Services.Providers;
 
-public class OpenCodeService : IAiService
+public sealed class OpenCodeService : IAiService
 {
-    private readonly HttpClient _http;
-    private readonly string _baseUrl;
-    private readonly string _apiKey;
-    private readonly string _model;
+    private readonly ApiConfig _config;
     private bool _disposed;
 
     public OpenCodeService(ApiConfig config)
     {
-        _http = new HttpClient { Timeout = TimeSpan.FromSeconds(60) };
-        _baseUrl = string.IsNullOrWhiteSpace(config.BaseUrl)
-            ? config.GetDefaultBaseUrl()
-            : config.BaseUrl.TrimEnd('/');
-        _apiKey = config.ApiKey;
-        _model = string.IsNullOrWhiteSpace(config.Model) ? config.GetDefaultModel() : config.Model;
-    }
-
-    public void Dispose()
-    {
-        if (!_disposed)
-        {
-            _http.Dispose();
-            _disposed = true;
-        }
+        _config = config;
     }
 
     public async Task<string> AskAsync(string message, List<ChatMessage> history)
     {
-        var systemContent = AiPrompt.System;
-        if (history.FirstOrDefault(m => m.Role == MessageRole.System) is { } sysMsg)
-            systemContent += "\n\n" + sysMsg.Content;
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
-        var messages = new List<object>
-        {
-            new { role = "system", content = systemContent },
-        };
-
-        foreach (var msg in history)
-        {
-            if (msg.Role == MessageRole.System)
-                continue;
-
-            messages.Add(new
-            {
-                role = msg.Role == MessageRole.User ? "user" : "assistant",
-                content = msg.Content,
-            });
-        }
-
-        messages.Add(new { role = "user", content = message });
-
-        var body = new
-        {
-            model = _model,
-            messages,
-            stream = false,
-        };
-
-        using var request = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}/chat/completions")
-        {
-            Content = new StringContent(
-                JsonSerializer.Serialize(body),
-                Encoding.UTF8,
-                "application/json"),
-        };
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
-
-        using var response = await _http.SendAsync(request);
-        var responseJson = await response.Content.ReadAsStringAsync();
-
-        if (!response.IsSuccessStatusCode)
-        {
-            var error = TryExtractErrorMessage(responseJson);
-            throw new HttpRequestException($"OpenCode API error ({(int)response.StatusCode} {response.StatusCode}): {error}");
-        }
-
+        var prompt = BuildPrompt(message, history);
         try
         {
-            using var doc = JsonDocument.Parse(responseJson);
-            if (!doc.RootElement.TryGetProperty("choices", out var choices)
-                || choices.ValueKind != JsonValueKind.Array
-                || choices.GetArrayLength() == 0)
-            {
-                throw new InvalidOperationException("OpenCode response is missing a non-empty 'choices' array.");
-            }
-
-            var choice = choices[0];
-            if (!choice.TryGetProperty("message", out var responseMessage)
-                || !responseMessage.TryGetProperty("content", out var content))
-            {
-                throw new InvalidOperationException("OpenCode response is missing 'choices[0].message.content'.");
-            }
-
-            return content.GetString() ?? string.Empty;
+            return await RunProcessAsync(
+                BuildNativeStartInfo(prompt),
+                "OpenCode could not be started.");
         }
-        catch (JsonException ex)
+        catch (Win32Exception) when (OperatingSystem.IsWindows())
         {
-            throw new InvalidOperationException("OpenCode returned invalid JSON.", ex);
+            return await RunProcessAsync(
+                BuildWslStartInfo(prompt),
+                "OpenCode could not be started natively or through WSL.");
         }
     }
 
-    private static string TryExtractErrorMessage(string json)
+    public static string[] BuildArguments(string? model) =>
+    [
+        "run",
+        "--model", string.IsNullOrWhiteSpace(model) ? "opencode/big-pickle" : model.Trim(),
+        "--format", "json",
+    ];
+
+    public static string BuildPrompt(string message, IReadOnlyList<ChatMessage> history)
     {
-        try
+        var prompt = new StringBuilder();
+        prompt.AppendLine(AiPrompt.System);
+
+        foreach (var item in history.Where(item => item.Role != MessageRole.System))
         {
-            using var doc = JsonDocument.Parse(json);
-            if (doc.RootElement.TryGetProperty("error", out var error))
+            prompt.Append(item.Role == MessageRole.User ? "User: " : "Assistant: ");
+            prompt.AppendLine(item.Content);
+        }
+
+        prompt.Append("User: ").Append(message);
+        return prompt.ToString();
+    }
+
+    public static string[] BuildWslArguments(string? model, string prompt, string workspace)
+    {
+        var commandArguments = new List<string>(BuildArguments(model))
+        {
+            prompt,
+        };
+        var command = "exec opencode " + string.Join(
+            " ",
+            commandArguments.Select(ShellQuote));
+
+        var arguments = new List<string>
+        {
+            "--cd",
+            ConvertWindowsPathToWsl(workspace),
+            "--exec",
+            "bash",
+            "-lc",
+            command,
+        };
+        return [.. arguments];
+    }
+
+    public static string ConvertWindowsPathToWsl(string path)
+    {
+        if (path.Length >= 2 && path[1] == ':' && char.IsLetter(path[0]))
+        {
+            var drive = char.ToLowerInvariant(path[0]);
+            var remainder = path[2..].Replace('\\', '/').TrimStart('/');
+            return $"/mnt/{drive}/{remainder}";
+        }
+
+        return path.Replace('\\', '/');
+    }
+
+    private static string ShellQuote(string value) =>
+        $"'{value.Replace("'", "'\\''")}'";
+
+    public static string ExtractResponseText(string output)
+    {
+        var text = new StringBuilder();
+        string? error = null;
+
+        foreach (var line in output.Split(["\r\n", "\n"], StringSplitOptions.RemoveEmptyEntries))
+        {
+            try
             {
-                if (error.ValueKind == JsonValueKind.String)
-                    return error.GetString() ?? "Unknown OpenCode error.";
+                using var document = JsonDocument.Parse(line);
+                var root = document.RootElement;
+                var type = root.TryGetProperty("type", out var typeElement)
+                    ? typeElement.GetString()
+                    : null;
 
-                if (error.TryGetProperty("message", out var message))
-                    return message.GetString() ?? error.GetRawText();
-
-                return error.GetRawText();
+                if (type == "text"
+                    && root.TryGetProperty("part", out var part)
+                    && part.TryGetProperty("text", out var partText))
+                {
+                    text.Append(partText.GetString());
+                }
+                else if (type == "error"
+                    && root.TryGetProperty("error", out var errorElement))
+                {
+                    error = errorElement.GetRawText();
+                }
+            }
+            catch (JsonException)
+            {
             }
         }
-        catch (JsonException)
+
+        if (error is not null)
+            throw new InvalidOperationException($"OpenCode returned an error: {error}");
+        if (text.Length == 0)
+            throw new InvalidOperationException("OpenCode returned no text.");
+
+        return text.ToString();
+    }
+
+    private static string ResolveExecutable(string configuredPath) =>
+        string.IsNullOrWhiteSpace(configuredPath) ? "opencode" : configuredPath.Trim();
+
+    private static string ResolveWorkspace(string configuredPath) =>
+        string.IsNullOrWhiteSpace(configuredPath) || !Directory.Exists(configuredPath)
+            ? Environment.CurrentDirectory
+            : configuredPath;
+
+    private ProcessStartInfo BuildNativeStartInfo(string prompt)
+    {
+        var startInfo = new ProcessStartInfo
         {
+            FileName = ResolveExecutable(_config.OpenCodeExecutablePath),
+            UseShellExecute = false,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            CreateNoWindow = true,
+            WorkingDirectory = ResolveWorkspace(_config.OpenCodeWorkspaceDirectory),
+        };
+
+        foreach (var argument in BuildArguments(_config.Model))
+            startInfo.ArgumentList.Add(argument);
+        startInfo.ArgumentList.Add(prompt);
+        return startInfo;
+    }
+
+    private ProcessStartInfo BuildWslStartInfo(string prompt)
+    {
+        var workspace = ResolveWorkspace(_config.OpenCodeWorkspaceDirectory);
+        var startInfo = new ProcessStartInfo
+        {
+            FileName = "wsl.exe",
+            UseShellExecute = false,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            CreateNoWindow = true,
+        };
+
+        foreach (var argument in BuildWslArguments(_config.Model, prompt, workspace))
+            startInfo.ArgumentList.Add(argument);
+        return startInfo;
+    }
+
+    private static async Task<string> RunProcessAsync(
+        ProcessStartInfo startInfo,
+        string startError)
+    {
+        using var process = Process.Start(startInfo)
+            ?? throw new InvalidOperationException(startError);
+        var outputTask = process.StandardOutput.ReadToEndAsync();
+        var errorTask = process.StandardError.ReadToEndAsync();
+        await process.WaitForExitAsync();
+
+        var output = await outputTask;
+        var error = await errorTask;
+        if (process.ExitCode != 0)
+        {
+            var detail = string.IsNullOrWhiteSpace(error) ? output : error;
+            throw new InvalidOperationException(
+                $"OpenCode failed with exit code {process.ExitCode}: {detail.Trim()}".Trim());
         }
 
-        return "Check the OpenCode base URL, API key, and model name.";
+        return ExtractResponseText(output);
+    }
+
+    public void Dispose()
+    {
+        _disposed = true;
     }
 }

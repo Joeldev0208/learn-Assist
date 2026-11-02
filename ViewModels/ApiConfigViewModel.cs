@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using learn_Assist.Models;
@@ -29,9 +30,25 @@ public partial class ApiConfigViewModel : ViewModelBase
     public partial string SessionsDirectory { get; set; } = string.Empty;
 
     [ObservableProperty]
+    public partial string OpenCodeExecutablePath { get; set; } = string.Empty;
+
+    [ObservableProperty]
+    public partial string OpenCodeWorkspaceDirectory { get; set; } = string.Empty;
+
+    [ObservableProperty]
     public partial string? ErrorMessage { get; set; }
 
     public string[] ProviderNames { get; } = Enum.GetNames<AiProvider>();
+    public string[] OpenCodeModels { get; } =
+    [
+        "opencode/big-pickle",
+        "opencode/deepseek-v4.1-flash-free",
+        "opencode/flint-40b-free",
+        "opencode/glm-5.3-flash-free",
+        "opencode/mimo-v2.6-flash-free",
+        "opencode/nemotron-3.5-lightning-free",
+        "opencode/nemotron-3.5-super-vl-free",
+    ];
     public bool IsOpenCode => SelectedProvider == nameof(AiProvider.OpenCode);
 
     public event Action<ApiConfig>? ConfigSaved;
@@ -53,6 +70,8 @@ public partial class ApiConfigViewModel : ViewModelBase
         ApiKey = existing.ApiKey;
         Model = existing.Model;
         SessionsDirectory = existing.SessionsDirectory;
+        OpenCodeExecutablePath = existing.OpenCodeExecutablePath;
+        OpenCodeWorkspaceDirectory = existing.OpenCodeWorkspaceDirectory;
         foreach (var savedModel in existing.SavedModels)
             _savedModels[savedModel.Key] = savedModel.Value;
 
@@ -100,7 +119,8 @@ public partial class ApiConfigViewModel : ViewModelBase
             || BaseUrl == "https://generativelanguage.googleapis.com"
             || BaseUrl == "http://localhost:11434"
             || BaseUrl == "https://integrate.api.nvidia.com/v1"
-            || BaseUrl == "https://opencode.ai/zen/v1")
+            || BaseUrl == "https://opencode.ai/zen/v1"
+            || BaseUrl == "http://127.0.0.1:4096")
         {
             BaseUrl = defaults.GetDefaultBaseUrl();
         }
@@ -110,6 +130,12 @@ public partial class ApiConfigViewModel : ViewModelBase
                     !string.IsNullOrWhiteSpace(savedModel)
                 ? savedModel
                 : defaults.GetDefaultModel();
+
+        if (provider == AiProvider.OpenCode &&
+            !OpenCodeModels.Contains(Model, StringComparer.OrdinalIgnoreCase))
+        {
+            Model = defaults.GetDefaultModel();
+        }
     }
 
     [RelayCommand]
@@ -122,13 +148,14 @@ public partial class ApiConfigViewModel : ViewModelBase
     private void Save()
     {
         var isOllama = SelectedProvider == nameof(AiProvider.Ollama);
-        if (!isOllama && string.IsNullOrWhiteSpace(ApiKey))
+        var isLocalOpenCode = SelectedProvider == nameof(AiProvider.OpenCode);
+        if (!isOllama && !isLocalOpenCode && string.IsNullOrWhiteSpace(ApiKey))
         {
             ErrorMessage = "Please enter an API key.";
             return;
         }
 
-        if (string.IsNullOrWhiteSpace(BaseUrl))
+        if (!isLocalOpenCode && string.IsNullOrWhiteSpace(BaseUrl))
         {
             ErrorMessage = "Please enter a base URL.";
             return;
@@ -147,6 +174,8 @@ public partial class ApiConfigViewModel : ViewModelBase
             ApiKey = ApiKey,
             Model = string.IsNullOrWhiteSpace(Model) ? new ApiConfig { Provider = provider }.GetDefaultModel() : Model,
             SessionsDirectory = SessionsDirectory,
+            OpenCodeExecutablePath = OpenCodeExecutablePath.Trim(),
+            OpenCodeWorkspaceDirectory = OpenCodeWorkspaceDirectory.Trim(),
         };
         _savedModels[provider.ToString()] = config.Model.Trim();
         config.SavedModels = new Dictionary<string, string>(_savedModels, StringComparer.OrdinalIgnoreCase);
