@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -20,6 +22,7 @@ public partial class ExamViewModel : ViewModelBase
     private readonly ExamService _examService;
     private readonly LearningProfile? _learningProfile;
     private readonly IReadOnlyList<UserDocument>? _documents;
+    private readonly IWebContentReader _webContentReader;
 
     /// <summary>
     /// Crea una instancia con el servicio de IA dado.
@@ -27,11 +30,13 @@ public partial class ExamViewModel : ViewModelBase
     /// <param name="aiService">Servicio de IA usado para generar el examen.</param>
     /// <param name="learningProfile">Perfil del aprendiz (opcional).</param>
     /// <param name="documentos">Documentos importados del usuario (opcional).</param>
-    public ExamViewModel(IAiService aiService, LearningProfile? learningProfile = null, IReadOnlyList<UserDocument>? documentos = null)
+    /// <param name="webContentReader">Lector de contenido web (opcional, para pruebas).</param>
+    public ExamViewModel(IAiService aiService, LearningProfile? learningProfile = null, IReadOnlyList<UserDocument>? documentos = null, IWebContentReader? webContentReader = null)
     {
         _examService = new ExamService(aiService ?? throw new ArgumentNullException(nameof(aiService)));
         _learningProfile = learningProfile;
         _documents = documentos;
+        _webContentReader = webContentReader ?? WebContentReader.Instance;
     }
 
     /// <summary>
@@ -70,6 +75,24 @@ public partial class ExamViewModel : ViewModelBase
     public partial string? ExamTitle { get; set; }
 
     /// <summary>
+    /// URL nueva que el usuario quiere agregar como fuente.
+    /// </summary>
+    [ObservableProperty]
+    public partial string? NewUrl { get; set; }
+
+    /// <summary>
+    /// URLs agregadas como fuentes adicionales para el examen.
+    /// El contenido se descarga al generar el examen.
+    /// </summary>
+    public ObservableCollection<string> Urls { get; } = [];
+
+    /// <summary>
+    /// Indica si se debe intentar descargar contenido de las URLs agregadas.
+    /// </summary>
+    [ObservableProperty]
+    public partial bool UseUrls { get; set; }
+
+    /// <summary>
     /// Todos los valores del enum <see cref="QuestionType"/>, para binding de enum en XAML.
     /// </summary>
     public IReadOnlyList<QuestionType> QuestionTypes { get; } =
@@ -80,9 +103,10 @@ public partial class ExamViewModel : ViewModelBase
     /// </summary>
     public bool CanGenerate =>
         !IsLoading
-        && (UseProgramContent || UseDocuments)
+        && (UseProgramContent || UseDocuments || (UseUrls && Urls.Count > 0))
         && (!UseProgramContent || !string.IsNullOrWhiteSpace(_learningProfile?.SemesterContent))
-        && (!UseDocuments || (_documents?.Any(d => !string.IsNullOrWhiteSpace(d.Content)) ?? false));
+        && (!UseDocuments || (_documents?.Any(d => !string.IsNullOrWhiteSpace(d.Content)) ?? false))
+        && (!UseUrls || Urls.Count > 0);
 
     private bool CanSaveExam => CurrentExam is not null && !IsLoading;
 
@@ -96,15 +120,64 @@ public partial class ExamViewModel : ViewModelBase
 
         ErrorMessage = null;
 
-        if (!UseProgramContent && !UseDocuments)
+        if (!UseProgramContent && !UseDocuments && !(UseUrls && Urls.Count > 0))
         {
-            ErrorMessage = "Seleccione al menos una fuente: el programa o los documentos.";
+            ErrorMessage = "Seleccione al menos una fuente: el programa, los documentos o al menos una URL.";
             return;
         }
 
         var level = MapToLearnerLevel(_learningProfile);
         var programContent = UseProgramContent ? _learningProfile?.SemesterContent ?? string.Empty : string.Empty;
         var documents = UseDocuments ? _documents?.ToList() ?? [] : [];
+
+        // Descargar contenido de las URLs agregadas (en paralelo, acumulando errores)
+        if (UseUrls && Urls.Count > 0)
+        {
+            ErrorMessage = null;
+            var urlErrors = new List<string>();
+
+            async Task<UserDocument?> FetchUrlDocumentAsync(string url)
+            {
+                var result = await _webContentReader.FetchAsync(url);
+                if (!result.Success || string.IsNullOrWhiteSpace(result.Text))
+                {
+                    urlErrors.Add(result.Error ?? $"No se pudo extraer contenido de: {url}");
+                    return null;
+                }
+                return new UserDocument
+                {
+                    Id = Guid.NewGuid(),
+                    Name = $"[Web] {url}",
+                    Type = "web",
+                    Content = result.Text,
+                    LocalPath = url,
+                    ContentType = DocumentContentType.Document
+                };
+            }
+
+            var fetchTasks = Urls.Select(FetchUrlDocumentAsync).ToList();
+            await Task.WhenAll(fetchTasks);
+
+            foreach (var task in fetchTasks)
+            {
+                var doc = task.Result;
+                if (doc is not null)
+                    documents.Add(doc);
+            }
+
+            if (urlErrors.Count > 0)
+            {
+                var succeeded = fetchTasks.Count(t => t.Result is not null);
+                ErrorMessage = urlErrors.Count == 1
+                    ? urlErrors[0]
+                    : $"Se extrajo de {succeeded} de {fetchTasks.Count} URL(es). Errores: {string.Join("; ", urlErrors)}";
+            }
+
+            if (documents.Count == 0 && !UseProgramContent && (_documents?.Count ?? 0) == 0)
+            {
+                return;
+            }
+        }
 
         if (UseProgramContent && string.IsNullOrWhiteSpace(programContent))
         {
@@ -249,6 +322,52 @@ public partial class ExamViewModel : ViewModelBase
             ? $"¡Excelente! Respondiste correctamente todas las {TotalQuestionsCount} preguntas."
             : $"Llevas {CorrectAnswersCount} de {TotalQuestionsCount} respuestas correctas.";
     }
+
+    [RelayCommand]
+    private void AddUrl()
+    {
+        var url = NewUrl?.Trim();
+        if (string.IsNullOrWhiteSpace(url))
+        {
+            ErrorMessage = "Ingrese una URL válida.";
+            return;
+        }
+
+        if (!url.StartsWith("http://", StringComparison.OrdinalIgnoreCase)
+            && !url.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+        {
+            ErrorMessage = "La URL debe comenzar con http:// o https://";
+            return;
+        }
+
+        if (Urls.Contains(url))
+        {
+            ErrorMessage = "Esta URL ya fue agregada.";
+            return;
+        }
+
+        Urls.Add(url);
+        NewUrl = null;
+        ErrorMessage = null;
+        OnPropertyChanged(nameof(CanGenerate));
+        GenerateExamCommand.NotifyCanExecuteChanged();
+    }
+
+    [RelayCommand]
+    private void RemoveUrl(string url)
+    {
+        if (url is not null)
+        {
+            Urls.Remove(url);
+            OnPropertyChanged(nameof(CanGenerate));
+            GenerateExamCommand.NotifyCanExecuteChanged();
+        }
+    }
+
+    private static bool IsValidUrl(string? url) =>
+        !string.IsNullOrWhiteSpace(url)
+        && (url.StartsWith("http://", StringComparison.OrdinalIgnoreCase)
+            || url.StartsWith("https://", StringComparison.OrdinalIgnoreCase));
 
     private static LearnerLevel MapToLearnerLevel(LearningProfile? profile) =>
         profile?.ProfileType == LearningProfileType.University

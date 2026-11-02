@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.Input;
 using learn_Assist.Models;
@@ -16,18 +17,33 @@ public class ExamViewModelUrlTests
         public string? LastUrl { get; private set; }
         public int CallCount { get; private set; }
 
-        public Task<string?> FetchTextAsync(string url)
+        public Task<WebContentFetchResult> FetchAsync(string url, CancellationToken cancellationToken = default)
         {
             LastUrl = url;
             CallCount++;
-            return Task.FromResult(Result);
+            return Task.FromResult(Result is null
+                ? WebContentFetchResult.Fail("no hay contenido")
+                : WebContentFetchResult.Ok(Result));
         }
     }
 
     private sealed class SimpleAiService : IAiService
     {
         public Task<string> AskAsync(string message, List<ChatMessage> history)
-            => Task.FromResult("respuesta");
+            => Task.FromResult("""
+            {
+              "title": "Examen de prueba",
+              "questions": [
+                {
+                  "prompt": "¿Pregunta 1?",
+                  "type": "MultipleChoice",
+                  "correctAnswer": "A",
+                  "citation": "[Unidad 1]",
+                  "options": ["A", "B", "C", "D"]
+                }
+              ]
+            }
+            """);
         public void Dispose() { }
     }
 
@@ -144,8 +160,6 @@ public class ExamViewModelUrlTests
     {
         var webReader = new MockWebContentReader { Result = "Contenido de prueba de la página web para generar examen." };
         var vm = CreateVm(webReader);
-        // UseProgramContent=true (aunque no haya SemesterContent) para que el código
-        // llegue a la descarga de URLs antes de validar el programa.
         vm.UseProgramContent = true;
         vm.UseDocuments = false;
         vm.UseUrls = true;
@@ -157,5 +171,26 @@ public class ExamViewModelUrlTests
 
         Assert.Equal(1, webReader.CallCount);
         Assert.Equal("https://ejemplo.com/pagina", webReader.LastUrl);
+    }
+
+    [Fact]
+    public async Task GenerateExamAsync_AccumulatesUrlErrors()
+    {
+        var webReader = new MockWebContentReader { Result = null };
+        var vm = CreateVm(webReader);
+        vm.UseProgramContent = false;
+        vm.UseDocuments = false;
+        vm.UseUrls = true;
+        vm.Urls.Add("https://ejemplo.com/fallo1");
+        vm.Urls.Add("https://ejemplo.com/fallo2");
+        vm.QuestionCount = 1;
+
+        vm.GenerateExamCommand.Execute(null);
+        await Task.Yield();
+
+        Assert.Equal(2, webReader.CallCount);
+        Assert.NotNull(vm.ErrorMessage);
+        // Ambas URLs fallaron y no hay otra fuente: no se generó examen.
+        Assert.Null(vm.CurrentExam);
     }
 }

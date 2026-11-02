@@ -68,25 +68,27 @@ public partial class DocumentListViewModel : ViewModelBase
                 return;
             }
 
-            if (!url.StartsWith("http://", StringComparison.OrdinalIgnoreCase)
-                && !url.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+            if (!Uri.TryCreate(url, UriKind.Absolute, out var uri)
+                || (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
             {
-                ImportError = "La URL debe comenzar con http:// o https://";
+                ImportError = "La URL debe ser una dirección http:// o https:// válida.";
                 NewUrl = null;
                 return;
             }
 
-            if (Documents.Any(d => d.LocalPath == url || d.Name == url))
+            // Para documentos web, Name es "[Web] {url}" y nunca coincidirá con la URL cruda;
+            // solo LocalPath es eficaz para detectar duplicados.
+            if (Documents.Any(d => d.LocalPath == url))
             {
                 ImportError = "Esta URL ya fue agregada.";
                 NewUrl = null;
                 return;
             }
 
-            var text = await _webContentReader.FetchTextAsync(url);
-            if (string.IsNullOrWhiteSpace(text))
+            var result = await _webContentReader.FetchAsync(uri.ToString());
+            if (!result.Success || string.IsNullOrWhiteSpace(result.Text))
             {
-                ImportError = $"No se pudo extraer contenido de: {url}";
+                ImportError = result.Error ?? $"No se pudo extraer contenido de: {url}";
                 NewUrl = null;
                 return;
             }
@@ -96,10 +98,10 @@ public partial class DocumentListViewModel : ViewModelBase
                 Id = Guid.NewGuid(),
                 Name = $"[Web] {url}",
                 Type = "web",
-                Content = text,
+                Content = result.Text,
                 LocalPath = url,
                 ContentType = DocumentContentType.Document,
-                FileSize = text.Length,
+                FileSize = result.Text.Length,
                 ImportedAt = DateTime.Now
             };
 
@@ -110,6 +112,7 @@ public partial class DocumentListViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
+            // Solo captura errores de persistencia (SaveDocumentsAsync); FetchAsync nunca lanza.
             ImportError = $"Error al importar: {ex.Message}";
         }
         finally

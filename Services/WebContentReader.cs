@@ -1,7 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
+using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace learn_Assist.Services;
@@ -20,19 +23,40 @@ public class WebContentReader : IWebContentReader
     public static IWebContentReader Instance => _instance;
 
     private readonly HttpClient _httpClient;
+    private const long MaxContentSize = 5 * 1024 * 1024; // 5 MB, igual que FileContentReader
 
     private static readonly Regex HtmlTagRegex = new("<[^>]*>", RegexOptions.Compiled);
     private static readonly Regex HtmlScriptRegex = new("<script.*?</script>", RegexOptions.Singleline | RegexOptions.IgnoreCase | RegexOptions.Compiled);
     private static readonly Regex HtmlStyleRegex = new("<style.*?</style>", RegexOptions.Singleline | RegexOptions.IgnoreCase | RegexOptions.Compiled);
     private static readonly Regex WhitespaceRegex = new("\\s+", RegexOptions.Compiled);
 
+    // Hosts bloqueados para evitar SSRF (acceso a servicios internos/metadatos de nube)
+    private static readonly HashSet<string> BlockedHosts = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "localhost", "127.0.0.1", "::1", "0.0.0.0",
+        "169.254.169.254", // metadatos AWS / Azure
+        "169.254.169.250", // metadatos Azure
+        "100.100.100.200", // metadatos Alibaba Cloud
+    };
+
+    // Prefijos de direcciones IP privadas (RFC 1918)
+    private static readonly HashSet<string> PrivateIpPrefixes = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "10.",
+        "172.16.", "172.17.", "172.18.", "172.19.", "172.20.", "172.21.", "172.22.", "172.23.", "172.24.", "172.25.",
+        "172.26.", "172.27.", "172.28.", "172.29.", "172.30.", "172.31.",
+        "192.168.",
+    };
+
     /// <summary>
     /// Crea una nueva instancia con el <see cref="HttpClient"/> dado.
     /// </summary>
-    public WebContentReader(HttpClient? httpClient = null)
+    /// <param name="httpClient">Cliente HTTP opcional (para pruebas).</param>
+    /// <param name="timeout">Tiempo de espera opcional (por defecto 20 segundos).</param>
+    public WebContentReader(HttpClient? httpClient = null, TimeSpan? timeout = null)
     {
         _httpClient = httpClient ?? CreateDefaultHttpClient();
-        _httpClient.Timeout = TimeSpan.FromSeconds(20);
+        _httpClient.Timeout = timeout ?? TimeSpan.FromSeconds(20);
     }
 
     private static HttpClient CreateDefaultHttpClient()
@@ -56,35 +80,92 @@ public class WebContentReader : IWebContentReader
     }
 
     /// <summary>
-    /// Descarga el contenido de una URL y devuelve el texto extraído.
+    /// Descarga el contenido de una URL y devuelve el texto extraído junto con
+    /// información sobre el éxito o el motivo del fallo.
     /// </summary>
     /// <param name="url">URL completa (http:// o https://).</param>
-    /// <returns>Texto plano extraído del HTML, o null si falla.</returns>
-    public async Task<string?> FetchTextAsync(string url)
+    /// <param name="cancellationToken">Token para cancelar la operación.</param>
+    /// <returns>Resultado con el texto extraído o el motivo del error.</returns>
+    public async Task<WebContentFetchResult> FetchAsync(string url, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(url))
-            return null;
+            return WebContentFetchResult.Fail("La URL no puede estar vacía.");
+
+        if (!Uri.TryCreate(url, UriKind.Absolute, out var uri))
+            return WebContentFetchResult.Fail("La URL no es válida.");
+
+        if (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps)
+            return WebContentFetchResult.Fail("Solo se admiten URLs http:// o https://.");
+
+        // Protección contra SSRF: bloquear hosts y direcciones IP privadas
+        if (BlockedHosts.Contains(uri.Host))
+            return WebContentFetchResult.Fail("No se puede acceder a hosts locales o internos.");
+
+        foreach (var prefix in PrivateIpPrefixes)
+        {
+            if (uri.Host.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                return WebContentFetchResult.Fail("No se puede acceder a direcciones IP privadas.");
+        }
 
         try
         {
-            var response = await _httpClient.GetAsync(url);
-            response.EnsureSuccessStatusCode();
+            using var response = await _httpClient.GetAsync(uri, cancellationToken);
+
+            if (!response.IsSuccessStatusCode)
+                return WebContentFetchResult.Fail($"El servidor respondió {(int)response.StatusCode} {response.StatusCode}.");
 
             var contentType = response.Content.Headers.ContentType?.MediaType ?? string.Empty;
-            // Aceptar HTML y texto plano; rechazar binarios (PDF, imágenes, etc.)
-            if (!contentType.Contains("text", StringComparison.OrdinalIgnoreCase)
-                && !contentType.Contains("html", StringComparison.OrdinalIgnoreCase))
+            if (!IsSupportedContentType(contentType))
+                return WebContentFetchResult.Fail($"Tipo de contenido no admitido: {contentType}.");
+
+            // Leer por streaming con límite de tamaño (evita OOM en páginas enormes)
+            using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+            var buffer = new byte[8192];
+            using var ms = new MemoryStream();
+            int read;
+            long total = 0;
+            while ((read = await stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken)) > 0)
             {
-                return null;
+                total += read;
+                if (total > MaxContentSize)
+                    return WebContentFetchResult.Fail($"El contenido supera el límite de {MaxContentSize / 1024 / 1024} MB.");
+                await ms.WriteAsync(buffer, 0, read, cancellationToken);
             }
 
-            var html = await response.Content.ReadAsStringAsync();
-            return ExtractText(html);
+            var html = Encoding.UTF8.GetString(ms.ToArray());
+            return WebContentFetchResult.Ok(ExtractText(html));
         }
-        catch
+        catch (OperationCanceledException)
         {
-            return null;
+            return WebContentFetchResult.Fail("La operación fue cancelada.");
         }
+        catch (HttpRequestException ex)
+        {
+            return WebContentFetchResult.Fail($"Error de red: {ex.Message}.");
+        }
+        catch (Exception ex)
+        {
+            return WebContentFetchResult.Fail($"Error inesperado: {ex.Message}.");
+        }
+    }
+
+    /// <summary>
+    /// Sobrecarga de compatibilidad hacia atrás: devuelve solo el texto (o null si falla).
+    /// </summary>
+    public async Task<string?> FetchTextAsync(string url)
+    {
+        var result = await FetchAsync(url);
+        return result.Text;
+    }
+
+    private static bool IsSupportedContentType(string contentType)
+    {
+        var ct = contentType.ToLowerInvariant();
+        return ct.Contains("text")
+            || ct.Contains("html")
+            || ct.Contains("xhtml")
+            || ct.Contains("xml")
+            || ct.Contains("json");
     }
 
     /// <summary>

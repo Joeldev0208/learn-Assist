@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using learn_Assist.Models;
 using learn_Assist.Services;
@@ -16,13 +17,15 @@ public class DocumentListViewModelUrlTests
         public int CallCount { get; private set; }
         public bool ThrowException { get; set; }
 
-        public Task<string?> FetchTextAsync(string url)
+        public Task<WebContentFetchResult> FetchAsync(string url, CancellationToken cancellationToken = default)
         {
             LastUrl = url;
             CallCount++;
             if (ThrowException)
-                throw new System.Net.Http.HttpRequestException("error de red");
-            return Task.FromResult(Result);
+                return Task.FromResult(WebContentFetchResult.Fail("error de red"));
+            return Task.FromResult(Result is null
+                ? WebContentFetchResult.Fail("no hay contenido")
+                : WebContentFetchResult.Ok(Result));
         }
     }
 
@@ -94,7 +97,7 @@ public class DocumentListViewModelUrlTests
     }
 
     [Fact]
-    public async Task AddUrlAsync_WebReaderReturnsNull_DoesNotAdd()
+    public async Task AddUrlAsync_WebReaderReturnsFail_DoesNotAdd()
     {
         var webReader = new MockWebContentReader { Result = null };
         var vm = CreateVm(webReader);
@@ -105,10 +108,11 @@ public class DocumentListViewModelUrlTests
 
         Assert.Empty(vm.Documents);
         Assert.Equal(1, webReader.CallCount);
+        Assert.NotNull(vm.ImportError);
     }
 
     [Fact]
-    public async Task AddUrlAsync_WebReaderThrows_DoesNotAdd()
+    public async Task AddUrlAsync_WebReaderReturnsFailResult_DoesNotAdd()
     {
         var webReader = new MockWebContentReader { ThrowException = true };
         var vm = CreateVm(webReader);
@@ -119,5 +123,6 @@ public class DocumentListViewModelUrlTests
 
         Assert.Empty(vm.Documents);
         Assert.Equal(1, webReader.CallCount);
+        Assert.NotNull(vm.ImportError);
     }
 }
