@@ -448,8 +448,9 @@
                   <ProgressBar Width="72" Height="5" IsIndeterminate="True"
                                Foreground="{DynamicResource BrandBrush}"
                                Background="{DynamicResource InputBorderBrush}" />
-                  <TextBlock Text="Thinking..." FontSize="12"
-                             Foreground="{DynamicResource TextMutedBrush}" />
+                  <TextBlock Text="{Binding Chat.ActivityStatus}" FontSize="12"
+                             Foreground="{DynamicResource TextMutedBrush}"
+                             AutomationProperties.LiveSetting="Polite" />
                 </StackPanel>
               </Border>
             </StackPanel>
