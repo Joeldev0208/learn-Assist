@@ -44,6 +44,7 @@
     <None Include=".env" Condition="Exists('.env')">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="python-worker\**" CopyToOutputDirectory="PreserveNewest" />
     <!-- Include the README inside the .nupkg so it renders on the GitHub Packages page -->
     <None Include="README.md" Pack="true" PackagePath="\" />
   </ItemGroup>

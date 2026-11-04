@@ -36,6 +36,12 @@ public partial class ApiConfigViewModel : ViewModelBase
     public partial string OpenCodeWorkspaceDirectory { get; set; } = string.Empty;
 
     [ObservableProperty]
+    public partial string PythonExecutablePath { get; set; } = string.Empty;
+
+    [ObservableProperty]
+    public partial string PythonWorkerPath { get; set; } = string.Empty;
+
+    [ObservableProperty]
     public partial string? ErrorMessage { get; set; }
 
     public string[] ProviderNames { get; } = Enum.GetNames<AiProvider>();
@@ -50,6 +56,9 @@ public partial class ApiConfigViewModel : ViewModelBase
         "opencode/nemotron-3.5-super-vl-free",
     ];
     public bool IsOpenCode => SelectedProvider == nameof(AiProvider.OpenCode);
+    public bool IsPython => SelectedProvider == nameof(AiProvider.Python);
+    public bool IsApiKeyVisible => !IsOpenCode && !IsPython;
+    public bool IsBaseUrlVisible => !IsOpenCode && !IsPython;
 
     public event Action<ApiConfig>? ConfigSaved;
     public event Action? ConfigSkipped;
@@ -72,6 +81,8 @@ public partial class ApiConfigViewModel : ViewModelBase
         SessionsDirectory = existing.SessionsDirectory;
         OpenCodeExecutablePath = existing.OpenCodeExecutablePath;
         OpenCodeWorkspaceDirectory = existing.OpenCodeWorkspaceDirectory;
+        PythonExecutablePath = existing.PythonExecutablePath;
+        PythonWorkerPath = existing.PythonWorkerPath;
         foreach (var savedModel in existing.SavedModels)
             _savedModels[savedModel.Key] = savedModel.Value;
 
@@ -90,6 +101,9 @@ public partial class ApiConfigViewModel : ViewModelBase
     partial void OnSelectedProviderChanged(string value)
     {
         OnPropertyChanged(nameof(IsOpenCode));
+        OnPropertyChanged(nameof(IsPython));
+        OnPropertyChanged(nameof(IsApiKeyVisible));
+        OnPropertyChanged(nameof(IsBaseUrlVisible));
 
         if (Enum.TryParse<AiProvider>(value, out var provider))
         {
@@ -149,13 +163,14 @@ public partial class ApiConfigViewModel : ViewModelBase
     {
         var isOllama = SelectedProvider == nameof(AiProvider.Ollama);
         var isLocalOpenCode = SelectedProvider == nameof(AiProvider.OpenCode);
-        if (!isOllama && !isLocalOpenCode && string.IsNullOrWhiteSpace(ApiKey))
+        var isPython = SelectedProvider == nameof(AiProvider.Python);
+        if (!isOllama && !isLocalOpenCode && !isPython && string.IsNullOrWhiteSpace(ApiKey))
         {
             ErrorMessage = "Please enter an API key.";
             return;
         }
 
-        if (!isLocalOpenCode && string.IsNullOrWhiteSpace(BaseUrl))
+        if (!isLocalOpenCode && !isPython && string.IsNullOrWhiteSpace(BaseUrl))
         {
             ErrorMessage = "Please enter a base URL.";
             return;
@@ -176,6 +191,8 @@ public partial class ApiConfigViewModel : ViewModelBase
             SessionsDirectory = SessionsDirectory,
             OpenCodeExecutablePath = OpenCodeExecutablePath.Trim(),
             OpenCodeWorkspaceDirectory = OpenCodeWorkspaceDirectory.Trim(),
+            PythonExecutablePath = PythonExecutablePath.Trim(),
+            PythonWorkerPath = PythonWorkerPath.Trim(),
         };
         _savedModels[provider.ToString()] = config.Model.Trim();
         config.SavedModels = new Dictionary<string, string>(_savedModels, StringComparer.OrdinalIgnoreCase);
