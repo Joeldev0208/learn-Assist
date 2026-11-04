@@ -37,22 +37,23 @@
                 Padding="10,8" FontSize="13" CornerRadius="8" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" />
 
       <TextBlock Text="Base URL" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"
-                 IsVisible="{Binding IsOpenCode, Converter={x:Static BoolConverters.Not}}" />
-      <Border CornerRadius="8" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" Background="{DynamicResource InputBackgroundBrush}">
+                 IsVisible="{Binding IsBaseUrlVisible}" />
+      <Border CornerRadius="8" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" Background="{DynamicResource InputBackgroundBrush}"
+              IsVisible="{Binding IsApiKeyVisible}">
         <TextBox Text="{Binding BaseUrl}" PlaceholderText="https://api.openai.com"
                  BorderThickness="0" Padding="10,8" FontSize="13"
-                 IsVisible="{Binding IsOpenCode, Converter={x:Static BoolConverters.Not}}" />
+                 IsVisible="{Binding IsBaseUrlVisible}" />
       </Border>
       <TextBlock Text="OpenCode runs locally through the terminal. Install OpenCode separately and authenticate it with opencode auth login; Learn-Assist does not store an API key."
                  FontSize="11" Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap"
                  IsVisible="{Binding IsOpenCode}" />
 
       <TextBlock Text="API Key" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"
-                 IsVisible="{Binding IsOpenCode, Converter={x:Static BoolConverters.Not}}" />
+                 IsVisible="{Binding IsApiKeyVisible}" />
       <Border CornerRadius="8" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" Background="{DynamicResource InputBackgroundBrush}">
         <TextBox Text="{Binding ApiKey}" PlaceholderText="sk-..."
                  BorderThickness="0" Padding="10,8" FontSize="13" PasswordChar="*"
-                 IsVisible="{Binding IsOpenCode, Converter={x:Static BoolConverters.Not}}" />
+        IsVisible="{Binding IsApiKeyVisible}" />
       </Border>
 
       <TextBlock Text="OpenCode model" FontSize="11" FontWeight="SemiBold"
@@ -83,6 +84,19 @@
         <Border CornerRadius="8" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" Background="{DynamicResource InputBackgroundBrush}">
           <TextBox Text="{Binding OpenCodeWorkspaceDirectory}" PlaceholderText="Current project directory" BorderThickness="0" Padding="10,8" FontSize="13" />
         </Border>
+      </StackPanel>
+
+      <StackPanel Spacing="8" IsVisible="{Binding IsPython}">
+        <TextBlock Text="Python executable (optional)" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" />
+        <Border CornerRadius="8" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" Background="{DynamicResource InputBackgroundBrush}">
+          <TextBox Text="{Binding PythonExecutablePath}" PlaceholderText="python3" BorderThickness="0" Padding="10,8" FontSize="13" />
+        </Border>
+        <TextBlock Text="Worker path (optional)" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" />
+        <Border CornerRadius="8" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" Background="{DynamicResource InputBackgroundBrush}">
+          <TextBox Text="{Binding PythonWorkerPath}" PlaceholderText="python-worker/worker.py" BorderThickness="0" Padding="10,8" FontSize="13" />
+        </Border>
+        <TextBlock Text="Python se ejecuta localmente como un worker sin enviar datos a un servidor adicional."
+                   FontSize="11" Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap" />
       </StackPanel>
 
       <TextBlock Text="Sessions Directory" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" />

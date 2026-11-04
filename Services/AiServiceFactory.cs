@@ -10,7 +10,8 @@ public static class AiServiceFactory
     {
         ArgumentNullException.ThrowIfNull(config);
 
-        if (config.Provider != AiProvider.OpenCode && string.IsNullOrEmpty(config.ApiKey))
+        if (config.Provider is not AiProvider.OpenCode and not AiProvider.Ollama and not AiProvider.Python
+            && string.IsNullOrEmpty(config.ApiKey))
             throw new InvalidOperationException("API key is not configured.");
 
         return config.Provider switch
@@ -21,6 +22,7 @@ public static class AiServiceFactory
             AiProvider.Ollama => new OllamaService(config),
             AiProvider.Nvidia => new NvidiaService(config),
             AiProvider.OpenCode => new OpenCodeService(config),
+            AiProvider.Python => new PythonService(config),
             _ => throw new ArgumentOutOfRangeException(nameof(config.Provider)),
         };
     }

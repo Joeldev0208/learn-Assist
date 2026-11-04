@@ -12,6 +12,7 @@ public enum AiProvider
     Ollama,
     Nvidia,
     OpenCode,
+    Python,
 }
 
 public class ApiConfig
@@ -23,6 +24,8 @@ public class ApiConfig
     public string SessionsDirectory { get; set; } = string.Empty;
     public string OpenCodeExecutablePath { get; set; } = string.Empty;
     public string OpenCodeWorkspaceDirectory { get; set; } = string.Empty;
+    public string PythonExecutablePath { get; set; } = string.Empty;
+    public string PythonWorkerPath { get; set; } = string.Empty;
     public Dictionary<string, string> SavedModels { get; set; } = [];
 
     public string GetDefaultBaseUrl() => Provider switch
@@ -33,6 +36,7 @@ public class ApiConfig
         AiProvider.Ollama => "http://localhost:11434",
         AiProvider.Nvidia => "https://integrate.api.nvidia.com/v1",
         AiProvider.OpenCode => string.Empty,
+        AiProvider.Python => string.Empty,
         _ => string.Empty,
     };
 
@@ -44,6 +48,7 @@ public class ApiConfig
         AiProvider.Ollama => "llama3.2",
         AiProvider.Nvidia => "nvidia/llama-3.3-nemotron-super-49b-v1",
         AiProvider.OpenCode => "opencode/big-pickle",
+        AiProvider.Python => "local-planner",
         _ => string.Empty,
     };
 }
