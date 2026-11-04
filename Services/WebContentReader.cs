@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using System.Net.Http;
+using System.Net.Sockets;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -39,15 +41,6 @@ public class WebContentReader : IWebContentReader
         "100.100.100.200", // metadatos Alibaba Cloud
     };
 
-    // Prefijos de direcciones IP privadas (RFC 1918)
-    private static readonly HashSet<string> PrivateIpPrefixes = new(StringComparer.OrdinalIgnoreCase)
-    {
-        "10.",
-        "172.16.", "172.17.", "172.18.", "172.19.", "172.20.", "172.21.", "172.22.", "172.23.", "172.24.", "172.25.",
-        "172.26.", "172.27.", "172.28.", "172.29.", "172.30.", "172.31.",
-        "192.168.",
-    };
-
     /// <summary>
     /// Crea una nueva instancia con el <see cref="HttpClient"/> dado.
     /// </summary>
@@ -63,9 +56,7 @@ public class WebContentReader : IWebContentReader
     {
         var handler = new HttpClientHandler
         {
-            // Seguir redirecciones automáticamente
-            AllowAutoRedirect = true,
-            MaxAutomaticRedirections = 10,
+            AllowAutoRedirect = false,
             UseCookies = false,
         };
 
@@ -97,19 +88,18 @@ public class WebContentReader : IWebContentReader
         if (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps)
             return WebContentFetchResult.Fail("Solo se admiten URLs http:// o https://.");
 
-        // Protección contra SSRF: bloquear hosts y direcciones IP privadas
-        if (BlockedHosts.Contains(uri.Host))
+        if (!await IsSafeUriAsync(uri, cancellationToken))
             return WebContentFetchResult.Fail("No se puede acceder a hosts locales o internos.");
-
-        foreach (var prefix in PrivateIpPrefixes)
-        {
-            if (uri.Host.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
-                return WebContentFetchResult.Fail("No se puede acceder a direcciones IP privadas.");
-        }
 
         try
         {
             using var response = await _httpClient.GetAsync(uri, cancellationToken);
+
+            if (response.RequestMessage?.RequestUri is { } finalUri
+                && !await IsSafeUriAsync(finalUri, cancellationToken))
+            {
+                return WebContentFetchResult.Fail("La redirección apunta a un host local o interno.");
+            }
 
             if (!response.IsSuccessStatusCode)
                 return WebContentFetchResult.Fail($"El servidor respondió {(int)response.StatusCode} {response.StatusCode}.");
@@ -139,14 +129,66 @@ public class WebContentReader : IWebContentReader
         {
             return WebContentFetchResult.Fail("La operación fue cancelada.");
         }
-        catch (HttpRequestException ex)
+        catch (HttpRequestException)
         {
-            return WebContentFetchResult.Fail($"Error de red: {ex.Message}.");
+            return WebContentFetchResult.Fail("No se pudo descargar el contenido.");
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            return WebContentFetchResult.Fail($"Error inesperado: {ex.Message}.");
+            return WebContentFetchResult.Fail("Ocurrió un error al procesar el contenido.");
         }
+    }
+
+    private static async Task<bool> IsSafeUriAsync(Uri uri, CancellationToken cancellationToken)
+    {
+        if (BlockedHosts.Contains(uri.Host))
+            return false;
+
+        if (IPAddress.TryParse(uri.Host, out var address))
+            return IsPublicAddress(address);
+
+        try
+        {
+            var addresses = await Dns.GetHostAddressesAsync(uri.DnsSafeHost, cancellationToken);
+            return addresses.Length > 0 && addresses.All(IsPublicAddress);
+        }
+        catch (SocketException)
+        {
+            return false;
+        }
+    }
+
+    private static bool IsPublicAddress(IPAddress address)
+    {
+        if (address.IsIPv4MappedToIPv6)
+            address = address.MapToIPv4();
+
+        if (IPAddress.IsLoopback(address)
+            || address.Equals(IPAddress.Any)
+            || address.Equals(IPAddress.IPv6Any)
+            || address.Equals(IPAddress.Broadcast)
+            || address.AddressFamily == AddressFamily.InterNetworkV6
+                && (address.IsIPv6LinkLocal || address.IsIPv6SiteLocal || address.IsIPv6Multicast
+                    || address.GetAddressBytes()[0] is 0xfc or 0xfd)
+            || address.AddressFamily == AddressFamily.InterNetwork
+                && IsPrivateIpv4(address))
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    private static bool IsPrivateIpv4(IPAddress address)
+    {
+        var bytes = address.GetAddressBytes();
+        return bytes[0] == 10
+            || bytes[0] == 172 && bytes[1] is >= 16 and <= 31
+            || bytes[0] == 192 && bytes[1] == 168
+            || bytes[0] == 169 && bytes[1] == 254
+            || bytes[0] == 100 && bytes[1] is >= 64 and <= 127
+            || bytes[0] == 127
+            || bytes[0] == 0;
     }
 
     /// <summary>

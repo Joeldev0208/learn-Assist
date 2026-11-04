@@ -64,23 +64,15 @@ public sealed class OpenCodeService : IAiService
 
     public static string[] BuildWslArguments(string? model, string prompt, string workspace)
     {
-        var commandArguments = new List<string>(BuildArguments(model))
-        {
-            prompt,
-        };
-        var command = "exec opencode " + string.Join(
-            " ",
-            commandArguments.Select(ShellQuote));
-
         var arguments = new List<string>
         {
             "--cd",
             ConvertWindowsPathToWsl(workspace),
-            "--exec",
-            "bash",
-            "-lc",
-            command,
+            "--",
+            "opencode",
         };
+        arguments.AddRange(BuildArguments(model));
+        arguments.Add(prompt);
         return [.. arguments];
     }
 
@@ -95,9 +87,6 @@ public sealed class OpenCodeService : IAiService
 
         return path.Replace('\\', '/');
     }
-
-    private static string ShellQuote(string value) =>
-        $"'{value.Replace("'", "'\\''")}'";
 
     public static string ExtractResponseText(string output)
     {
@@ -132,7 +121,7 @@ public sealed class OpenCodeService : IAiService
         }
 
         if (error is not null)
-            throw new InvalidOperationException($"OpenCode returned an error: {error}");
+            throw new InvalidOperationException("OpenCode no pudo generar una respuesta.");
         if (text.Length == 0)
             throw new InvalidOperationException("OpenCode returned no text.");
 

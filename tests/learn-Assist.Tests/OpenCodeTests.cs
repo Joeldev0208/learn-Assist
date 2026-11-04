@@ -64,8 +64,8 @@ public class OpenCodeTests
             @"C:\work\learn-Assist");
 
         Assert.Equal(
-            ["--cd", "/mnt/c/work/learn-Assist", "--exec", "bash", "-lc",
-             "exec opencode 'run' '--model' 'opencode/big-pickle' '--format' 'json' 'Say hello'"],
+            ["--cd", "/mnt/c/work/learn-Assist", "--", "opencode",
+             "run", "--model", "opencode/big-pickle", "--format", "json", "Say hello"],
             arguments);
     }
 

@@ -147,4 +147,28 @@ public class ChatViewModelTests
             m.Role == MessageRole.Assistant &&
             m.Content == "Respuesta de prueba del asistente.");
     }
+
+    [Fact]
+    public async Task SendMessage_OnlySendsRecentConversationHistory()
+    {
+        var aiService = new MockAiServiceForTests();
+        var vm = new ChatViewModel(aiService);
+
+        for (var index = 1; index <= ChatHistorySelector.DefaultMessageLimit + 2; index++)
+        {
+            vm.Messages.Add(new ChatMessage
+            {
+                Role = index % 2 == 0 ? MessageRole.Assistant : MessageRole.User,
+                Content = $"Mensaje {index}",
+            });
+        }
+
+        vm.MessageText = "Nueva pregunta";
+        await vm.SendMessageAsync();
+
+        Assert.DoesNotContain(aiService.LastHistory, message => message.Content == "Mensaje 1");
+        Assert.DoesNotContain(aiService.LastHistory, message => message.Content == "Mensaje 2");
+        Assert.Contains(aiService.LastHistory, message => message.Content == "Mensaje 3");
+        Assert.Contains(aiService.LastHistory, message => message.Content == "Mensaje 10");
+    }
 }

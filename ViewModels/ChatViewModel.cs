@@ -35,6 +35,9 @@ public partial class ChatViewModel : ViewModelBase
     [ObservableProperty]
     public partial string? ErrorMessage { get; set; }
 
+    [ObservableProperty]
+    public partial string ActivityStatus { get; set; } = "Listo";
+
     public event Action<bool>? ScrollToBottomRequested;
 
     public void SetAiService(IAiService service, SessionPersistenceService? persistence = null)
@@ -81,6 +84,7 @@ public partial class ChatViewModel : ViewModelBase
         MessageText = string.Empty;
         ErrorMessage = null;
         IsLoading = true;
+        ActivityStatus = "Preparando la solicitud...";
 
         var history = new List<ChatMessage>();
 
@@ -93,7 +97,7 @@ public partial class ChatViewModel : ViewModelBase
             });
         }
 
-        history.AddRange(Messages.ToList());
+        history.AddRange(ChatHistorySelector.Select(Messages));
 
         var userMsg = new ChatMessage
         {
@@ -106,6 +110,7 @@ public partial class ChatViewModel : ViewModelBase
 
         try
         {
+            ActivityStatus = "Consultando la IA...";
             var response = await _aiService.AskAsync(text, history);
 
             var assistantMsg = new ChatMessage
@@ -129,27 +134,28 @@ public partial class ChatViewModel : ViewModelBase
                     _currentSession.Messages = new ObservableCollection<ChatMessage>(Messages);
                     await _persistence.SaveSessionAsync(_currentSession);
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
-                    ErrorMessage = $"Failed to save conversation: {ex.Message}";
+                    ErrorMessage = "No se pudo guardar la conversación.";
                 }
             }
         }
-        catch (HttpRequestException ex)
+        catch (HttpRequestException)
         {
-            ErrorMessage = ex.Message;
+            ErrorMessage = "No se pudo completar la solicitud. Revisa la configuración del proveedor.";
             Messages.Remove(userMsg);
             MessageText = text;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            ErrorMessage = $"Unexpected error: {ex.Message}";
+            ErrorMessage = "Ocurrió un error al generar la respuesta.";
             Messages.Remove(userMsg);
             MessageText = text;
         }
         finally
         {
             IsLoading = false;
+            ActivityStatus = "Listo";
         }
     }
 
