@@ -64,6 +64,47 @@ public class FileContentReaderTests : IDisposable
         Assert.Null(result);
     }
 
+    [Fact]
+    public void NormalizePath_DecodesPercentEscapes()
+    {
+        var encoded = "C:/Users/user/Documents/Celebro%20Digital/AI%20Engineering%20libro.pdf";
+
+        var result = FileContentReader.NormalizePath(encoded);
+
+        Assert.Equal("C:/Users/user/Documents/Celebro Digital/AI Engineering libro.pdf", result);
+    }
+
+    [Fact]
+    public void NormalizePath_ConvertsFileUriToLocalPath()
+    {
+        var result = FileContentReader.NormalizePath("file:///C:/Users/user/Mi%20Libro.pdf");
+
+        Assert.DoesNotContain("%20", result);
+        Assert.Contains("Mi Libro.pdf", result);
+        Assert.StartsWith("C:", result);
+    }
+
+    [Fact]
+    public void NormalizePath_PlainPath_ReturnsSamePath()
+    {
+        var path = Path.Combine(_tempDir, "normal.txt");
+
+        Assert.Equal(path, FileContentReader.NormalizePath(path));
+    }
+
+    [Fact]
+    public void ExtractText_LongFile_TruncatesToLimit()
+    {
+        var file = Path.Combine(_tempDir, "libro.txt");
+        File.WriteAllText(file, new string('a', FileContentReader.MaxExtractedCharacters + 5_000));
+
+        var result = FileContentReader.ExtractText(file);
+
+        Assert.NotNull(result);
+        Assert.Contains("contenido truncado", result);
+        Assert.True(result!.Length < FileContentReader.MaxExtractedCharacters + 200);
+    }
+
     public void Dispose()
     {
         if (Directory.Exists(_tempDir))

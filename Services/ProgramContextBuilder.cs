@@ -18,6 +18,18 @@ public sealed class ProgramContextBuilder : IContextBuilder
     private static readonly ProgramContextBuilder _instance = new();
     public static ProgramContextBuilder Instance => _instance;
 
+    /// <summary>
+    /// Presupuesto total de caracteres para el material importado (~90k tokens).
+    /// Sin este tope, varios libros juntos producen un system prompt que el modelo
+    /// rechaza por exceder su ventana de contexto.
+    /// </summary>
+    private const int MaxMaterialCharacters = 360_000;
+
+    /// <summary>
+    /// Si queda menos presupuesto que esto, no vale la pena incluir un fragmento.
+    /// </summary>
+    private const int MinUsefulSlice = 2_000;
+
     private ProgramContextBuilder()
     {
     }
@@ -73,14 +85,44 @@ public sealed class ProgramContextBuilder : IContextBuilder
         if (materials is not null && materials.Count > 0)
         {
             var materialParts = new List<string>();
+            var omitted = new List<string>();
+            var budget = MaxMaterialCharacters;
+
             foreach (var doc in materials)
             {
-                if (!string.IsNullOrWhiteSpace(doc.Content))
+                if (string.IsNullOrWhiteSpace(doc.Content))
+                    continue;
+
+                var content = doc.Content;
+
+                if (content.Length > budget)
                 {
-                    materialParts.Add($"### {doc.Name}\n{doc.Content}");
-                    if (!string.IsNullOrWhiteSpace(doc.Name))
-                        citations.Add(doc.Name);
+                    if (budget < MinUsefulSlice)
+                    {
+                        omitted.Add(doc.Name);
+                        continue;
+                    }
+
+                    content = string.Concat(
+                        content.AsSpan(0, budget),
+                        "\n\n[... resto del documento omitido por límite de contexto ...]");
+                    budget = 0;
                 }
+                else
+                {
+                    budget -= content.Length;
+                }
+
+                materialParts.Add($"### {doc.Name}\n{content}");
+                if (!string.IsNullOrWhiteSpace(doc.Name))
+                    citations.Add(doc.Name);
+            }
+
+            if (omitted.Count > 0)
+            {
+                materialParts.Add(
+                    "### Documentos no incluidos por límite de contexto\n"
+                    + string.Join("\n", omitted.Select(name => $"- {name}")));
             }
 
             if (materialParts.Count > 0)

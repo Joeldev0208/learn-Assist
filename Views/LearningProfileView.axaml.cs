@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Platform.Storage;
 using learn_Assist.Services;
@@ -62,14 +63,20 @@ public partial class LearningProfileView : Window
             return;
 
         var file = files[0];
-        var filePath = file.Path.AbsolutePath;
+        var filePath = FileContentReader.NormalizePath(file.Path.LocalPath);
         var name = Path.GetFileNameWithoutExtension(file.Name);
 
         // Only set the semester name if the field is empty
         if (string.IsNullOrWhiteSpace(vm.Semester))
             vm.Semester = string.IsNullOrWhiteSpace(name) ? file.Name : name;
 
-        var extracted = FileContentReader.ExtractText(filePath, out var errorReason);
+        // Extraer el texto puede tardar con PDFs grandes; no bloquear la UI.
+        var (extracted, errorReason) = await Task.Run(() =>
+        {
+            var text = FileContentReader.ExtractText(filePath, out var reason);
+            return (text, reason);
+        });
+
         vm.SemesterContent = extracted ?? string.Empty;
 
         if (string.IsNullOrWhiteSpace(extracted))
@@ -78,7 +85,7 @@ public partial class LearningProfileView : Window
             {
                 null => "No se pudo extraer texto del archivo",
                 var reason when reason.Contains("Extensión no soportada") => $"Formato no soportado: {Path.GetExtension(filePath)}",
-                var reason when reason.Contains("supera los 5 MB") => $"Archivo demasiado grande: {errorReason}",
+                var reason when reason.Contains("supera el límite") => $"Archivo demasiado grande: {errorReason}",
                 var reason when reason.Contains("no contiene texto extractable") => "PDF sin texto (puede ser una imagen escaneada)",
                 _ => $"No se pudo extraer contenido: {errorReason ?? "motivo desconocido"}",
             };

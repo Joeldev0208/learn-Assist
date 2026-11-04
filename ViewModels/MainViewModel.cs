@@ -258,6 +258,7 @@ public partial class MainViewModel : ViewModelBase
         SessionList.NewSessionRequested += OnNewSessionRequested;
 
         DocumentList.Documents.CollectionChanged += async (_, _) => await UpdateChatSystemPromptAsync();
+        DocumentList.ContentRepaired += () => _ = UpdateChatSystemPromptAsync();
 
         Tutorial.TutorialFinished += OnTutorialFinished;
 

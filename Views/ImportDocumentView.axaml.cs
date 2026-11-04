@@ -78,7 +78,9 @@ public partial class ImportDocumentView : Window
             return;
 
         var file = files[0];
-        var filePath = file.Path.AbsolutePath;
+        // Uri.LocalPath / AbsolutePath pueden dejar la ruta con %20 u otros escapes,
+        // y File.Exists falla con ellos. NormalizePath la deja lista para el sistema de archivos.
+        var filePath = FileContentReader.NormalizePath(file.Path.LocalPath);
         var fileInfo = new FileInfo(filePath);
 
         var doc = new UserDocument
@@ -94,10 +96,18 @@ public partial class ImportDocumentView : Window
 
         if (type == DocumentContentType.Document)
         {
-            var extracted = FileContentReader.ExtractText(filePath);
+            // Extraer un PDF grande puede tardar; hacerlo fuera del hilo de UI evita
+            // que la ventana se congele mientras se procesa el archivo.
+            vm.ImportResult = "Extrayendo contenido…";
+            var (extracted, errorReason) = await Task.Run(() =>
+            {
+                var text = FileContentReader.ExtractText(filePath, out var reason);
+                return (text, reason);
+            });
+
             doc.Content = string.IsNullOrWhiteSpace(extracted) ? string.Empty : extracted;
             vm.ImportResult = string.IsNullOrWhiteSpace(extracted)
-                ? "No se pudo extraer texto del archivo"
+                ? $"No se pudo extraer texto del archivo: {errorReason ?? "motivo desconocido"}"
                 : $"Contenido extraído ({extracted.Length} caracteres)";
         }
         else

@@ -28,6 +28,12 @@ public partial class DocumentListViewModel : ViewModelBase
 
     public event Action? ImportDialogRequested;
 
+    /// <summary>
+    /// Se dispara cuando se recuperó contenido de documentos que se habían guardado sin texto.
+    /// MainViewModel lo usa para reconstruir el system prompt.
+    /// </summary>
+    public event Action? ContentRepaired;
+
     private readonly IWebContentReader _webContentReader;
 
     /// <summary>
@@ -151,23 +157,81 @@ public partial class DocumentListViewModel : ViewModelBase
                 return;
 
             Documents.Clear();
+            var pending = new List<UserDocument>();
+
             foreach (var doc in docs)
             {
-                // Re-extraer contenido si el documento tipo texto lo perdió en la serialización
+                NormalizeDocumentPaths(doc);
+
+                // Re-extraer contenido si el documento lo perdió en la serialización.
+                // Se hace fuera del hilo de UI y en segundo plano: un libro de cientos
+                // de páginas no debe bloquear el arranque de la aplicación.
                 if (doc.ContentType == DocumentContentType.Document
                     && string.IsNullOrWhiteSpace(doc.Content)
-                    && !string.IsNullOrEmpty(doc.LocalPath)
-                    && File.Exists(doc.LocalPath))
+                    && !string.IsNullOrEmpty(doc.LocalPath))
                 {
-                    doc.Content = FileContentReader.ExtractText(doc.LocalPath);
+                    pending.Add(doc);
                 }
 
                 Documents.Add(doc);
             }
+
+            if (pending.Count > 0)
+                _ = RepairMissingContentAsync(pending);
         }
         catch
         {
             // Corrupted or unreadable file — start fresh
+        }
+    }
+
+    /// <summary>
+    /// Corrige rutas guardadas como URI con escapes (%20, %C3%AD…). Las URLs web
+    /// se dejan intactas: decodificarlas cambiaría su significado.
+    /// </summary>
+    private static void NormalizeDocumentPaths(UserDocument doc)
+    {
+        if (string.Equals(doc.Type, "web", StringComparison.OrdinalIgnoreCase))
+            return;
+
+        if (!string.IsNullOrEmpty(doc.LocalPath))
+            doc.LocalPath = FileContentReader.NormalizePath(doc.LocalPath);
+
+        if (!string.IsNullOrEmpty(doc.FilePath))
+            doc.FilePath = FileContentReader.NormalizePath(doc.FilePath);
+    }
+
+    private async Task RepairMissingContentAsync(List<UserDocument> pending)
+    {
+        try
+        {
+            var changed = false;
+
+            foreach (var doc in pending)
+            {
+                var path = doc.LocalPath;
+                if (string.IsNullOrEmpty(path) || !File.Exists(path))
+                    continue;
+
+                var extracted = await Task.Run(() => FileContentReader.ExtractText(path));
+                if (string.IsNullOrWhiteSpace(extracted))
+                    continue;
+
+                doc.Content = extracted;
+                if (doc.FileSize <= 0)
+                    doc.FileSize = new FileInfo(path).Length;
+                changed = true;
+            }
+
+            if (!changed)
+                return;
+
+            await SaveDocumentsAsync();
+            ContentRepaired?.Invoke();
+        }
+        catch
+        {
+            // Recuperar contenido es best-effort; nunca debe romper la app
         }
     }
 
