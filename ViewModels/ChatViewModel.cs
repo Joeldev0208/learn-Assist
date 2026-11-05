@@ -140,15 +140,15 @@ public partial class ChatViewModel : ViewModelBase
                 }
             }
         }
-        catch (HttpRequestException)
+        catch (HttpRequestException ex)
         {
-            ErrorMessage = "No se pudo completar la solicitud. Revisa la configuración del proveedor.";
+            ErrorMessage = $"No se pudo completar la solicitud: {ex.Message}";
             Messages.Remove(userMsg);
             MessageText = text;
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            ErrorMessage = "Ocurrió un error al generar la respuesta.";
+            ErrorMessage = $"Ocurrió un error al generar la respuesta: {ex.Message}";
             Messages.Remove(userMsg);
             MessageText = text;
         }

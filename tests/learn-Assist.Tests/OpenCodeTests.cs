@@ -44,6 +44,19 @@ public class OpenCodeTests
     }
 
     [Fact]
+    public void BuildPromptIncludesSystemContext()
+    {
+        var prompt = OpenCodeService.BuildPrompt(
+            "What next?",
+            [
+                new() { Role = MessageRole.System, Content = "Imported material." },
+            ]);
+
+        Assert.Contains("Imported material.", prompt);
+        Assert.DoesNotContain("User: Imported material.", prompt);
+    }
+
+    [Fact]
     public void ExtractResponseTextReadsJsonTextEvents()
     {
         var output = """
@@ -56,6 +69,19 @@ public class OpenCodeTests
     }
 
     [Fact]
+    public void ExtractResponseTextIncludesProviderErrorMessage()
+    {
+        var output = """
+            {"type":"error","error":{"type":"provider.free-limit","message":"Free usage limit reached."}}
+            """;
+
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => OpenCodeService.ExtractResponseText(output));
+
+        Assert.Contains("Free usage limit reached.", exception.Message);
+    }
+
+    [Fact]
     public void BuildWslArgumentsConvertsWorkspaceAndUsesOpenCodeCli()
     {
         var arguments = OpenCodeService.BuildWslArguments(
@@ -65,7 +91,7 @@ public class OpenCodeTests
 
         Assert.Equal(
             ["--cd", "/mnt/c/work/learn-Assist", "--", "opencode",
-             "run", "--model", "opencode/big-pickle", "--format", "json", "Say hello"],
+             "run", "--model", "opencode/big-pickle", "--format", "json"],
             arguments);
     }
 

@@ -29,13 +29,15 @@ public sealed class OpenCodeService : IAiService
         try
         {
             return await RunProcessAsync(
-                BuildNativeStartInfo(prompt),
+                BuildNativeStartInfo(),
+                prompt,
                 "OpenCode could not be started.");
         }
         catch (Win32Exception) when (OperatingSystem.IsWindows())
         {
             return await RunProcessAsync(
                 BuildWslStartInfo(prompt),
+                prompt,
                 "OpenCode could not be started natively or through WSL.");
         }
     }
@@ -50,13 +52,25 @@ public sealed class OpenCodeService : IAiService
     public static string BuildPrompt(string message, IReadOnlyList<ChatMessage> history)
     {
         var prompt = new StringBuilder();
-        prompt.AppendLine(AiPrompt.System);
+        var hasSystemPrompt = false;
 
-        foreach (var item in history.Where(item => item.Role != MessageRole.System))
+        foreach (var item in history)
         {
-            prompt.Append(item.Role == MessageRole.User ? "User: " : "Assistant: ");
-            prompt.AppendLine(item.Content);
+            if (item.Role == MessageRole.System)
+            {
+                prompt.AppendLine(item.Content);
+                prompt.AppendLine();
+                hasSystemPrompt = true;
+            }
+            else
+            {
+                prompt.Append(item.Role == MessageRole.User ? "User: " : "Assistant: ");
+                prompt.AppendLine(item.Content);
+            }
         }
+
+        if (!hasSystemPrompt)
+            prompt.AppendLine(AiPrompt.System);
 
         prompt.Append("User: ").Append(message);
         return prompt.ToString();
@@ -72,7 +86,6 @@ public sealed class OpenCodeService : IAiService
             "opencode",
         };
         arguments.AddRange(BuildArguments(model));
-        arguments.Add(prompt);
         return [.. arguments];
     }
 
@@ -112,7 +125,7 @@ public sealed class OpenCodeService : IAiService
                 else if (type == "error"
                     && root.TryGetProperty("error", out var errorElement))
                 {
-                    error = errorElement.GetRawText();
+                    error = ExtractErrorMessage(errorElement);
                 }
             }
             catch (JsonException)
@@ -121,11 +134,26 @@ public sealed class OpenCodeService : IAiService
         }
 
         if (error is not null)
-            throw new InvalidOperationException("OpenCode no pudo generar una respuesta.");
+            throw new InvalidOperationException($"OpenCode no pudo generar una respuesta: {error}");
         if (text.Length == 0)
-            throw new InvalidOperationException("OpenCode returned no text.");
+            throw new InvalidOperationException("OpenCode no devolvió texto.");
 
         return text.ToString();
+    }
+
+    private static string ExtractErrorMessage(JsonElement error)
+    {
+        if (error.ValueKind == JsonValueKind.String)
+            return error.GetString() ?? "Error desconocido.";
+
+        if (error.ValueKind == JsonValueKind.Object
+            && error.TryGetProperty("message", out var message)
+            && message.ValueKind == JsonValueKind.String)
+        {
+            return message.GetString() ?? "Error desconocido.";
+        }
+
+        return error.ToString();
     }
 
     private static string ResolveExecutable(string configuredPath) =>
@@ -136,7 +164,7 @@ public sealed class OpenCodeService : IAiService
             ? Environment.CurrentDirectory
             : configuredPath;
 
-    private ProcessStartInfo BuildNativeStartInfo(string prompt)
+    private ProcessStartInfo BuildNativeStartInfo()
     {
         var startInfo = new ProcessStartInfo
         {
@@ -144,13 +172,13 @@ public sealed class OpenCodeService : IAiService
             UseShellExecute = false,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
+            RedirectStandardInput = true,
             CreateNoWindow = true,
             WorkingDirectory = ResolveWorkspace(_config.OpenCodeWorkspaceDirectory),
         };
 
         foreach (var argument in BuildArguments(_config.Model))
             startInfo.ArgumentList.Add(argument);
-        startInfo.ArgumentList.Add(prompt);
         return startInfo;
     }
 
@@ -163,6 +191,7 @@ public sealed class OpenCodeService : IAiService
             UseShellExecute = false,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
+            RedirectStandardInput = true,
             CreateNoWindow = true,
         };
 
@@ -173,12 +202,15 @@ public sealed class OpenCodeService : IAiService
 
     private static async Task<string> RunProcessAsync(
         ProcessStartInfo startInfo,
+        string prompt,
         string startError)
     {
         using var process = Process.Start(startInfo)
             ?? throw new InvalidOperationException(startError);
         var outputTask = process.StandardOutput.ReadToEndAsync();
         var errorTask = process.StandardError.ReadToEndAsync();
+        await process.StandardInput.WriteAsync(prompt);
+        process.StandardInput.Close();
         await process.WaitForExitAsync();
 
         var output = await outputTask;
