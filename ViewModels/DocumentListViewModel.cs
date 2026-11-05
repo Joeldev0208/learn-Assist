@@ -14,10 +14,16 @@ namespace learn_Assist.ViewModels;
 
 public partial class DocumentListViewModel : ViewModelBase
 {
-    private static readonly string DocumentsFilePath = Path.Combine(
+    /// <summary>
+    /// Ubicación real de la biblioteca del usuario. Solo se usa cuando no se inyecta
+    /// una ruta explícita (por ejemplo, en pruebas unitarias).
+    /// </summary>
+    public static string DefaultDocumentsFilePath { get; } = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
         "learn-assist",
         "documents.json");
+
+    private readonly string _documentsFilePath;
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -48,9 +54,19 @@ public partial class DocumentListViewModel : ViewModelBase
     [ObservableProperty]
     public partial bool IsImporting { get; set; }
 
-    public DocumentListViewModel(IWebContentReader? webContentReader = null)
+    /// <param name="webContentReader">Lector de contenido web; por defecto usa el singleton.</param>
+    /// <param name="documentsFilePath">
+    /// Ruta del archivo de biblioteca. Las pruebas deben pasar una ruta temporal para no
+    /// sobrescribir <see cref="DefaultDocumentsFilePath"/> del usuario real.
+    /// </param>
+    public DocumentListViewModel(
+        IWebContentReader? webContentReader = null,
+        string? documentsFilePath = null)
     {
         _webContentReader = webContentReader ?? WebContentReader.Instance;
+        _documentsFilePath = string.IsNullOrWhiteSpace(documentsFilePath)
+            ? DefaultDocumentsFilePath
+            : documentsFilePath;
     }
 
     [RelayCommand]
@@ -148,10 +164,10 @@ public partial class DocumentListViewModel : ViewModelBase
     {
         try
         {
-            if (!File.Exists(DocumentsFilePath))
+            if (!File.Exists(_documentsFilePath))
                 return;
 
-            var json = await File.ReadAllTextAsync(DocumentsFilePath);
+            var json = await File.ReadAllTextAsync(_documentsFilePath);
             var docs = JsonSerializer.Deserialize<List<UserDocument>>(json, JsonOptions);
             if (docs is null)
                 return;
@@ -239,14 +255,14 @@ public partial class DocumentListViewModel : ViewModelBase
     {
         try
         {
-            var directory = Path.GetDirectoryName(DocumentsFilePath);
+            var directory = Path.GetDirectoryName(_documentsFilePath);
             if (!string.IsNullOrEmpty(directory))
                 Directory.CreateDirectory(directory);
 
             var json = JsonSerializer.Serialize(Documents.ToList(), JsonOptions);
-            var tempPath = DocumentsFilePath + ".tmp";
+            var tempPath = _documentsFilePath + ".tmp";
             await File.WriteAllTextAsync(tempPath, json);
-            File.Move(tempPath, DocumentsFilePath, overwrite: true);
+            File.Move(tempPath, _documentsFilePath, overwrite: true);
         }
         catch
         {
