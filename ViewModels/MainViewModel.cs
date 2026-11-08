@@ -306,7 +306,14 @@ public partial class MainViewModel : ViewModelBase
             materials,
             ct);
 
-        Chat.SetSystemPrompt(built.SystemPrompt);
+        var languageInstruction = string.Equals(
+            LearningProfile?.PreferredLanguage,
+            "en",
+            StringComparison.OrdinalIgnoreCase)
+            ? "Idioma de respuesta: English. Answer in natural English."
+            : "Idioma de respuesta: Español. Responde en español estándar y conserva tildes, ñ y signos de puntuación.";
+
+        Chat.SetSystemPrompt($"{built.SystemPrompt}\n\n{languageInstruction}");
     }
 
     private static LearnerLevel MapToLearnerLevel(LearningProfile? profile)

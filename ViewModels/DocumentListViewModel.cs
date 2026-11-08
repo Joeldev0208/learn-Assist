@@ -14,10 +14,16 @@ namespace learn_Assist.ViewModels;
 
 public partial class DocumentListViewModel : ViewModelBase
 {
-    private static readonly string DocumentsFilePath = Path.Combine(
+    /// <summary>
+    /// Ruta real de la biblioteca del usuario. Los tests deben inyectar una ruta
+    /// temporal en el constructor para no sobrescribirla.
+    /// </summary>
+    public static readonly string DefaultDocumentsFilePath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
         "learn-assist",
         "documents.json");
+
+    private readonly string _documentsFilePath;
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -48,9 +54,14 @@ public partial class DocumentListViewModel : ViewModelBase
     [ObservableProperty]
     public partial bool IsImporting { get; set; }
 
-    public DocumentListViewModel(IWebContentReader? webContentReader = null)
+    public DocumentListViewModel(
+        IWebContentReader? webContentReader = null,
+        string? documentsFilePath = null)
     {
         _webContentReader = webContentReader ?? WebContentReader.Instance;
+        _documentsFilePath = string.IsNullOrWhiteSpace(documentsFilePath)
+            ? DefaultDocumentsFilePath
+            : documentsFilePath;
     }
 
     [RelayCommand]
@@ -148,10 +159,10 @@ public partial class DocumentListViewModel : ViewModelBase
     {
         try
         {
-            if (!File.Exists(DocumentsFilePath))
+            if (!File.Exists(_documentsFilePath))
                 return;
 
-            var json = await File.ReadAllTextAsync(DocumentsFilePath);
+            var json = await File.ReadAllTextAsync(_documentsFilePath);
             var docs = JsonSerializer.Deserialize<List<UserDocument>>(json, JsonOptions);
             if (docs is null)
                 return;
@@ -239,14 +250,14 @@ public partial class DocumentListViewModel : ViewModelBase
     {
         try
         {
-            var directory = Path.GetDirectoryName(DocumentsFilePath);
+            var directory = Path.GetDirectoryName(_documentsFilePath);
             if (!string.IsNullOrEmpty(directory))
                 Directory.CreateDirectory(directory);
 
             var json = JsonSerializer.Serialize(Documents.ToList(), JsonOptions);
-            var tempPath = DocumentsFilePath + ".tmp";
+            var tempPath = _documentsFilePath + ".tmp";
             await File.WriteAllTextAsync(tempPath, json);
-            File.Move(tempPath, DocumentsFilePath, overwrite: true);
+            File.Move(tempPath, _documentsFilePath, overwrite: true);
         }
         catch
         {

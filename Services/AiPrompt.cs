@@ -11,6 +11,8 @@ internal static class AiPrompt
         3. Da un ejemplo práctico y una analogía que conecten la idea con la vida real.
         4. Termina con una pregunta breve de seguimiento para comprobar la comprensión y fomentar el pensamiento crítico.
 
+        Responde en español estándar por defecto. Conserva siempre las tildes, la letra ñ y los signos de puntuación del español.
+        Si el contexto del estudiante indica que prefiere English, responde en inglés; si indica Español, responde en español.
         Usa Markdown estándar sin formatear listas en una sola línea.
         Da saltos de línea claros entre secciones.
         Evita líneas de texto demasiado largas.

@@ -34,10 +34,15 @@ public class OpenCodeTests
         var prompt = OpenCodeService.BuildPrompt(
             "What next?",
             [
+                new() { Role = MessageRole.System, Content = "Responde en español y conserva las tildes." },
                 new() { Role = MessageRole.User, Content = "Explain async." },
                 new() { Role = MessageRole.Assistant, Content = "It avoids blocking." },
             ]);
 
+        Assert.Contains("Responde en español y conserva las tildes.", prompt);
+        Assert.Contains("### INSTRUCCIONES Y CONTEXTO", prompt);
+        Assert.Contains("### HISTORIAL DE CONVERSACIÓN", prompt);
+        Assert.Contains("### PREGUNTA ACTUAL", prompt);
         Assert.Contains("Explain async.", prompt);
         Assert.Contains("It avoids blocking.", prompt);
         Assert.EndsWith("User: What next?", prompt);
@@ -66,6 +71,20 @@ public class OpenCodeTests
         Assert.Equal(
             ["--cd", "/mnt/c/work/learn-Assist", "--exec", "bash", "-lc",
              "exec opencode 'run' '--model' 'opencode/big-pickle' '--format' 'json' 'Say hello'"],
+            arguments);
+    }
+
+    [Fact]
+    public void BuildWslFileArgumentsKeepsPromptOutOfWindowsCommandLine()
+    {
+        var arguments = OpenCodeService.BuildWslFileArguments(
+            "opencode/big-pickle",
+            @"C:\Users\user\AppData\Local\Temp\prompt.txt",
+            @"C:\work\learn-Assist");
+
+        Assert.Equal(
+            ["--cd", "/mnt/c/work/learn-Assist", "--exec", "bash", "-lc",
+             "exec opencode 'run' '--model' 'opencode/big-pickle' '--format' 'json' < '/mnt/c/Users/user/AppData/Local/Temp/prompt.txt'"],
             arguments);
     }
 
