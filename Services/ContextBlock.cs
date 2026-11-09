@@ -8,6 +8,7 @@ public enum ContextOrigin
     TeacherProfile,
     Program,
     Material,
+    Restriction,
 }
 
 /// <summary>

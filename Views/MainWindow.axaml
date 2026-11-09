@@ -205,6 +205,14 @@
                 <TextBlock Text="⚙" HorizontalAlignment="Center" VerticalAlignment="Center" />
               </Button>
               <Button Width="30" Height="30"
+                      Command="{Binding EditPermissionsCommand}"
+                      Background="Transparent" BorderThickness="0"
+                      FontSize="15" Foreground="{DynamicResource TextMutedBrush}" Padding="0"
+                      ToolTip.Tip="Permisos de la IA"
+                      HorizontalAlignment="Center" VerticalAlignment="Center">
+                <TextBlock Text="🔒" HorizontalAlignment="Center" VerticalAlignment="Center" />
+              </Button>
+              <Button Width="30" Height="30"
                       Command="{Binding SignOutCommand}"
                       Background="Transparent" BorderThickness="0"
                       FontSize="15" Foreground="{DynamicResource TextMutedBrush}" Padding="0"
@@ -441,6 +449,16 @@
                 <TextBlock Text="{Binding Chat.ErrorMessage}" Foreground="{DynamicResource ErrorTextBrush}" FontSize="12" TextWrapping="Wrap" />
               </Border>
 
+              <!-- Aviso del modo Solo recursos cuando no hay documentos marcados. -->
+              <Border Padding="20,8"
+                      Background="{DynamicResource WarningBackgroundBrush}"
+                      BorderBrush="{DynamicResource WarningBorderBrush}" BorderThickness="0,1,0,0"
+                      IsVisible="{Binding Chat.IsResourceModeBlocked}">
+                <TextBlock Text="{Binding Chat.ResourceModeHint}"
+                           Foreground="{DynamicResource TextPrimaryBrush}"
+                           FontSize="12" TextWrapping="Wrap" />
+              </Border>
+
               <!-- Indicador de actividad mientras el proveedor de IA responde. -->
               <Border Padding="20,8"
                       IsVisible="{Binding Chat.IsLoading}">
@@ -463,7 +481,7 @@
               <DockPanel LastChildFill="True">
                 <Button DockPanel.Dock="Right" Width="34" Height="34" Margin="8,0,0,0"
                         Command="{Binding Chat.SendMessageCommand}"
-                        IsEnabled="{Binding Chat.IsLoading, Converter={x:Static BoolConverters.Not}}"
+                        IsEnabled="{Binding Chat.CanSendMessage}"
                         Background="{DynamicResource ButtonPrimaryBackgroundBrush}" CornerRadius="19" BorderThickness="0"
                         HorizontalAlignment="Center" VerticalAlignment="Center" Padding="0">
                   <TextBlock Text="→" FontSize="16" Foreground="{DynamicResource ButtonPrimaryForegroundBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
@@ -510,6 +528,16 @@
                 <TextBlock Text="Resources" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
               </DockPanel>
               <Border Height="1" Background="{DynamicResource DividerBrush}" Margin="0,2,0,0" />
+
+              <!--
+                Modo estricto: la IA solo responde con los recursos marcados.
+                Se persiste en resource-mode.json y se aplica al prompt.
+              -->
+              <CheckBox Content="Solo recursos"
+                        IsChecked="{Binding UseOnlyResources, Mode=TwoWay}"
+                        FontSize="11"
+                        Foreground="{DynamicResource TextMutedBrush}"
+                        ToolTip.Tip="La IA responde únicamente con los documentos marcados y dice cuándo algo no está en ellos." />
 
               <!-- Agregar URL como recurso -->
               <StackPanel Spacing="6" Margin="0,8,0,0">

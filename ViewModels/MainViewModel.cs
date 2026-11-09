@@ -19,9 +19,12 @@ public partial class MainViewModel : ViewModelBase
     private readonly LearningProfileService? _profileService;
     private SessionPersistenceService? _persistence;
     private readonly UpdateService? _updateService;
+    private readonly ResourceModeStore _resourceModeStore;
+    private readonly AiPermissionsStore _permissionsStore;
     private int _promptUpdateVersion;
     private Action? _configureAiRequested;
     private bool _configureAiPending;
+    private bool _loadingResourceMode;
 
     public SessionListViewModel SessionList { get; }
     public ChatViewModel Chat { get; }
@@ -49,7 +52,14 @@ public partial class MainViewModel : ViewModelBase
     public event Action? EditLearningProfileRequested;
     public event Action? UninstallRequested;
     public event Action? ExamRequested;
+    public event Action? EditPermissionsRequested;
     public IRelayCommand SignOutCommand { get; }
+
+    /// <summary>
+    /// Permisos vigentes de la IA. Los edita el diálogo «Permisos de la IA» y
+    /// se aplican al reconstruir el system prompt.
+    /// </summary>
+    public AiPermissions Permissions { get; private set; } = AiPermissions.Default;
 
     public string ThemeGlyph => ThemeService.IsDark ? "☀️" : "🌙";
 
@@ -70,6 +80,23 @@ public partial class MainViewModel : ViewModelBase
 
     [ObservableProperty]
     public partial bool IsResourcesVisible { get; set; } = true;
+
+    /// <summary>
+    /// Modo «Solo recursos»: cuando está activo, la IA solo puede afirmar
+    /// hechos que aparezcan en los documentos marcados. La preferencia se
+    /// guarda en <c>resource-mode.json</c> y se aplica al reconstruir el prompt.
+    /// </summary>
+    [ObservableProperty]
+    public partial bool UseOnlyResources { get; set; }
+
+    partial void OnUseOnlyResourcesChanged(bool value)
+    {
+        if (_loadingResourceMode)
+            return;
+
+        _resourceModeStore.Save(value);
+        _ = UpdateChatSystemPromptAsync();
+    }
 
     [ObservableProperty]
     public partial string LearningGoal { get; set; } = string.Empty;
@@ -236,7 +263,9 @@ public partial class MainViewModel : ViewModelBase
         SessionPersistenceService? persistence = null,
         UpdateService? updateService = null,
         LearningProfileService? profileService = null,
-        LearningProfile? learningProfile = null)
+        LearningProfile? learningProfile = null,
+        ResourceModeStore? resourceModeStore = null,
+        AiPermissionsStore? permissionsStore = null)
     {
         SignOutCommand = new RelayCommand(SignOut);
         _userEmail = userEmail;
@@ -245,14 +274,27 @@ public partial class MainViewModel : ViewModelBase
         _profileService = profileService;
         _persistence = persistence;
         _updateService = updateService;
+        _resourceModeStore = resourceModeStore ?? new ResourceModeStore();
+        _permissionsStore = permissionsStore ?? new AiPermissionsStore();
         LearningProfile = learningProfile;
 
         Chat = new ChatViewModel(aiService, persistence);
-        _ = UpdateChatSystemPromptAsync();
         SessionList = new SessionListViewModel(persistence);
         DocumentList = new DocumentListViewModel();
         Exam = new ExamViewModel(aiService, LearningProfile, DocumentList.Documents);
         Tutorial = new TutorialViewModel();
+
+        // Cargar la preferencia sin guardarla de vuelta ni reconstruir el prompt
+        // dos veces: el prompt se construye una sola vez al final del constructor.
+        _loadingResourceMode = true;
+        UseOnlyResources = _resourceModeStore.Load();
+        _loadingResourceMode = false;
+
+        // Los permisos se cargan antes de construir el primer prompt para que
+        // la IA nunca reciba un documento no autorizado.
+        Permissions = _permissionsStore.Load();
+
+        _ = UpdateChatSystemPromptAsync();
 
         SessionList.CurrentUserEmail = userEmail;
         SessionList.SessionSelected += OnSessionSelected;
@@ -302,16 +344,26 @@ public partial class MainViewModel : ViewModelBase
         {
             var level = MapToLearnerLevel(LearningProfile);
             var programContent = LearningProfile?.SemesterContent;
-            var materials = DocumentList.Documents
+
+            // Filtrado real: un documento no autorizado nunca llega al prompt,
+            // aunque esté marcado con «Usar en la IA» en el panel de recursos.
+            var candidates = DocumentList.Documents
                 .Where(d => d.IsIncludedInContext)
-                .Where(d => !string.IsNullOrWhiteSpace(d.Content))
-                .ToList();
+                .Where(d => !string.IsNullOrWhiteSpace(d.Content));
+            var materials = AiPermissionPolicy.FilterDocuments(candidates, Permissions).ToList();
+
+            var resourcesOnly = UseOnlyResources;
+
+            // Actualizar el guardia del chat de inmediato, sin esperar a que
+            // termine de construirse el prompt.
+            Chat.SetResourceMode(resourcesOnly, materials.Count > 0);
 
             var built = await ProgramContextBuilder.Instance.BuildAsync(
                 level,
                 programContent,
                 materials,
-                ct);
+                ct,
+                resourcesOnly);
 
             if (updateVersion != Volatile.Read(ref _promptUpdateVersion))
                 return;
@@ -323,7 +375,10 @@ public partial class MainViewModel : ViewModelBase
                 ? "Idioma de respuesta: English. Answer in natural English."
                 : "Idioma de respuesta: Español. Responde en español estándar y conserva tildes, ñ y signos de puntuación.";
 
-            Chat.SetSystemPrompt($"{built.SystemPrompt}\n\n{languageInstruction}");
+            var permissionBlock = AiPermissionPolicy.BuildPromptBlock(Permissions);
+
+            Chat.SetSystemPrompt(
+                $"{built.SystemPrompt}\n\n{permissionBlock}\n\n{languageInstruction}");
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested)
         {
@@ -392,6 +447,27 @@ public partial class MainViewModel : ViewModelBase
     private void EditLearningProfile()
     {
         EditLearningProfileRequested?.Invoke();
+    }
+
+    [RelayCommand]
+    private void EditPermissions()
+    {
+        EditPermissionsRequested?.Invoke();
+    }
+
+    /// <summary>
+    /// Guarda los permisos confirmados y reconstruye el prompt con el nuevo
+    /// filtro de documentos. Lo llama el diálogo «Permisos de la IA».
+    /// </summary>
+    public async Task ApplyPermissionsAsync(AiPermissions permissions)
+    {
+        ArgumentNullException.ThrowIfNull(permissions);
+
+        Permissions = permissions.Clone();
+        _permissionsStore.Save(Permissions);
+        OnPropertyChanged(nameof(Permissions));
+
+        await UpdateChatSystemPromptAsync();
     }
 
     [RelayCommand]

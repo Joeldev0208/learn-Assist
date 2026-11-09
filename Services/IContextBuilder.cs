@@ -16,9 +16,14 @@ public interface IContextBuilder
     /// <summary>
     /// Construye el system prompt completo y los metadatos de contexto.
     /// </summary>
+    /// <param name="resourcesOnly">
+    /// Cuando es <c>true</c>, añade una restricción de prioridad máxima: la IA
+    /// solo puede afirmar hechos que aparezcan en <paramref name="materials"/>.
+    /// </param>
     Task<BuiltContext> BuildAsync(
         LearnerLevel level,
         string? programContent,
         IReadOnlyList<UserDocument> materials,
-        CancellationToken ct = default);
+        CancellationToken ct = default,
+        bool resourcesOnly = false);
 }

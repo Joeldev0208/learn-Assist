@@ -143,6 +143,7 @@ public partial class MainWindow : Window
             _previousVm.RestartRequested -= OnRestartRequested;
             _previousVm.UninstallRequested -= OnUninstallRequested;
             _previousVm.ExamRequested -= OnExamRequested;
+            _previousVm.EditPermissionsRequested -= OnEditPermissionsRequested;
             _previousVm.PropertyChanged -= OnViewModelPropertyChanged;
         }
 
@@ -157,6 +158,7 @@ public partial class MainWindow : Window
             vm.RestartRequested += OnRestartRequested;
             vm.UninstallRequested += OnUninstallRequested;
             vm.ExamRequested += OnExamRequested;
+            vm.EditPermissionsRequested += OnEditPermissionsRequested;
             vm.PropertyChanged += OnViewModelPropertyChanged;
             _previousVm = vm;
             UpdateResponsiveLayout(vm);
@@ -364,6 +366,14 @@ public partial class MainWindow : Window
     }
 
     /// <summary>
+    /// Abre el diálogo de permisos de la IA en el hilo de UI.
+    /// </summary>
+    private void OnEditPermissionsRequested()
+    {
+        Dispatcher.UIThread.Post(() => _ = ShowPermissionsDialogAsync());
+    }
+
+    /// <summary>
     /// Cierra la ventana para que el actualizador pueda reemplazar el binario.
     /// </summary>
     private void OnRestartRequested()
@@ -435,5 +445,24 @@ public partial class MainWindow : Window
 
         if (dialog.Result is not null)
             await vm.ApplyConfigAsync(dialog.Result);
+    }
+
+    /// <summary>
+    /// Muestra el diálogo de permisos y aplica los valores confirmados.
+    /// </summary>
+    private async Task ShowPermissionsDialogAsync()
+    {
+        if (DataContext is not MainViewModel vm)
+            return;
+
+        var permissionsVm = new PermissionsViewModel(vm.Permissions);
+        var dialog = new PermissionsView
+        {
+            DataContext = permissionsVm,
+        };
+
+        var result = await dialog.ShowDialog<AiPermissions?>(this);
+        if (result is not null)
+            await vm.ApplyPermissionsAsync(result);
     }
 }
