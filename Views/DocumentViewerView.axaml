@@ -1,0 +1,87 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:learn_Assist.ViewModels"
+             x:Class="learn_Assist.Views.DocumentViewerView"
+             x:DataType="vm:DocumentViewerViewModel"
+             Background="{DynamicResource WindowBackgroundBrush}">
+  <Grid RowDefinitions="Auto,*" Background="{DynamicResource WindowBackgroundBrush}">
+    <Border Grid.Row="0"
+            Padding="10,6"
+            Background="{DynamicResource HeaderBackgroundBrush}"
+            BorderBrush="{DynamicResource DividerBrush}"
+            BorderThickness="0,0,0,1">
+      <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+        <Button Grid.Column="0"
+                Content="← Chat"
+                Command="{Binding CloseCommand}"
+                Background="Transparent"
+                BorderThickness="0"
+                Foreground="{DynamicResource BrandBrush}"
+                Padding="8,5" />
+        <TextBlock Grid.Column="1"
+                   Text="{Binding Document.Name}"
+                   FontSize="13"
+                   FontWeight="SemiBold"
+                   Foreground="{DynamicResource TextPrimaryBrush}"
+                   TextTrimming="CharacterEllipsis"
+                   VerticalAlignment="Center" />
+        <TextBlock Grid.Column="2"
+                   Text="{Binding PageIndicator}"
+                   FontSize="12"
+                   Foreground="{DynamicResource TextMutedBrush}"
+                   VerticalAlignment="Center" />
+      </Grid>
+    </Border>
+
+    <Grid Grid.Row="1" RowDefinitions="Auto,*" Margin="16">
+      <NativeWebView Grid.Row="0"
+                     Grid.RowSpan="2"
+                     Source="{Binding PdfUri}"
+                     IsVisible="{Binding IsPdf}" />
+
+      <StackPanel Grid.Row="0"
+                  Orientation="Horizontal"
+                  HorizontalAlignment="Center"
+                  Spacing="8"
+                  IsVisible="{Binding HasPages}"
+                  ZIndex="1">
+        <Button Content="Anterior"
+                Command="{Binding PreviousPageCommand}"
+                IsEnabled="{Binding CanGoPrevious}"
+                Padding="10,5" />
+        <Button Content="Siguiente"
+                Command="{Binding NextPageCommand}"
+                IsEnabled="{Binding CanGoNext}"
+                Padding="10,5" />
+      </StackPanel>
+
+      <Border Grid.Row="1"
+              Margin="0,12,0,0"
+              Padding="24"
+              Background="{DynamicResource SurfaceBrush}"
+              BorderBrush="{DynamicResource BorderBrush}"
+              BorderThickness="1"
+              CornerRadius="10"
+              IsVisible="{Binding HasPages}"
+              ZIndex="1">
+        <ScrollViewer HorizontalScrollBarVisibility="Disabled"
+                      VerticalScrollBarVisibility="Auto">
+          <SelectableTextBlock Text="{Binding CurrentPageText}"
+                               FontSize="15"
+                               LineHeight="24"
+                               TextWrapping="Wrap"
+                               Foreground="{DynamicResource TextPrimaryBrush}" />
+        </ScrollViewer>
+      </Border>
+
+      <TextBlock Grid.Row="1"
+                 Text="{Binding ErrorMessage}"
+                 IsVisible="{Binding HasError}"
+                 TextWrapping="Wrap"
+                 HorizontalAlignment="Center"
+                 VerticalAlignment="Center"
+                 Foreground="{DynamicResource ErrorTextBrush}"
+                 ZIndex="1" />
+    </Grid>
+  </Grid>
+</UserControl>

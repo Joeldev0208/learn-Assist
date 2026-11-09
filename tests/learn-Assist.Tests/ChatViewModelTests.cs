@@ -147,4 +147,52 @@ public class ChatViewModelTests
             m.Role == MessageRole.Assistant &&
             m.Content == "Respuesta de prueba del asistente.");
     }
+
+    [Fact]
+    public async Task SendMessage_ResourcesOnlyWithoutResources_BlocksAndKeepsDraft()
+    {
+        var aiService = new MockAiServiceForTests();
+        var vm = new ChatViewModel(aiService);
+        vm.SetResourceMode(resourcesOnly: true, hasSelectedResources: false);
+        vm.MessageText = "¿Qué es una clase?";
+
+        await vm.SendMessageAsync();
+
+        Assert.Equal(0, aiService.CallCount);
+        Assert.True(vm.IsResourceModeBlocked);
+        Assert.False(vm.CanSendMessage);
+        Assert.NotNull(vm.ResourceModeHint);
+        Assert.Equal("¿Qué es una clase?", vm.MessageText);
+        Assert.Empty(vm.Messages);
+        Assert.NotNull(vm.ErrorMessage);
+    }
+
+    [Fact]
+    public async Task SendMessage_ResourcesOnlyWithResources_SendsNormally()
+    {
+        var aiService = new MockAiServiceForTests();
+        var vm = new ChatViewModel(aiService);
+        vm.SetResourceMode(resourcesOnly: true, hasSelectedResources: true);
+        vm.MessageText = "¿Qué es una clase?";
+
+        await vm.SendMessageAsync();
+
+        Assert.Equal(1, aiService.CallCount);
+        Assert.False(vm.IsResourceModeBlocked);
+        Assert.True(vm.CanSendMessage);
+        Assert.Contains(vm.Messages, m => m.Role == MessageRole.Assistant);
+    }
+
+    [Fact]
+    public void SetResourceMode_Disabled_DoesNotBlockEvenWithoutResources()
+    {
+        var aiService = new MockAiServiceForTests();
+        var vm = new ChatViewModel(aiService);
+
+        vm.SetResourceMode(resourcesOnly: false, hasSelectedResources: false);
+
+        Assert.False(vm.IsResourceModeBlocked);
+        Assert.True(vm.CanSendMessage);
+        Assert.Null(vm.ResourceModeHint);
+    }
 }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -15,10 +16,10 @@ namespace learn_Assist.ViewModels;
 public partial class DocumentListViewModel : ViewModelBase
 {
     /// <summary>
-    /// Ubicación real de la biblioteca del usuario. Solo se usa cuando no se inyecta
-    /// una ruta explícita (por ejemplo, en pruebas unitarias).
+    /// Ruta real de la biblioteca del usuario. Los tests deben inyectar una ruta
+    /// temporal en el constructor para no sobrescribirla.
     /// </summary>
-    public static string DefaultDocumentsFilePath { get; } = Path.Combine(
+    public static readonly string DefaultDocumentsFilePath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
         "learn-assist",
         "documents.json");
@@ -33,12 +34,14 @@ public partial class DocumentListViewModel : ViewModelBase
     public ObservableCollection<UserDocument> Documents { get; } = [];
 
     public event Action? ImportDialogRequested;
+    public event Action<UserDocument>? DocumentSelected;
 
     /// <summary>
     /// Se dispara cuando se recuperó contenido de documentos que se habían guardado sin texto.
     /// MainViewModel lo usa para reconstruir el system prompt.
     /// </summary>
     public event Action? ContentRepaired;
+    public event Action? ContextSelectionChanged;
 
     private readonly IWebContentReader _webContentReader;
 
@@ -52,13 +55,11 @@ public partial class DocumentListViewModel : ViewModelBase
     public partial string? ImportError { get; set; }
 
     [ObservableProperty]
+    public partial UserDocument? SelectedDocument { get; set; }
+
+    [ObservableProperty]
     public partial bool IsImporting { get; set; }
 
-    /// <param name="webContentReader">Lector de contenido web; por defecto usa el singleton.</param>
-    /// <param name="documentsFilePath">
-    /// Ruta del archivo de biblioteca. Las pruebas deben pasar una ruta temporal para no
-    /// sobrescribir <see cref="DefaultDocumentsFilePath"/> del usuario real.
-    /// </param>
     public DocumentListViewModel(
         IWebContentReader? webContentReader = null,
         string? documentsFilePath = null)
@@ -67,6 +68,12 @@ public partial class DocumentListViewModel : ViewModelBase
         _documentsFilePath = string.IsNullOrWhiteSpace(documentsFilePath)
             ? DefaultDocumentsFilePath
             : documentsFilePath;
+    }
+
+    partial void OnSelectedDocumentChanged(UserDocument? value)
+    {
+        if (value is not null)
+            DocumentSelected?.Invoke(value);
     }
 
     [RelayCommand]
@@ -127,6 +134,7 @@ public partial class DocumentListViewModel : ViewModelBase
                 ImportedAt = DateTime.Now
             };
 
+            TrackDocument(doc);
             Documents.Insert(0, doc);
             await SaveDocumentsAsync();
             NewUrl = null;
@@ -146,6 +154,7 @@ public partial class DocumentListViewModel : ViewModelBase
     [RelayCommand]
     public async Task AddDocumentAsync(UserDocument doc)
     {
+        TrackDocument(doc);
         Documents.Insert(0, doc);
         await SaveDocumentsAsync();
     }
@@ -178,6 +187,7 @@ public partial class DocumentListViewModel : ViewModelBase
             foreach (var doc in docs)
             {
                 NormalizeDocumentPaths(doc);
+                TrackDocument(doc);
 
                 // Re-extraer contenido si el documento lo perdió en la serialización.
                 // Se hace fuera del hilo de UI y en segundo plano: un libro de cientos
@@ -199,6 +209,21 @@ public partial class DocumentListViewModel : ViewModelBase
         {
             // Corrupted or unreadable file — start fresh
         }
+    }
+
+    private void TrackDocument(UserDocument doc)
+    {
+        doc.PropertyChanged -= OnDocumentPropertyChanged;
+        doc.PropertyChanged += OnDocumentPropertyChanged;
+    }
+
+    private async void OnDocumentPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName != nameof(UserDocument.IsIncludedInContext))
+            return;
+
+        await SaveDocumentsAsync();
+        ContextSelectionChanged?.Invoke();
     }
 
     /// <summary>

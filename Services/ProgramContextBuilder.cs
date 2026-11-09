@@ -30,6 +30,35 @@ public sealed class ProgramContextBuilder : IContextBuilder
     /// </summary>
     private const int MinUsefulSlice = 2_000;
 
+    /// <summary>
+    /// Restricción del modo «Solo recursos»: el material importado es la única
+    /// fuente de hechos. Se coloca al final para que el modelo la lea al último.
+    /// </summary>
+    private const string ResourcesOnlyRules = """
+        ## MODO SOLO RECURSOS (prioridad sobre las reglas anteriores)
+
+        En este modo no hay programa del semestre ni fuentes externas.
+        Tu única fuente de hechos es la sección MATERIAL de este mensaje.
+        - Responde exclusivamente con información que aparezca en ese material.
+        - Ignora la regla de «anclar al programa»: aquí el MATERIAL sustituye al programa.
+        - No uses conocimiento general ni el perfil docente como fuente de datos.
+        - Cita siempre el documento de origen con el formato `[nombre del documento]`, usando el nombre que aparece en su encabezado `###`.
+        - Si la respuesta no está en el material, dilo explícitamente: «Eso no aparece en los recursos seleccionados». Después enumera los recursos disponibles y pide que se marque o importe el recurso adecuado.
+        - No inventes datos, fechas, fórmulas, cifras ni referencias que no estén en el material.
+        - Si el material está en otro idioma, responde en el idioma del estudiante, sin traducir nombres propios, identificadores ni fórmulas.
+        """;
+
+    /// <summary>
+    /// Variante del modo estricto cuando no hay ningún recurso marcado.
+    /// </summary>
+    private const string NoResourcesWarning = """
+        ## MODO SOLO RECURSOS (prioridad sobre las reglas anteriores)
+
+        No hay recursos seleccionados en este momento.
+        No puedes responder con conocimiento general ni con el programa del semestre.
+        Responde al estudiante que marque al menos un recurso en el panel «Resources» antes de continuar.
+        """;
+
     private ProgramContextBuilder()
     {
     }
@@ -41,12 +70,14 @@ public sealed class ProgramContextBuilder : IContextBuilder
     ///   2. PERFIL DOCENTE (rules-file, primero para que no se diluya)
     ///   3. PROGRAMA DEL USUARIO (SemesterContent)
     ///   4. MATERIAL (documentos importados)
+    ///   5. RESTRICCIÓN «Solo recursos» (si está activa)
     /// </summary>
     public async Task<BuiltContext> BuildAsync(
         LearnerLevel level,
         string? programContent,
         IReadOnlyList<UserDocument> materials,
-        CancellationToken ct = default)
+        CancellationToken ct = default,
+        bool resourcesOnly = false)
     {
         ct.ThrowIfCancellationRequested();
 
@@ -71,7 +102,9 @@ public sealed class ProgramContextBuilder : IContextBuilder
         }
 
         // --- Bloque 3: Programa del usuario (SemesterContent) ---
-        if (!string.IsNullOrWhiteSpace(programContent))
+        // En modo «Solo recursos» se omite a propósito: la única fuente de
+        // hechos debe ser el material importado, no el pensum.
+        if (!resourcesOnly && !string.IsNullOrWhiteSpace(programContent))
         {
             blocks.Add(new ContextBlock(programContent, ContextOrigin.Program));
             ExtractProgramUnits(programContent, programUnits);
@@ -130,6 +163,15 @@ public sealed class ProgramContextBuilder : IContextBuilder
                 var materialText = string.Join("\n\n---\n\n", materialParts);
                 blocks.Add(new ContextBlock(materialText, ContextOrigin.Material));
             }
+        }
+
+        // --- Bloque 5: Restricción «Solo recursos» ---
+        if (resourcesOnly)
+        {
+            var hasMaterial = blocks.Any(block => block.Origin == ContextOrigin.Material);
+            blocks.Add(new ContextBlock(
+                hasMaterial ? ResourcesOnlyRules : NoResourcesWarning,
+                ContextOrigin.Restriction));
         }
 
         // --- Ensamblar system prompt ---

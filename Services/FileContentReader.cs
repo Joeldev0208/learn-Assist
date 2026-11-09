@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using UglyToad.PdfPig;
+using System.Collections.Generic;
 
 namespace learn_Assist.Services;
 
@@ -125,6 +126,31 @@ public static class FileContentReader
         return ExtractText(filePath, out _);
     }
 
+    public static PdfPagesResult ExtractPdfPages(string filePath)
+    {
+        try
+        {
+            var path = NormalizePath(filePath);
+            if (!File.Exists(path))
+                return PdfPagesResult.Failed("El archivo PDF no existe.");
+
+            using var document = PdfDocument.Open(path);
+            var pages = document.GetPages()
+                .Select(page => string.IsNullOrWhiteSpace(page.Text)
+                    ? "[Esta página no contiene texto extraíble.]"
+                    : page.Text.Trim())
+                .ToList();
+
+            return pages.Count == 0
+                ? PdfPagesResult.Failed("El PDF no contiene páginas.")
+                : PdfPagesResult.Succeeded(pages);
+        }
+        catch (Exception ex)
+        {
+            return PdfPagesResult.Failed($"Error al leer el PDF: {ex.Message}");
+        }
+    }
+
     private static string? Truncate(string? text)
     {
         if (string.IsNullOrEmpty(text) || text.Length <= MaxExtractedCharacters)
@@ -165,6 +191,12 @@ public static class FileContentReader
             System.Diagnostics.Debug.WriteLine($"[FileContentReader] {errorReason} (archivo: {filePath})");
             return null;
         }
+    }
+
+    public sealed record PdfPagesResult(bool Success, IReadOnlyList<string> Pages, string? Error)
+    {
+        public static PdfPagesResult Succeeded(IReadOnlyList<string> pages) => new(true, pages, null);
+        public static PdfPagesResult Failed(string error) => new(false, [], error);
     }
 
     private static string? ExtractDocxText(string filePath, out string? errorReason)

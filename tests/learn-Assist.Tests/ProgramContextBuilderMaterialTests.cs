@@ -59,4 +59,68 @@ public class ProgramContextBuilderMaterialTests
 
         Assert.DoesNotContain("### vacio.pdf", context.SystemPrompt);
     }
+
+    [Fact]
+    public async Task Build_ResourcesOnly_AddsStrictGroundingRules()
+    {
+        var materials = new List<UserDocument>
+        {
+            new() { Name = "apuntes.pdf", Content = "La fotosíntesis ocurre en los cloroplastos." },
+        };
+
+        var context = await ProgramContextBuilder.Instance.BuildAsync(
+            LearnerLevel.University, null, materials, resourcesOnly: true);
+
+        Assert.Contains("MODO SOLO RECURSOS", context.SystemPrompt);
+        Assert.Contains("única fuente de hechos", context.SystemPrompt);
+        Assert.Contains("### apuntes.pdf", context.SystemPrompt);
+        // La restricción debe leerse después del material (recencia).
+        Assert.True(
+            context.SystemPrompt.LastIndexOf("MODO SOLO RECURSOS", System.StringComparison.Ordinal)
+            > context.SystemPrompt.LastIndexOf("### apuntes.pdf", System.StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task Build_ResourcesOnly_OmitsSemesterProgram()
+    {
+        const string program = "Unidad 1: Introducción al álgebra lineal.";
+        var materials = new List<UserDocument>
+        {
+            new() { Name = "apuntes.pdf", Content = "Contenido de apoyo." },
+        };
+
+        var withProgram = await ProgramContextBuilder.Instance.BuildAsync(
+            LearnerLevel.University, program, materials);
+        var strict = await ProgramContextBuilder.Instance.BuildAsync(
+            LearnerLevel.University, program, materials, resourcesOnly: true);
+
+        Assert.Contains(program, withProgram.SystemPrompt);
+        Assert.DoesNotContain(program, strict.SystemPrompt);
+        Assert.Contains("### apuntes.pdf", strict.SystemPrompt);
+    }
+
+    [Fact]
+    public async Task Build_WithoutResourcesOnly_DoesNotAddStrictRules()
+    {
+        var materials = new List<UserDocument>
+        {
+            new() { Name = "apuntes.pdf", Content = "Contenido de apoyo." },
+        };
+
+        var context = await ProgramContextBuilder.Instance.BuildAsync(
+            LearnerLevel.University, null, materials);
+
+        Assert.DoesNotContain("MODO SOLO RECURSOS", context.SystemPrompt);
+    }
+
+    [Fact]
+    public async Task Build_ResourcesOnly_WithoutMaterials_WarnsAndForbidsGeneralKnowledge()
+    {
+        var context = await ProgramContextBuilder.Instance.BuildAsync(
+            LearnerLevel.University, null, [], resourcesOnly: true);
+
+        Assert.Contains("MODO SOLO RECURSOS", context.SystemPrompt);
+        Assert.Contains("No hay recursos seleccionados", context.SystemPrompt);
+        Assert.Contains("No puedes responder con conocimiento general", context.SystemPrompt);
+    }
 }

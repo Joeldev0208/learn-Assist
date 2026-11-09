@@ -11,9 +11,13 @@ internal static class AiPrompt
         3. Da un ejemplo práctico y una analogía que conecten la idea con la vida real.
         4. Termina con una pregunta breve de seguimiento para comprobar la comprensión y fomentar el pensamiento crítico.
 
+        Responde en español estándar por defecto. Conserva siempre las tildes, la letra ñ y los signos de puntuación del español.
+        Si el contexto del estudiante indica que prefiere English, responde en inglés; si indica Español, responde en español.
+        Respeta el idioma solicitado aunque el material importado esté escrito en otro idioma. No traduzcas nombres propios, identificadores de código ni fórmulas salvo que se te pida.
         Usa Markdown estándar sin formatear listas en una sola línea.
         Da saltos de línea claros entre secciones.
         Evita líneas de texto demasiado largas.
         Si incluyes bloques de código o listas, mantén una estructura vertical compacta.
+        Para matemáticas, conserva la notación LaTeX y usa $...$ para fórmulas en línea o $$...$$ para fórmulas en bloque. No pongas fórmulas dentro de bloques de código.
         """;
 }

@@ -100,6 +100,17 @@ public sealed class MarkdownView : UserControl
                 continue;
             }
 
+            var trimmedLine = line.Trim();
+            if (trimmedLine.StartsWith("$$", StringComparison.Ordinal)
+                && trimmedLine.EndsWith("$$", StringComparison.Ordinal)
+                && trimmedLine.Length > 4)
+            {
+                FlushParagraph(paragraph);
+                AddFormulaBlock(trimmedLine[2..^2]);
+                index++;
+                continue;
+            }
+
             if (line.Trim() == @"\[")
             {
                 FlushParagraph(paragraph);
@@ -117,6 +128,16 @@ public sealed class MarkdownView : UserControl
                 AddFormulaBlock(formula.ToString());
                 if (index < lines.Length)
                     index++;
+                continue;
+            }
+
+            if (trimmedLine.StartsWith(@"\[", StringComparison.Ordinal)
+                && trimmedLine.EndsWith(@"\]", StringComparison.Ordinal)
+                && trimmedLine.Length > 4)
+            {
+                FlushParagraph(paragraph);
+                AddFormulaBlock(trimmedLine[2..^2]);
+                index++;
                 continue;
             }
 
@@ -208,12 +229,18 @@ public sealed class MarkdownView : UserControl
         {
             if (inline.Formula)
             {
-                block.Inlines!.Add(new Run(FormatFormula(inline.Text))
+                block.Inlines!.Add(new Run(MathFormulaFormatter.Format(inline.Text))
                 {
                     FontSize = fontSize,
                     FontFamily = new FontFamily("Cambria Math"),
                     Foreground = FindBrush("MarkdownFormulaForegroundBrush") ?? FindBrush("TextPrimaryBrush"),
                 });
+                continue;
+            }
+
+            if (inline.LinkUrl is not null)
+            {
+                block.Inlines!.Add(new InlineUIContainer(CreateLinkButton(inline.Text, inline.LinkUrl)));
                 continue;
             }
 
@@ -271,7 +298,7 @@ public sealed class MarkdownView : UserControl
             Padding = new Thickness(14, 10),
             Child = new TextBlock
             {
-                Text = FormatFormula(formula),
+                Text = MathFormulaFormatter.Format(formula),
                 FontSize = 17,
                 FontFamily = new FontFamily("Cambria Math"),
                 Foreground = FindBrush("MarkdownFormulaForegroundBrush") ?? FindBrush("TextPrimaryBrush"),
@@ -324,12 +351,18 @@ public sealed class MarkdownView : UserControl
         {
             if (inline.Formula)
             {
-                block.Inlines!.Add(new Run(FormatFormula(inline.Text))
+                block.Inlines!.Add(new Run(MathFormulaFormatter.Format(inline.Text))
                 {
                     FontSize = 14,
                     FontFamily = new FontFamily("Cambria Math"),
                     Foreground = FindBrush("MarkdownFormulaForegroundBrush") ?? FindBrush("TextPrimaryBrush"),
                 });
+                continue;
+            }
+
+            if (inline.LinkUrl is not null)
+            {
+                block.Inlines!.Add(new InlineUIContainer(CreateLinkButton(inline.Text, inline.LinkUrl)));
                 continue;
             }
 
@@ -344,6 +377,24 @@ public sealed class MarkdownView : UserControl
         }
 
         return block;
+    }
+
+    private static HyperlinkButton CreateLinkButton(string text, string url)
+    {
+        return new HyperlinkButton
+        {
+            Content = new TextBlock
+            {
+                Text = text,
+                Foreground = FindBrush("MarkdownLinkForegroundBrush") ?? FindBrush("BrandBrush"),
+                TextDecorations = TextDecorations.Underline,
+            },
+            NavigateUri = new Uri(url),
+            Padding = new Thickness(0),
+            Background = Brushes.Transparent,
+            BorderThickness = new Thickness(0),
+            VerticalContentAlignment = VerticalAlignment.Center,
+        };
     }
 
     private static IBrush? FindBrush(string key)
@@ -414,41 +465,6 @@ public sealed class MarkdownView : UserControl
         _ => 15,
     };
 
-    private static string FormatFormula(string formula)
-    {
-        var result = formula.Trim();
-        result = result.Replace(@"\cdot", "·", StringComparison.Ordinal);
-        result = result.Replace(@"\times", "×", StringComparison.Ordinal);
-        result = result.Replace(@"\div", "÷", StringComparison.Ordinal);
-        result = result.Replace(@"\leq", "≤", StringComparison.Ordinal);
-        result = result.Replace(@"\geq", "≥", StringComparison.Ordinal);
-        result = result.Replace(@"\neq", "≠", StringComparison.Ordinal);
-        result = result.Replace(@"\pm", "±", StringComparison.Ordinal);
-        result = result.Replace(@"\infty", "∞", StringComparison.Ordinal);
-        result = result.Replace(@"\rightarrow", "→", StringComparison.Ordinal);
-        result = result.Replace(@"\Rightarrow", "⇒", StringComparison.Ordinal);
-        result = result.Replace(@"\alpha", "α", StringComparison.Ordinal);
-        result = result.Replace(@"\beta", "β", StringComparison.Ordinal);
-        result = result.Replace(@"\gamma", "γ", StringComparison.Ordinal);
-        result = result.Replace(@"\delta", "δ", StringComparison.Ordinal);
-        result = result.Replace(@"\lambda", "λ", StringComparison.Ordinal);
-        result = result.Replace(@"\mu", "μ", StringComparison.Ordinal);
-        result = result.Replace(@"\pi", "π", StringComparison.Ordinal);
-        result = result.Replace(@"\sigma", "σ", StringComparison.Ordinal);
-        result = result.Replace(@"\theta", "θ", StringComparison.Ordinal);
-        result = result.Replace(@"\phi", "φ", StringComparison.Ordinal);
-        result = result.Replace(@"\sum", "∑", StringComparison.Ordinal);
-        result = result.Replace(@"\int", "∫", StringComparison.Ordinal);
-        result = result.Replace(@"\sqrt", "√", StringComparison.Ordinal);
-        result = result.Replace(@"\left", string.Empty, StringComparison.Ordinal);
-        result = result.Replace(@"\right", string.Empty, StringComparison.Ordinal);
-        result = result.Replace(@"\,", " ", StringComparison.Ordinal);
-        result = result.Replace("{", string.Empty, StringComparison.Ordinal)
-                       .Replace("}", string.Empty, StringComparison.Ordinal);
-
-        return result;
-    }
-
     private static IEnumerable<InlinePart> ParseInline(string text)
     {
         var parts = new List<InlinePart>();
@@ -502,6 +518,44 @@ public sealed class MarkdownView : UserControl
                 }
             }
 
+            if (text[index] == '[')
+            {
+                var labelEnd = text.IndexOf("](", index + 1, StringComparison.Ordinal);
+                if (labelEnd > index + 1)
+                {
+                    var urlEnd = text.IndexOf(')', labelEnd + 2);
+                    if (urlEnd > labelEnd + 2
+                        && Uri.TryCreate(text[(labelEnd + 2)..urlEnd], UriKind.Absolute, out var linkUri)
+                        && (linkUri.Scheme == Uri.UriSchemeHttp || linkUri.Scheme == Uri.UriSchemeHttps))
+                    {
+                        Flush();
+                        parts.Add(new InlinePart(
+                            text[(index + 1)..labelEnd],
+                            LinkUrl: linkUri.AbsoluteUri));
+                        index = urlEnd + 1;
+                        continue;
+                    }
+                }
+            }
+
+            if (text.AsSpan(index).StartsWith("https://".AsSpan(), StringComparison.Ordinal)
+                || text.AsSpan(index).StartsWith("http://".AsSpan(), StringComparison.Ordinal))
+            {
+                var end = index;
+                while (end < text.Length && !char.IsWhiteSpace(text[end]))
+                    end++;
+
+                var candidate = text[index..end].TrimEnd('.', ',', ';', ':', '!', '?', ')', ']', '}');
+                if (Uri.TryCreate(candidate, UriKind.Absolute, out var linkUri)
+                    && (linkUri.Scheme == Uri.UriSchemeHttp || linkUri.Scheme == Uri.UriSchemeHttps))
+                {
+                    Flush();
+                    parts.Add(new InlinePart(candidate, LinkUrl: linkUri.AbsoluteUri));
+                    index += candidate.Length;
+                    continue;
+                }
+            }
+
             if (text.AsSpan(index).StartsWith("**".AsSpan(), StringComparison.Ordinal)
                 || text.AsSpan(index).StartsWith("__".AsSpan(), StringComparison.Ordinal))
             {
@@ -549,5 +603,6 @@ public sealed class MarkdownView : UserControl
         bool Italic = false,
         bool Strikethrough = false,
         bool Code = false,
-        bool Formula = false);
+        bool Formula = false,
+        string? LinkUrl = null);
 }

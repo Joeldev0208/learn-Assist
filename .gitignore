@@ -492,4 +492,5 @@ AGENTS.md
 !.github/
 !.github/workflows/
 .vscode/
+!.github/copilot-instructions.md
 .github/copilot-instructions.md

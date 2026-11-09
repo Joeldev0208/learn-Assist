@@ -17,6 +17,8 @@ public partial class ChatViewModel : ViewModelBase
     private SessionPersistenceService? _persistence;
     private ChatSession? _currentSession;
     private string? _systemPrompt;
+    private bool _resourcesOnly;
+    private bool _hasSelectedResources;
 
     public ChatViewModel(IAiService aiService, SessionPersistenceService? persistence = null)
     {
@@ -55,6 +57,53 @@ public partial class ChatViewModel : ViewModelBase
         _systemPrompt = systemPrompt;
     }
 
+    /// <summary>
+    /// Indica si el chat está en modo «Solo recursos».
+    /// </summary>
+    public bool IsResourcesOnlyMode => _resourcesOnly;
+
+    /// <summary>
+    /// Indica si al menos un documento marcado tiene contenido para enviar.
+    /// </summary>
+    public bool HasSelectedResources => _hasSelectedResources;
+
+    /// <summary>
+    /// El modo estricto está activo pero no hay ningún recurso marcado: no se
+    /// puede enviar, porque la IA no tendría de dónde responder.
+    /// </summary>
+    public bool IsResourceModeBlocked => _resourcesOnly && !_hasSelectedResources;
+
+    public string? ResourceModeHint => IsResourceModeBlocked
+        ? "Modo Solo recursos: marca al menos un recurso en el panel Resources para poder enviar."
+        : null;
+
+    public bool CanSendMessage => !IsLoading && !IsResourceModeBlocked;
+
+    /// <summary>
+    /// Sincroniza el modo estricto y el estado de la selección de recursos.
+    /// Lo llama <see cref="MainViewModel"/> cada vez que cambia el interruptor
+    /// o la selección de documentos.
+    /// </summary>
+    public void SetResourceMode(bool resourcesOnly, bool hasSelectedResources)
+    {
+        if (_resourcesOnly == resourcesOnly && _hasSelectedResources == hasSelectedResources)
+            return;
+
+        _resourcesOnly = resourcesOnly;
+        _hasSelectedResources = hasSelectedResources;
+
+        OnPropertyChanged(nameof(IsResourcesOnlyMode));
+        OnPropertyChanged(nameof(HasSelectedResources));
+        OnPropertyChanged(nameof(IsResourceModeBlocked));
+        OnPropertyChanged(nameof(ResourceModeHint));
+        OnPropertyChanged(nameof(CanSendMessage));
+    }
+
+    partial void OnIsLoadingChanged(bool value)
+    {
+        OnPropertyChanged(nameof(CanSendMessage));
+    }
+
     public void SetCurrentSession(ChatSession? session)
     {
         _currentSession = session;
@@ -77,6 +126,12 @@ public partial class ChatViewModel : ViewModelBase
         var text = MessageText?.Trim();
         if (string.IsNullOrEmpty(text) || IsLoading)
             return;
+
+        if (IsResourceModeBlocked)
+        {
+            ErrorMessage = ResourceModeHint;
+            return;
+        }
 
         MessageText = string.Empty;
         ErrorMessage = null;

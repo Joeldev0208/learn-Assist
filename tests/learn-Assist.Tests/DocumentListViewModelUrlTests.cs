@@ -13,29 +13,30 @@ namespace learn_assist.Tests;
 
 public class DocumentListViewModelUrlTests : IDisposable
 {
-    private readonly string _tempDirectory;
+    private readonly string _tempDir;
 
     public DocumentListViewModelUrlTests()
     {
-        // Nunca usar la biblioteca real del usuario: cada prueba escribe en su propia carpeta.
-        _tempDirectory = Path.Combine(
-            Path.GetTempPath(), "learn-assist-tests", Guid.NewGuid().ToString("N"));
-        Directory.CreateDirectory(_tempDirectory);
+        _tempDir = Path.Combine(
+            Path.GetTempPath(),
+            "learn-assist-tests",
+            Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(_tempDir);
     }
 
     public void Dispose()
     {
         try
         {
-            Directory.Delete(_tempDirectory, recursive: true);
+            Directory.Delete(_tempDir, recursive: true);
         }
         catch
         {
-            // La limpieza no debe hacer fallar la prueba.
+            // Limpieza best-effort: no debe hacer fallar la prueba.
         }
     }
 
-    private string DocumentsFilePath => Path.Combine(_tempDirectory, "documents.json");
+    private string DocumentsPath => Path.Combine(_tempDir, "documents.json");
 
     private sealed class MockWebContentReader : IWebContentReader
     {
@@ -57,7 +58,7 @@ public class DocumentListViewModelUrlTests : IDisposable
     }
 
     private DocumentListViewModel CreateVm(MockWebContentReader? webReader = null)
-        => new(webReader ?? new MockWebContentReader(), DocumentsFilePath);
+        => new(webReader ?? new MockWebContentReader(), DocumentsPath);
 
     [Fact]
     public async Task AddUrlAsync_ValidUrl_AddsDocument()
@@ -156,73 +157,88 @@ public class DocumentListViewModelUrlTests : IDisposable
     [Fact]
     public async Task AddDocumentAsync_WritesOnlyToInjectedPath()
     {
+        Assert.NotEqual(DocumentListViewModel.DefaultDocumentsFilePath, DocumentsPath);
         var vm = CreateVm();
 
         await vm.AddDocumentAsync(new UserDocument
         {
-            Name = "libro.pdf",
-            Type = "document",
-            LocalPath = "/tmp/libro.pdf",
-            Content = "texto",
+            Name = "libro.txt",
+            Type = "file",
+            LocalPath = Path.Combine(_tempDir, "libro.txt"),
         });
 
-        Assert.True(File.Exists(DocumentsFilePath));
-        var json = await File.ReadAllTextAsync(DocumentsFilePath);
-        Assert.Contains("libro.pdf", json);
+        Assert.True(File.Exists(DocumentsPath));
+        var saved = JsonSerializer.Deserialize<List<UserDocument>>(
+            await File.ReadAllTextAsync(DocumentsPath));
+        Assert.NotNull(saved);
+        Assert.Single(saved!);
+        Assert.Equal("libro.txt", saved![0].Name);
+    }
+
+    [Fact]
+    public async Task ChangingContextSelection_PersistsDocumentSelection()
+    {
+        var vm = CreateVm();
+        await vm.AddDocumentAsync(new UserDocument
+        {
+            Name = "libro.txt",
+            Type = "file",
+            Content = "contenido",
+        });
+
+        Assert.True(vm.Documents[0].IsIncludedInContext);
+        vm.Documents[0].IsIncludedInContext = false;
+
+        for (var i = 0; i < 100; i++)
+        {
+            if ((await File.ReadAllTextAsync(DocumentsPath)).Contains("\"IsIncludedInContext\": false"))
+                return;
+
+            await Task.Delay(20);
+        }
+
+        Assert.Fail("La selección del recurso no se guardó.");
     }
 
     [Fact]
     public async Task LoadDocumentsAsync_ReadsFromInjectedPath()
     {
-        var stored = new List<UserDocument>
+        var docs = new List<UserDocument>
         {
-            new()
-            {
-                Name = "libro.pdf",
-                Type = "document",
-                LocalPath = "/tmp/libro.pdf",
-                Content = "texto guardado",
-            },
+            new() { Name = "libro.txt", Type = "file", LocalPath = "C:/inexistente/libro.txt" },
         };
-        await File.WriteAllTextAsync(DocumentsFilePath, JsonSerializer.Serialize(stored));
+        await File.WriteAllTextAsync(DocumentsPath, JsonSerializer.Serialize(docs));
 
         var vm = CreateVm();
         await vm.LoadDocumentsAsync();
 
-        var doc = Assert.Single(vm.Documents);
-        Assert.Equal("libro.pdf", doc.Name);
-        Assert.Equal("texto guardado", doc.Content);
+        Assert.Single(vm.Documents);
+        Assert.Equal("libro.txt", vm.Documents[0].Name);
     }
 
     [Fact]
     public async Task LoadDocumentsAsync_RepairsMissingContentFromDisk()
     {
-        var sourcePath = Path.Combine(_tempDirectory, "apunte.txt");
-        await File.WriteAllTextAsync(sourcePath, "contenido recuperado");
+        var libro = Path.Combine(_tempDir, "libro.txt");
+        await File.WriteAllTextAsync(libro, "texto de prueba");
 
-        var stored = new List<UserDocument>
+        var docs = new List<UserDocument>
         {
-            new()
-            {
-                Name = "apunte.txt",
-                Type = "document",
-                LocalPath = sourcePath,
-                Content = string.Empty,
-            },
+            new() { Name = "libro.txt", Type = "file", LocalPath = libro, Content = string.Empty },
         };
-        await File.WriteAllTextAsync(DocumentsFilePath, JsonSerializer.Serialize(stored));
+        await File.WriteAllTextAsync(DocumentsPath, JsonSerializer.Serialize(docs));
 
         var vm = CreateVm();
-        var repaired = false;
-        vm.ContentRepaired += () => repaired = true;
-
         await vm.LoadDocumentsAsync();
 
-        var doc = Assert.Single(vm.Documents);
-        for (var i = 0; i < 50 && !repaired; i++)
+        // La reparación es en segundo plano: se espera sin bloquear la prueba.
+        for (var i = 0; i < 100 && string.IsNullOrEmpty(vm.Documents[0].Content); i++)
             await Task.Delay(50);
 
-        Assert.True(repaired);
-        Assert.Equal("contenido recuperado", doc.Content);
+        Assert.Equal("texto de prueba", vm.Documents[0].Content);
+
+        for (var i = 0; i < 100 && !File.ReadAllText(DocumentsPath).Contains("texto de prueba"); i++)
+            await Task.Delay(50);
+        Assert.Contains("texto de prueba", await File.ReadAllTextAsync(DocumentsPath));
     }
 }

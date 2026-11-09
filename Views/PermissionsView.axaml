@@ -1,0 +1,123 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:learn_Assist.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="520" d:DesignHeight="620"
+        x:Class="learn_Assist.Views.PermissionsView"
+        x:DataType="vm:PermissionsViewModel"
+        Icon="/Assets/learn-assist.ico"
+        Title="Permisos de la IA"
+        WindowStartupLocation="CenterScreen"
+        CanResize="False"
+        Width="520" Height="620"
+        Background="{DynamicResource WindowBackgroundBrush}">
+
+  <Window.Styles>
+    <Style Selector="CheckBox">
+      <Setter Property="FontSize" Value="13" />
+      <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+    </Style>
+  </Window.Styles>
+
+  <Border Background="{DynamicResource SurfaceBrush}" Padding="28">
+    <ScrollViewer>
+      <StackPanel Spacing="14">
+
+        <TextBlock Text="Permisos de la IA"
+                   FontSize="22" FontWeight="Bold"
+                   Foreground="{DynamicResource TextPrimaryBrush}"
+                   HorizontalAlignment="Center" />
+
+        <TextBlock Text="Controla qué fuentes puede usar la IA y qué puede hacer el agente local. Los cambios se aplican al siguiente mensaje."
+                   FontSize="12" Foreground="{DynamicResource TextMutedBrush}"
+                   TextWrapping="Wrap" HorizontalAlignment="Center"
+                   TextAlignment="Center" Margin="0,0,0,6" />
+
+        <!-- Recursos que entran al contexto del chat. -->
+        <Border CornerRadius="10" Padding="14"
+                Background="{DynamicResource InputBackgroundBrush}"
+                BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1">
+          <StackPanel Spacing="6">
+            <TextBlock Text="Fuentes de consulta"
+                       FontSize="12" FontWeight="SemiBold"
+                       Foreground="{DynamicResource TextSecondaryBrush}" />
+
+            <CheckBox Content="Usar los recursos marcados en el chat"
+                      IsChecked="{Binding AllowResources, Mode=TwoWay}"
+                      Margin="0,4,0,0" />
+            <TextBlock Text="Si lo desactivas, la IA responde solo con su conocimiento general y el programa del semestre."
+                       FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+                       TextWrapping="Wrap" Margin="28,0,0,4" />
+
+            <CheckBox Content="Incluir recursos web (URL)"
+                      IsChecked="{Binding AllowWebResources, Mode=TwoWay}"
+                      IsEnabled="{Binding CanEditResourceTypes}"
+                      Margin="20,0,0,0" />
+            <TextBlock Text="Páginas y artículos agregados desde una dirección web."
+                       FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+                       TextWrapping="Wrap" Margin="48,0,0,6" />
+
+            <CheckBox Content="Incluir archivos locales"
+                      IsChecked="{Binding AllowLocalFiles, Mode=TwoWay}"
+                      IsEnabled="{Binding CanEditResourceTypes}"
+                      Margin="20,0,0,0" />
+            <TextBlock Text="PDF, DOCX, presentaciones, imágenes y videos importados desde tu equipo."
+                       FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+                       TextWrapping="Wrap" Margin="48,0,0,0" />
+          </StackPanel>
+        </Border>
+
+        <!-- Capacidades del agente local. -->
+        <Border CornerRadius="10" Padding="14"
+                Background="{DynamicResource InputBackgroundBrush}"
+                BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1">
+          <StackPanel Spacing="6">
+            <TextBlock Text="Agente local"
+                       FontSize="12" FontWeight="SemiBold"
+                       Foreground="{DynamicResource TextSecondaryBrush}" />
+
+            <CheckBox Content="Permitir herramientas del agente"
+                      IsChecked="{Binding AllowAgentTools, Mode=TwoWay}"
+                      Margin="0,4,0,0" />
+            <TextBlock Text="Con OpenCode, permite ejecutar comandos, editar archivos y acceder a la red. Desactivado por defecto: el agente corre con los permisos de tu cuenta."
+                       FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+                       TextWrapping="Wrap" Margin="28,0,0,0" />
+          </StackPanel>
+        </Border>
+
+        <TextBlock Text="Los permisos se guardan en este equipo y no se envían a ningún servidor."
+                   FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+                   TextWrapping="Wrap" Margin="0,2,0,0" />
+
+        <!-- Acciones. -->
+        <Grid ColumnDefinitions="*,Auto,Auto" Margin="0,8,0,0">
+          <Button Grid.Column="0"
+                  Command="{Binding ResetDefaultsCommand}"
+                  Content="Restablecer"
+                  Padding="12,9" Background="Transparent"
+                  Foreground="{DynamicResource TextMutedBrush}"
+                  CornerRadius="20" FontSize="12"
+                  HorizontalAlignment="Left" />
+
+          <Button Grid.Column="1"
+                  Command="{Binding CancelCommand}"
+                  Content="Cancelar"
+                  Padding="16,9" Background="Transparent"
+                  Foreground="{DynamicResource TextSecondaryBrush}"
+                  CornerRadius="20" FontSize="13"
+                  Margin="0,0,8,0" />
+
+          <Button Grid.Column="2"
+                  Command="{Binding SaveCommand}"
+                  Content="Guardar"
+                  Padding="18,9"
+                  Background="{DynamicResource ButtonPrimaryBackgroundBrush}"
+                  Foreground="{DynamicResource ButtonPrimaryForegroundBrush}"
+                  CornerRadius="20" FontSize="13" FontWeight="SemiBold" />
+        </Grid>
+
+      </StackPanel>
+    </ScrollViewer>
+  </Border>
+</Window>

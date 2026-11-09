@@ -4,6 +4,7 @@
         xmlns:models="using:learn_Assist.Models"
         xmlns:conv="using:learn_Assist.Converters"
         xmlns:controls="using:learn_Assist.Controls"
+        xmlns:views="using:learn_Assist.Views"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="700"
@@ -205,6 +206,14 @@
                 <TextBlock Text="⚙" HorizontalAlignment="Center" VerticalAlignment="Center" />
               </Button>
               <Button Width="30" Height="30"
+                      Command="{Binding EditPermissionsCommand}"
+                      Background="Transparent" BorderThickness="0"
+                      FontSize="15" Foreground="{DynamicResource TextMutedBrush}" Padding="0"
+                      ToolTip.Tip="Permisos de la IA"
+                      HorizontalAlignment="Center" VerticalAlignment="Center">
+                <TextBlock Text="🔒" HorizontalAlignment="Center" VerticalAlignment="Center" />
+              </Button>
+              <Button Width="30" Height="30"
                       Command="{Binding SignOutCommand}"
                       Background="Transparent" BorderThickness="0"
                       FontSize="15" Foreground="{DynamicResource TextMutedBrush}" Padding="0"
@@ -374,6 +383,7 @@
                   <TextBlock Text="{Binding LearningActionText}" FontSize="12" />
                 </Button>
               </Grid>
+
             </Border> 
           </Border> -->
 
@@ -409,9 +419,18 @@
                               Padding="14,12" CornerRadius="12"
                               Background="{Binding Role, Converter={StaticResource RoleToBubble}}"
                               BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
-                        <controls:MarkdownView x:Name="MarkdownView"
-                                                Markdown="{Binding Content}"
-                                                HorizontalAlignment="Stretch" />
+                        <StackPanel Spacing="8">
+                          <controls:MarkdownView x:Name="MarkdownView"
+                                                  Markdown="{Binding Content}"
+                                                  HorizontalAlignment="Stretch" />
+                          <Button Content="Copiar"
+                                  Click="OnCopyMessageClick"
+                                  HorizontalAlignment="Right"
+                                  Padding="8,4"
+                                  Background="Transparent"
+                                  BorderThickness="0"
+                                  Foreground="{DynamicResource TextSecondaryBrush}" />
+                        </StackPanel>
                       </Border>
                     </Grid>
                   </DataTemplate>
@@ -421,6 +440,11 @@
           </ScrollViewer>
           </Border>
         </Grid>
+
+        <views:DocumentViewerView Grid.Row="1"
+                                  DataContext="{Binding DocumentViewer}"
+                                  IsVisible="{Binding IsOpen}"
+                                  ZIndex="5" />
 
         <!--
           Barra de entrada fija debajo del historial. Al estar en una fila
@@ -439,6 +463,16 @@
                       BorderBrush="{DynamicResource ErrorBorderBrush}" BorderThickness="0,1,0,0"
                       IsVisible="{Binding Chat.ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
                 <TextBlock Text="{Binding Chat.ErrorMessage}" Foreground="{DynamicResource ErrorTextBrush}" FontSize="12" TextWrapping="Wrap" />
+              </Border>
+
+              <!-- Aviso del modo Solo recursos cuando no hay documentos marcados. -->
+              <Border Padding="20,8"
+                      Background="{DynamicResource WarningBackgroundBrush}"
+                      BorderBrush="{DynamicResource WarningBorderBrush}" BorderThickness="0,1,0,0"
+                      IsVisible="{Binding Chat.IsResourceModeBlocked}">
+                <TextBlock Text="{Binding Chat.ResourceModeHint}"
+                           Foreground="{DynamicResource TextPrimaryBrush}"
+                           FontSize="12" TextWrapping="Wrap" />
               </Border>
 
               <!-- Indicador de actividad mientras el proveedor de IA responde. -->
@@ -463,7 +497,7 @@
               <DockPanel LastChildFill="True">
                 <Button DockPanel.Dock="Right" Width="34" Height="34" Margin="8,0,0,0"
                         Command="{Binding Chat.SendMessageCommand}"
-                        IsEnabled="{Binding Chat.IsLoading, Converter={x:Static BoolConverters.Not}}"
+                        IsEnabled="{Binding Chat.CanSendMessage}"
                         Background="{DynamicResource ButtonPrimaryBackgroundBrush}" CornerRadius="19" BorderThickness="0"
                         HorizontalAlignment="Center" VerticalAlignment="Center" Padding="0">
                   <TextBlock Text="→" FontSize="16" Foreground="{DynamicResource ButtonPrimaryForegroundBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
@@ -511,6 +545,16 @@
               </DockPanel>
               <Border Height="1" Background="{DynamicResource DividerBrush}" Margin="0,2,0,0" />
 
+              <!--
+                Modo estricto: la IA solo responde con los recursos marcados.
+                Se persiste en resource-mode.json y se aplica al prompt.
+              -->
+              <CheckBox Content="Solo recursos"
+                        IsChecked="{Binding UseOnlyResources, Mode=TwoWay}"
+                        FontSize="11"
+                        Foreground="{DynamicResource TextMutedBrush}"
+                        ToolTip.Tip="La IA responde únicamente con los documentos marcados y dice cuándo algo no está en ellos." />
+
               <!-- Agregar URL como recurso -->
               <StackPanel Spacing="6" Margin="0,8,0,0">
                 <DockPanel LastChildFill="True">
@@ -549,6 +593,7 @@
           <!-- Lista desplazable de documentos importados. -->
           <ScrollViewer Padding="8,0">
             <ListBox ItemsSource="{Binding DocumentList.Documents}"
+                     SelectedItem="{Binding DocumentList.SelectedDocument, Mode=TwoWay}"
                      Background="Transparent" BorderThickness="0">
               <ListBox.ItemTemplate>
                 <DataTemplate DataType="models:UserDocument">
@@ -558,6 +603,11 @@
                                  Text="{Binding ContentType, Converter={StaticResource TypeToEmoji}}" />
                       <StackPanel VerticalAlignment="Center">
                         <TextBlock Text="{Binding Name}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" />
+                        <CheckBox Content="Usar en la IA"
+                                  IsChecked="{Binding IsIncludedInContext, Mode=TwoWay}"
+                                  FontSize="11"
+                                  Foreground="{DynamicResource TextMutedBrush}"
+                                  Margin="0,3,0,0" />
                       </StackPanel>
                     </DockPanel>
                   </Border>

@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
@@ -143,6 +144,7 @@ public partial class MainWindow : Window
             _previousVm.RestartRequested -= OnRestartRequested;
             _previousVm.UninstallRequested -= OnUninstallRequested;
             _previousVm.ExamRequested -= OnExamRequested;
+            _previousVm.EditPermissionsRequested -= OnEditPermissionsRequested;
             _previousVm.PropertyChanged -= OnViewModelPropertyChanged;
         }
 
@@ -157,6 +159,7 @@ public partial class MainWindow : Window
             vm.RestartRequested += OnRestartRequested;
             vm.UninstallRequested += OnUninstallRequested;
             vm.ExamRequested += OnExamRequested;
+            vm.EditPermissionsRequested += OnEditPermissionsRequested;
             vm.PropertyChanged += OnViewModelPropertyChanged;
             _previousVm = vm;
             UpdateResponsiveLayout(vm);
@@ -347,6 +350,16 @@ public partial class MainWindow : Window
         }
     }
 
+    private async void OnCopyMessageClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not Control { DataContext: ChatMessage message })
+            return;
+
+        var clipboard = TopLevel.GetTopLevel(this)?.Clipboard;
+        if (clipboard is not null)
+            await clipboard.SetTextAsync(message.Content);
+    }
+
     /// <summary>
     /// Inicia de forma asíncrona el diálogo para importar un documento.
     /// </summary>
@@ -361,6 +374,14 @@ public partial class MainWindow : Window
     private void OnConfigureAi()
     {
         Dispatcher.UIThread.Post(() => _ = ShowApiConfigDialogAsync());
+    }
+
+    /// <summary>
+    /// Abre el diálogo de permisos de la IA en el hilo de UI.
+    /// </summary>
+    private void OnEditPermissionsRequested()
+    {
+        Dispatcher.UIThread.Post(() => _ = ShowPermissionsDialogAsync());
     }
 
     /// <summary>
@@ -435,5 +456,24 @@ public partial class MainWindow : Window
 
         if (dialog.Result is not null)
             await vm.ApplyConfigAsync(dialog.Result);
+    }
+
+    /// <summary>
+    /// Muestra el diálogo de permisos y aplica los valores confirmados.
+    /// </summary>
+    private async Task ShowPermissionsDialogAsync()
+    {
+        if (DataContext is not MainViewModel vm)
+            return;
+
+        var permissionsVm = new PermissionsViewModel(vm.Permissions);
+        var dialog = new PermissionsView
+        {
+            DataContext = permissionsVm,
+        };
+
+        var result = await dialog.ShowDialog<AiPermissions?>(this);
+        if (result is not null)
+            await vm.ApplyPermissionsAsync(result);
     }
 }

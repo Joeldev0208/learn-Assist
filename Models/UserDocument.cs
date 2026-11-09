@@ -1,4 +1,5 @@
 using System;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace learn_Assist.Models;
 
@@ -20,7 +21,7 @@ public class UserUrl
     public DateTime ImportedAt { get; set; } = DateTime.Now;
 }
 
-public class UserDocument
+public partial class UserDocument : ObservableObject
 {
     public Guid Id { get; set; } = Guid.NewGuid();
     public string Name { get; set; } = string.Empty;
@@ -31,6 +32,9 @@ public class UserDocument
     public DateTime ImportedAt { get; set; } = DateTime.Now;
     public string? LocalPath { get; set; }
     public string? Content { get; set; }
+
+    [ObservableProperty]
+    private bool isIncludedInContext = true;
 
     public string SizeDisplay => FileSize switch
     {

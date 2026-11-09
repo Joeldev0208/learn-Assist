@@ -34,9 +34,18 @@ public sealed class OpenCodeService : IAiService
         }
         catch (Win32Exception) when (OperatingSystem.IsWindows())
         {
-            return await RunProcessAsync(
-                BuildWslStartInfo(prompt),
-                "OpenCode could not be started natively or through WSL.");
+            var promptFile = Path.GetTempFileName();
+            try
+            {
+                await File.WriteAllTextAsync(promptFile, prompt, new UTF8Encoding(false));
+                return await RunProcessAsync(
+                    BuildWslStartInfo(promptFile),
+                    "OpenCode could not be started natively or through WSL.");
+            }
+            finally
+            {
+                File.Delete(promptFile);
+            }
         }
     }
 
@@ -50,14 +59,29 @@ public sealed class OpenCodeService : IAiService
     public static string BuildPrompt(string message, IReadOnlyList<ChatMessage> history)
     {
         var prompt = new StringBuilder();
-        prompt.AppendLine(AiPrompt.System);
+        var systemMessages = history
+            .Where(item => item.Role == MessageRole.System)
+            .ToList();
 
+        prompt.AppendLine("### INSTRUCCIONES Y CONTEXTO");
+        if (systemMessages.Count == 0)
+            prompt.AppendLine(AiPrompt.System);
+
+        foreach (var item in systemMessages)
+        {
+            prompt.AppendLine(item.Content);
+            prompt.AppendLine();
+        }
+
+        prompt.AppendLine("### HISTORIAL DE CONVERSACIÓN");
         foreach (var item in history.Where(item => item.Role != MessageRole.System))
         {
             prompt.Append(item.Role == MessageRole.User ? "User: " : "Assistant: ");
             prompt.AppendLine(item.Content);
         }
 
+        prompt.AppendLine();
+        prompt.AppendLine("### PREGUNTA ACTUAL");
         prompt.Append("User: ").Append(message);
         return prompt.ToString();
     }
@@ -71,6 +95,25 @@ public sealed class OpenCodeService : IAiService
         var command = "exec opencode " + string.Join(
             " ",
             commandArguments.Select(ShellQuote));
+
+        var arguments = new List<string>
+        {
+            "--cd",
+            ConvertWindowsPathToWsl(workspace),
+            "--exec",
+            "bash",
+            "-lc",
+            command,
+        };
+        return [.. arguments];
+    }
+
+    public static string[] BuildWslFileArguments(string? model, string promptFile, string workspace)
+    {
+        var promptPath = ConvertWindowsPathToWsl(promptFile);
+        var command = "exec opencode "
+            + string.Join(" ", BuildArguments(model).Select(ShellQuote))
+            + " < " + ShellQuote(promptPath);
 
         var arguments = new List<string>
         {
@@ -147,7 +190,7 @@ public sealed class OpenCodeService : IAiService
             ? Environment.CurrentDirectory
             : configuredPath;
 
-    private ProcessStartInfo BuildNativeStartInfo(string prompt)
+    public ProcessStartInfo BuildNativeStartInfo(string prompt)
     {
         var startInfo = new ProcessStartInfo
         {
@@ -156,6 +199,8 @@ public sealed class OpenCodeService : IAiService
             RedirectStandardOutput = true,
             RedirectStandardError = true,
             CreateNoWindow = true,
+            StandardOutputEncoding = Encoding.UTF8,
+            StandardErrorEncoding = Encoding.UTF8,
             WorkingDirectory = ResolveWorkspace(_config.OpenCodeWorkspaceDirectory),
         };
 
@@ -165,7 +210,7 @@ public sealed class OpenCodeService : IAiService
         return startInfo;
     }
 
-    private ProcessStartInfo BuildWslStartInfo(string prompt)
+    public ProcessStartInfo BuildWslStartInfo(string promptFile)
     {
         var workspace = ResolveWorkspace(_config.OpenCodeWorkspaceDirectory);
         var startInfo = new ProcessStartInfo
@@ -175,9 +220,11 @@ public sealed class OpenCodeService : IAiService
             RedirectStandardOutput = true,
             RedirectStandardError = true,
             CreateNoWindow = true,
+            StandardOutputEncoding = Encoding.UTF8,
+            StandardErrorEncoding = Encoding.UTF8,
         };
 
-        foreach (var argument in BuildWslArguments(_config.Model, prompt, workspace))
+        foreach (var argument in BuildWslFileArguments(_config.Model, promptFile, workspace))
             startInfo.ArgumentList.Add(argument);
         return startInfo;
     }
