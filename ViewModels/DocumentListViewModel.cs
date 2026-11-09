@@ -34,6 +34,7 @@ public partial class DocumentListViewModel : ViewModelBase
     public ObservableCollection<UserDocument> Documents { get; } = [];
 
     public event Action? ImportDialogRequested;
+    public event Action<UserDocument>? DocumentSelected;
 
     /// <summary>
     /// Se dispara cuando se recuperó contenido de documentos que se habían guardado sin texto.
@@ -54,6 +55,9 @@ public partial class DocumentListViewModel : ViewModelBase
     public partial string? ImportError { get; set; }
 
     [ObservableProperty]
+    public partial UserDocument? SelectedDocument { get; set; }
+
+    [ObservableProperty]
     public partial bool IsImporting { get; set; }
 
     public DocumentListViewModel(
@@ -64,6 +68,12 @@ public partial class DocumentListViewModel : ViewModelBase
         _documentsFilePath = string.IsNullOrWhiteSpace(documentsFilePath)
             ? DefaultDocumentsFilePath
             : documentsFilePath;
+    }
+
+    partial void OnSelectedDocumentChanged(UserDocument? value)
+    {
+        if (value is not null)
+            DocumentSelected?.Invoke(value);
     }
 
     [RelayCommand]

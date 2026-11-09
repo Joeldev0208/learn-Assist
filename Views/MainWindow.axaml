@@ -4,6 +4,7 @@
         xmlns:models="using:learn_Assist.Models"
         xmlns:conv="using:learn_Assist.Converters"
         xmlns:controls="using:learn_Assist.Controls"
+        xmlns:views="using:learn_Assist.Views"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="700"
@@ -382,6 +383,7 @@
                   <TextBlock Text="{Binding LearningActionText}" FontSize="12" />
                 </Button>
               </Grid>
+
             </Border> 
           </Border> -->
 
@@ -417,9 +419,18 @@
                               Padding="14,12" CornerRadius="12"
                               Background="{Binding Role, Converter={StaticResource RoleToBubble}}"
                               BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
-                        <controls:MarkdownView x:Name="MarkdownView"
-                                                Markdown="{Binding Content}"
-                                                HorizontalAlignment="Stretch" />
+                        <StackPanel Spacing="8">
+                          <controls:MarkdownView x:Name="MarkdownView"
+                                                  Markdown="{Binding Content}"
+                                                  HorizontalAlignment="Stretch" />
+                          <Button Content="Copiar"
+                                  Click="OnCopyMessageClick"
+                                  HorizontalAlignment="Right"
+                                  Padding="8,4"
+                                  Background="Transparent"
+                                  BorderThickness="0"
+                                  Foreground="{DynamicResource TextSecondaryBrush}" />
+                        </StackPanel>
                       </Border>
                     </Grid>
                   </DataTemplate>
@@ -429,6 +440,11 @@
           </ScrollViewer>
           </Border>
         </Grid>
+
+        <views:DocumentViewerView Grid.Row="1"
+                                  DataContext="{Binding DocumentViewer}"
+                                  IsVisible="{Binding IsOpen}"
+                                  ZIndex="5" />
 
         <!--
           Barra de entrada fija debajo del historial. Al estar en una fila
@@ -577,6 +593,7 @@
           <!-- Lista desplazable de documentos importados. -->
           <ScrollViewer Padding="8,0">
             <ListBox ItemsSource="{Binding DocumentList.Documents}"
+                     SelectedItem="{Binding DocumentList.SelectedDocument, Mode=TwoWay}"
                      Background="Transparent" BorderThickness="0">
               <ListBox.ItemTemplate>
                 <DataTemplate DataType="models:UserDocument">

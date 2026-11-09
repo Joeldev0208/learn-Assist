@@ -238,6 +238,12 @@ public sealed class MarkdownView : UserControl
                 continue;
             }
 
+            if (inline.LinkUrl is not null)
+            {
+                block.Inlines!.Add(new InlineUIContainer(CreateLinkButton(inline.Text, inline.LinkUrl)));
+                continue;
+            }
+
             var run = new Run(inline.Text)
             {
                 FontWeight = inline.Bold ? FontWeight.Bold : weight,
@@ -354,6 +360,12 @@ public sealed class MarkdownView : UserControl
                 continue;
             }
 
+            if (inline.LinkUrl is not null)
+            {
+                block.Inlines!.Add(new InlineUIContainer(CreateLinkButton(inline.Text, inline.LinkUrl)));
+                continue;
+            }
+
             block.Inlines!.Add(new Run(inline.Text)
             {
                 FontWeight = inline.Bold ? FontWeight.Bold : FontWeight.Normal,
@@ -365,6 +377,24 @@ public sealed class MarkdownView : UserControl
         }
 
         return block;
+    }
+
+    private static HyperlinkButton CreateLinkButton(string text, string url)
+    {
+        return new HyperlinkButton
+        {
+            Content = new TextBlock
+            {
+                Text = text,
+                Foreground = FindBrush("MarkdownLinkForegroundBrush") ?? FindBrush("BrandBrush"),
+                TextDecorations = TextDecorations.Underline,
+            },
+            NavigateUri = new Uri(url),
+            Padding = new Thickness(0),
+            Background = Brushes.Transparent,
+            BorderThickness = new Thickness(0),
+            VerticalContentAlignment = VerticalAlignment.Center,
+        };
     }
 
     private static IBrush? FindBrush(string key)
@@ -488,6 +518,44 @@ public sealed class MarkdownView : UserControl
                 }
             }
 
+            if (text[index] == '[')
+            {
+                var labelEnd = text.IndexOf("](", index + 1, StringComparison.Ordinal);
+                if (labelEnd > index + 1)
+                {
+                    var urlEnd = text.IndexOf(')', labelEnd + 2);
+                    if (urlEnd > labelEnd + 2
+                        && Uri.TryCreate(text[(labelEnd + 2)..urlEnd], UriKind.Absolute, out var linkUri)
+                        && (linkUri.Scheme == Uri.UriSchemeHttp || linkUri.Scheme == Uri.UriSchemeHttps))
+                    {
+                        Flush();
+                        parts.Add(new InlinePart(
+                            text[(index + 1)..labelEnd],
+                            LinkUrl: linkUri.AbsoluteUri));
+                        index = urlEnd + 1;
+                        continue;
+                    }
+                }
+            }
+
+            if (text.AsSpan(index).StartsWith("https://".AsSpan(), StringComparison.Ordinal)
+                || text.AsSpan(index).StartsWith("http://".AsSpan(), StringComparison.Ordinal))
+            {
+                var end = index;
+                while (end < text.Length && !char.IsWhiteSpace(text[end]))
+                    end++;
+
+                var candidate = text[index..end].TrimEnd('.', ',', ';', ':', '!', '?', ')', ']', '}');
+                if (Uri.TryCreate(candidate, UriKind.Absolute, out var linkUri)
+                    && (linkUri.Scheme == Uri.UriSchemeHttp || linkUri.Scheme == Uri.UriSchemeHttps))
+                {
+                    Flush();
+                    parts.Add(new InlinePart(candidate, LinkUrl: linkUri.AbsoluteUri));
+                    index += candidate.Length;
+                    continue;
+                }
+            }
+
             if (text.AsSpan(index).StartsWith("**".AsSpan(), StringComparison.Ordinal)
                 || text.AsSpan(index).StartsWith("__".AsSpan(), StringComparison.Ordinal))
             {
@@ -535,5 +603,6 @@ public sealed class MarkdownView : UserControl
         bool Italic = false,
         bool Strikethrough = false,
         bool Code = false,
-        bool Formula = false);
+        bool Formula = false,
+        string? LinkUrl = null);
 }

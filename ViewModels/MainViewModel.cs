@@ -29,6 +29,7 @@ public partial class MainViewModel : ViewModelBase
     public SessionListViewModel SessionList { get; }
     public ChatViewModel Chat { get; }
     public DocumentListViewModel DocumentList { get; }
+    public DocumentViewerViewModel DocumentViewer { get; }
     public TutorialViewModel Tutorial { get; }
     public ExamViewModel Exam { get; }
     public LearningProfile? LearningProfile { get; private set; }
@@ -281,6 +282,7 @@ public partial class MainViewModel : ViewModelBase
         Chat = new ChatViewModel(aiService, persistence);
         SessionList = new SessionListViewModel(persistence);
         DocumentList = new DocumentListViewModel();
+        DocumentViewer = new DocumentViewerViewModel();
         Exam = new ExamViewModel(aiService, LearningProfile, DocumentList.Documents);
         Tutorial = new TutorialViewModel();
 
@@ -297,6 +299,8 @@ public partial class MainViewModel : ViewModelBase
         _ = UpdateChatSystemPromptAsync();
 
         SessionList.CurrentUserEmail = userEmail;
+        DocumentList.DocumentSelected += OnDocumentSelected;
+        DocumentViewer.Closed += OnDocumentViewerClosed;
         SessionList.SessionSelected += OnSessionSelected;
         SessionList.NewSessionRequested += OnNewSessionRequested;
 
@@ -315,6 +319,16 @@ public partial class MainViewModel : ViewModelBase
 
         if (_updateService is { IsSupported: true })
             CheckForUpdates();
+    }
+
+    private void OnDocumentSelected(UserDocument document)
+    {
+        _ = DocumentViewer.OpenAsync(document);
+    }
+
+    private void OnDocumentViewerClosed()
+    {
+        DocumentList.SelectedDocument = null;
     }
 
     public async Task InitializeAsync()

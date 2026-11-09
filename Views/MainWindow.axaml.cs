@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
@@ -347,6 +348,16 @@ public partial class MainWindow : Window
                 vm.DocumentList.AddUrlCommand.Execute(null);
             }
         }
+    }
+
+    private async void OnCopyMessageClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not Control { DataContext: ChatMessage message })
+            return;
+
+        var clipboard = TopLevel.GetTopLevel(this)?.Clipboard;
+        if (clipboard is not null)
+            await clipboard.SetTextAsync(message.Content);
     }
 
     /// <summary>
