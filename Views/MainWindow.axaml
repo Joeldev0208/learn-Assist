@@ -558,6 +558,11 @@
                                  Text="{Binding ContentType, Converter={StaticResource TypeToEmoji}}" />
                       <StackPanel VerticalAlignment="Center">
                         <TextBlock Text="{Binding Name}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" />
+                        <CheckBox Content="Usar en la IA"
+                                  IsChecked="{Binding IsIncludedInContext, Mode=TwoWay}"
+                                  FontSize="11"
+                                  Foreground="{DynamicResource TextMutedBrush}"
+                                  Margin="0,3,0,0" />
                       </StackPanel>
                     </DockPanel>
                   </Border>

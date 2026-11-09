@@ -100,6 +100,17 @@ public sealed class MarkdownView : UserControl
                 continue;
             }
 
+            var trimmedLine = line.Trim();
+            if (trimmedLine.StartsWith("$$", StringComparison.Ordinal)
+                && trimmedLine.EndsWith("$$", StringComparison.Ordinal)
+                && trimmedLine.Length > 4)
+            {
+                FlushParagraph(paragraph);
+                AddFormulaBlock(trimmedLine[2..^2]);
+                index++;
+                continue;
+            }
+
             if (line.Trim() == @"\[")
             {
                 FlushParagraph(paragraph);
@@ -117,6 +128,16 @@ public sealed class MarkdownView : UserControl
                 AddFormulaBlock(formula.ToString());
                 if (index < lines.Length)
                     index++;
+                continue;
+            }
+
+            if (trimmedLine.StartsWith(@"\[", StringComparison.Ordinal)
+                && trimmedLine.EndsWith(@"\]", StringComparison.Ordinal)
+                && trimmedLine.Length > 4)
+            {
+                FlushParagraph(paragraph);
+                AddFormulaBlock(trimmedLine[2..^2]);
+                index++;
                 continue;
             }
 
@@ -208,7 +229,7 @@ public sealed class MarkdownView : UserControl
         {
             if (inline.Formula)
             {
-                block.Inlines!.Add(new Run(FormatFormula(inline.Text))
+                block.Inlines!.Add(new Run(MathFormulaFormatter.Format(inline.Text))
                 {
                     FontSize = fontSize,
                     FontFamily = new FontFamily("Cambria Math"),
@@ -271,7 +292,7 @@ public sealed class MarkdownView : UserControl
             Padding = new Thickness(14, 10),
             Child = new TextBlock
             {
-                Text = FormatFormula(formula),
+                Text = MathFormulaFormatter.Format(formula),
                 FontSize = 17,
                 FontFamily = new FontFamily("Cambria Math"),
                 Foreground = FindBrush("MarkdownFormulaForegroundBrush") ?? FindBrush("TextPrimaryBrush"),
@@ -324,7 +345,7 @@ public sealed class MarkdownView : UserControl
         {
             if (inline.Formula)
             {
-                block.Inlines!.Add(new Run(FormatFormula(inline.Text))
+                block.Inlines!.Add(new Run(MathFormulaFormatter.Format(inline.Text))
                 {
                     FontSize = 14,
                     FontFamily = new FontFamily("Cambria Math"),
@@ -413,41 +434,6 @@ public sealed class MarkdownView : UserControl
         3 => 17,
         _ => 15,
     };
-
-    private static string FormatFormula(string formula)
-    {
-        var result = formula.Trim();
-        result = result.Replace(@"\cdot", "·", StringComparison.Ordinal);
-        result = result.Replace(@"\times", "×", StringComparison.Ordinal);
-        result = result.Replace(@"\div", "÷", StringComparison.Ordinal);
-        result = result.Replace(@"\leq", "≤", StringComparison.Ordinal);
-        result = result.Replace(@"\geq", "≥", StringComparison.Ordinal);
-        result = result.Replace(@"\neq", "≠", StringComparison.Ordinal);
-        result = result.Replace(@"\pm", "±", StringComparison.Ordinal);
-        result = result.Replace(@"\infty", "∞", StringComparison.Ordinal);
-        result = result.Replace(@"\rightarrow", "→", StringComparison.Ordinal);
-        result = result.Replace(@"\Rightarrow", "⇒", StringComparison.Ordinal);
-        result = result.Replace(@"\alpha", "α", StringComparison.Ordinal);
-        result = result.Replace(@"\beta", "β", StringComparison.Ordinal);
-        result = result.Replace(@"\gamma", "γ", StringComparison.Ordinal);
-        result = result.Replace(@"\delta", "δ", StringComparison.Ordinal);
-        result = result.Replace(@"\lambda", "λ", StringComparison.Ordinal);
-        result = result.Replace(@"\mu", "μ", StringComparison.Ordinal);
-        result = result.Replace(@"\pi", "π", StringComparison.Ordinal);
-        result = result.Replace(@"\sigma", "σ", StringComparison.Ordinal);
-        result = result.Replace(@"\theta", "θ", StringComparison.Ordinal);
-        result = result.Replace(@"\phi", "φ", StringComparison.Ordinal);
-        result = result.Replace(@"\sum", "∑", StringComparison.Ordinal);
-        result = result.Replace(@"\int", "∫", StringComparison.Ordinal);
-        result = result.Replace(@"\sqrt", "√", StringComparison.Ordinal);
-        result = result.Replace(@"\left", string.Empty, StringComparison.Ordinal);
-        result = result.Replace(@"\right", string.Empty, StringComparison.Ordinal);
-        result = result.Replace(@"\,", " ", StringComparison.Ordinal);
-        result = result.Replace("{", string.Empty, StringComparison.Ordinal)
-                       .Replace("}", string.Empty, StringComparison.Ordinal);
-
-        return result;
-    }
 
     private static IEnumerable<InlinePart> ParseInline(string text)
     {

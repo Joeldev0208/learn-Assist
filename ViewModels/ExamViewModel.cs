@@ -105,7 +105,7 @@ public partial class ExamViewModel : ViewModelBase
         !IsLoading
         && (UseProgramContent || UseDocuments || (UseUrls && Urls.Count > 0))
         && (!UseProgramContent || !string.IsNullOrWhiteSpace(_learningProfile?.SemesterContent))
-        && (!UseDocuments || (_documents?.Any(d => !string.IsNullOrWhiteSpace(d.Content)) ?? false))
+        && (!UseDocuments || (_documents?.Any(d => d.IsIncludedInContext && !string.IsNullOrWhiteSpace(d.Content)) ?? false))
         && (!UseUrls || Urls.Count > 0);
 
     private bool CanSaveExam => CurrentExam is not null && !IsLoading;
@@ -128,7 +128,9 @@ public partial class ExamViewModel : ViewModelBase
 
         var level = MapToLearnerLevel(_learningProfile);
         var programContent = UseProgramContent ? _learningProfile?.SemesterContent ?? string.Empty : string.Empty;
-        var documents = UseDocuments ? _documents?.ToList() ?? [] : [];
+        var documents = UseDocuments
+            ? _documents?.Where(d => d.IsIncludedInContext).ToList() ?? []
+            : [];
 
         // Descargar contenido de las URLs agregadas (en paralelo, acumulando errores)
         if (UseUrls && Urls.Count > 0)

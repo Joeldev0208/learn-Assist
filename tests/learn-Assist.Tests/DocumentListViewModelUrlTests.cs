@@ -176,6 +176,31 @@ public class DocumentListViewModelUrlTests : IDisposable
     }
 
     [Fact]
+    public async Task ChangingContextSelection_PersistsDocumentSelection()
+    {
+        var vm = CreateVm();
+        await vm.AddDocumentAsync(new UserDocument
+        {
+            Name = "libro.txt",
+            Type = "file",
+            Content = "contenido",
+        });
+
+        Assert.True(vm.Documents[0].IsIncludedInContext);
+        vm.Documents[0].IsIncludedInContext = false;
+
+        for (var i = 0; i < 100; i++)
+        {
+            if ((await File.ReadAllTextAsync(DocumentsPath)).Contains("\"IsIncludedInContext\": false"))
+                return;
+
+            await Task.Delay(20);
+        }
+
+        Assert.Fail("La selección del recurso no se guardó.");
+    }
+
+    [Fact]
     public async Task LoadDocumentsAsync_ReadsFromInjectedPath()
     {
         var docs = new List<UserDocument>

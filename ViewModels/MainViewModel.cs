@@ -19,6 +19,7 @@ public partial class MainViewModel : ViewModelBase
     private readonly LearningProfileService? _profileService;
     private SessionPersistenceService? _persistence;
     private readonly UpdateService? _updateService;
+    private int _promptUpdateVersion;
     private Action? _configureAiRequested;
     private bool _configureAiPending;
 
@@ -259,6 +260,7 @@ public partial class MainViewModel : ViewModelBase
 
         DocumentList.Documents.CollectionChanged += async (_, _) => await UpdateChatSystemPromptAsync();
         DocumentList.ContentRepaired += () => _ = UpdateChatSystemPromptAsync();
+        DocumentList.ContextSelectionChanged += () => _ = UpdateChatSystemPromptAsync();
 
         Tutorial.TutorialFinished += OnTutorialFinished;
 
@@ -294,26 +296,38 @@ public partial class MainViewModel : ViewModelBase
 
     private async Task UpdateChatSystemPromptAsync(CancellationToken ct = default)
     {
-        var level = MapToLearnerLevel(LearningProfile);
-        var programContent = LearningProfile?.SemesterContent;
-        var materials = DocumentList.Documents
-            .Where(d => !string.IsNullOrWhiteSpace(d.Content))
-            .ToList();
+        var updateVersion = Interlocked.Increment(ref _promptUpdateVersion);
 
-        var built = await ProgramContextBuilder.Instance.BuildAsync(
-            level,
-            programContent,
-            materials,
-            ct);
+        try
+        {
+            var level = MapToLearnerLevel(LearningProfile);
+            var programContent = LearningProfile?.SemesterContent;
+            var materials = DocumentList.Documents
+                .Where(d => d.IsIncludedInContext)
+                .Where(d => !string.IsNullOrWhiteSpace(d.Content))
+                .ToList();
 
-        var languageInstruction = string.Equals(
-            LearningProfile?.PreferredLanguage,
-            "en",
-            StringComparison.OrdinalIgnoreCase)
-            ? "Idioma de respuesta: English. Answer in natural English."
-            : "Idioma de respuesta: Español. Responde en español estándar y conserva tildes, ñ y signos de puntuación.";
+            var built = await ProgramContextBuilder.Instance.BuildAsync(
+                level,
+                programContent,
+                materials,
+                ct);
 
-        Chat.SetSystemPrompt($"{built.SystemPrompt}\n\n{languageInstruction}");
+            if (updateVersion != Volatile.Read(ref _promptUpdateVersion))
+                return;
+
+            var languageInstruction = string.Equals(
+                LearningProfile?.PreferredLanguage,
+                "en",
+                StringComparison.OrdinalIgnoreCase)
+                ? "Idioma de respuesta: English. Answer in natural English."
+                : "Idioma de respuesta: Español. Responde en español estándar y conserva tildes, ñ y signos de puntuación.";
+
+            Chat.SetSystemPrompt($"{built.SystemPrompt}\n\n{languageInstruction}");
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+        }
     }
 
     private static LearnerLevel MapToLearnerLevel(LearningProfile? profile)
@@ -423,6 +437,7 @@ public partial class MainViewModel : ViewModelBase
 
     public void Dispose()
     {
+        Interlocked.Increment(ref _promptUpdateVersion);
         Chat.Dispose();
     }
 

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -39,6 +40,7 @@ public partial class DocumentListViewModel : ViewModelBase
     /// MainViewModel lo usa para reconstruir el system prompt.
     /// </summary>
     public event Action? ContentRepaired;
+    public event Action? ContextSelectionChanged;
 
     private readonly IWebContentReader _webContentReader;
 
@@ -122,6 +124,7 @@ public partial class DocumentListViewModel : ViewModelBase
                 ImportedAt = DateTime.Now
             };
 
+            TrackDocument(doc);
             Documents.Insert(0, doc);
             await SaveDocumentsAsync();
             NewUrl = null;
@@ -141,6 +144,7 @@ public partial class DocumentListViewModel : ViewModelBase
     [RelayCommand]
     public async Task AddDocumentAsync(UserDocument doc)
     {
+        TrackDocument(doc);
         Documents.Insert(0, doc);
         await SaveDocumentsAsync();
     }
@@ -173,6 +177,7 @@ public partial class DocumentListViewModel : ViewModelBase
             foreach (var doc in docs)
             {
                 NormalizeDocumentPaths(doc);
+                TrackDocument(doc);
 
                 // Re-extraer contenido si el documento lo perdió en la serialización.
                 // Se hace fuera del hilo de UI y en segundo plano: un libro de cientos
@@ -194,6 +199,21 @@ public partial class DocumentListViewModel : ViewModelBase
         {
             // Corrupted or unreadable file — start fresh
         }
+    }
+
+    private void TrackDocument(UserDocument doc)
+    {
+        doc.PropertyChanged -= OnDocumentPropertyChanged;
+        doc.PropertyChanged += OnDocumentPropertyChanged;
+    }
+
+    private async void OnDocumentPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName != nameof(UserDocument.IsIncludedInContext))
+            return;
+
+        await SaveDocumentsAsync();
+        ContextSelectionChanged?.Invoke();
     }
 
     /// <summary>

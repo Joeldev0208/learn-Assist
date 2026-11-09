@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using System.Text;
 using learn_Assist.Models;
 using learn_Assist.Services;
 using learn_Assist.Services.Providers;
@@ -86,6 +88,40 @@ public class OpenCodeTests
             ["--cd", "/mnt/c/work/learn-Assist", "--exec", "bash", "-lc",
              "exec opencode 'run' '--model' 'opencode/big-pickle' '--format' 'json' < '/mnt/c/Users/user/AppData/Local/Temp/prompt.txt'"],
             arguments);
+    }
+
+    [Fact]
+    public void BuildNativeStartInfoDecodesChildOutputAsUtf8()
+    {
+        using var service = new OpenCodeService(new ApiConfig
+        {
+            Provider = AiProvider.OpenCode,
+        });
+        var prompt = "Responde en español: niño, año, ¿qué más? → ≥";
+
+        var startInfo = service.BuildNativeStartInfo(prompt);
+
+        Assert.Equal(Encoding.UTF8, startInfo.StandardOutputEncoding);
+        Assert.Equal(Encoding.UTF8, startInfo.StandardErrorEncoding);
+        Assert.True(startInfo.RedirectStandardOutput);
+        Assert.True(startInfo.RedirectStandardError);
+        Assert.Contains(prompt, startInfo.ArgumentList);
+    }
+
+    [Fact]
+    public void BuildWslStartInfoDecodesChildOutputAsUtf8()
+    {
+        using var service = new OpenCodeService(new ApiConfig
+        {
+            Provider = AiProvider.OpenCode,
+        });
+
+        var startInfo = service.BuildWslStartInfo(@"C:\Users\user\AppData\Local\Temp\prompt.txt");
+
+        Assert.Equal(Encoding.UTF8, startInfo.StandardOutputEncoding);
+        Assert.Equal(Encoding.UTF8, startInfo.StandardErrorEncoding);
+        Assert.True(startInfo.RedirectStandardOutput);
+        Assert.True(startInfo.RedirectStandardError);
     }
 
     [Fact]

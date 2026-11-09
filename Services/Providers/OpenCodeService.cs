@@ -190,7 +190,7 @@ public sealed class OpenCodeService : IAiService
             ? Environment.CurrentDirectory
             : configuredPath;
 
-    private ProcessStartInfo BuildNativeStartInfo(string prompt)
+    public ProcessStartInfo BuildNativeStartInfo(string prompt)
     {
         var startInfo = new ProcessStartInfo
         {
@@ -199,6 +199,8 @@ public sealed class OpenCodeService : IAiService
             RedirectStandardOutput = true,
             RedirectStandardError = true,
             CreateNoWindow = true,
+            StandardOutputEncoding = Encoding.UTF8,
+            StandardErrorEncoding = Encoding.UTF8,
             WorkingDirectory = ResolveWorkspace(_config.OpenCodeWorkspaceDirectory),
         };
 
@@ -208,7 +210,7 @@ public sealed class OpenCodeService : IAiService
         return startInfo;
     }
 
-    private ProcessStartInfo BuildWslStartInfo(string promptFile)
+    public ProcessStartInfo BuildWslStartInfo(string promptFile)
     {
         var workspace = ResolveWorkspace(_config.OpenCodeWorkspaceDirectory);
         var startInfo = new ProcessStartInfo
@@ -218,6 +220,8 @@ public sealed class OpenCodeService : IAiService
             RedirectStandardOutput = true,
             RedirectStandardError = true,
             CreateNoWindow = true,
+            StandardOutputEncoding = Encoding.UTF8,
+            StandardErrorEncoding = Encoding.UTF8,
         };
 
         foreach (var argument in BuildWslFileArguments(_config.Model, promptFile, workspace))
