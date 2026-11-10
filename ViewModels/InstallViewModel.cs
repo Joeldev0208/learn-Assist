@@ -29,7 +29,7 @@ public partial class InstallViewModel : ViewModelBase
         ["Español", "English"];
 
     [ObservableProperty]
-    public partial string SelectedLanguage { get; set; } = LanguageService.Current;
+    public partial string SelectedLanguage { get; set; } = "English";
 
     private InstallScope Scope => SystemScopeSelected ? InstallScope.System : InstallScope.User;
     private InstallPaths InstallPaths => InstallationService.GetInstallPaths(Scope);
@@ -39,17 +39,17 @@ public partial class InstallViewModel : ViewModelBase
         0 => "Bienvenido",
         1 => "Tipo de instalación",
         2 => "Listo para instalar",
-        3 => "Installing…",
-        _ => "Done!",
+        3 => "Instalando…",
+        _ => "¡Listo!",
     };
 
     public string StepDescription => CurrentStep switch
     {
-        0 => "Learn-Assistant can be installed on this computer with a menu entry, so you can launch it like any other app.",
-        1 => "Choose where the app should be installed. The user install does not require administrator rights.",
-        2 => "Everything is ready. Click Install to copy the app and create the menu entry.",
-        3 => "Copying files and creating the menu entry…",
-        _ => "Learn-Assistant has been installed. You can now log in and start learning.",
+        0 => "Learn-Assistant puede instalarse en este equipo con una entrada en el menú para iniciarlo como cualquier otra aplicación.",
+        1 => "Elige dónde quieres instalar la aplicación. La instalación para el usuario no requiere permisos de administrador.",
+        2 => "Todo está listo. Haz clic en Instalar para copiar la aplicación y crear la entrada del menú.",
+        3 => "Copiando archivos y creando la entrada del menú…",
+        _ => "Learn-Assistant se instaló correctamente. Ahora puedes iniciar sesión y comenzar a aprender.",
     };
 
     public bool IsFirstStep => CurrentStep == 0;
@@ -135,7 +135,7 @@ public partial class InstallViewModel : ViewModelBase
         }
         else
         {
-            ErrorMessage = "Installation failed. You can try again.";
+            ErrorMessage = "La instalación falló. Puedes intentarlo de nuevo.";
             CurrentStep = 2;
         }
     }
