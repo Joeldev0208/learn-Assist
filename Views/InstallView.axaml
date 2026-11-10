@@ -7,7 +7,7 @@
         x:Class="learn_Assist.Views.InstallView"
         x:DataType="vm:InstallViewModel"
         Icon="/Assets/learn-assist.ico"
-        Title="Instalar learn-Assistant"
+        Title="{Binding WindowTitle}"
         WindowStartupLocation="CenterScreen"
         CanResize="False"
         Width="520" Height="440"
@@ -32,10 +32,10 @@
         <Border Padding="16,12" CornerRadius="8" Background="{DynamicResource InputBackgroundBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
                 IsVisible="{Binding IsFirstStep}">
           <StackPanel Spacing="10">
-            <TextBlock Text="Qué ocurrirá" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" />
-            <TextBlock Text="El ejecutable se copiará en una ubicación conocida y se creará una entrada en el menú para que puedas iniciar la aplicación desde el lanzador."
+            <TextBlock Text="{Binding WelcomeSectionTitle}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" />
+            <TextBlock Text="{Binding WelcomeSectionDescription}"
                        FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" LineHeight="19" />
-            <TextBlock Text="Idioma de la aplicación" FontSize="12" FontWeight="SemiBold"
+            <TextBlock Text="{Binding LanguageLabel}" FontSize="12" FontWeight="SemiBold"
                        Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,6,0,0" />
             <ComboBox ItemsSource="{Binding Languages}"
                       SelectedItem="{Binding SelectedLanguage}"
@@ -47,11 +47,11 @@
         <StackPanel Spacing="10" IsVisible="{Binding IsScopeStep}">
           <Border Padding="16,14" CornerRadius="8" Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1">
             <StackPanel Spacing="8">
-              <RadioButton GroupName="Scope" Content="Instalación para el usuario (recomendada)"
+              <RadioButton GroupName="Scope" Content="{Binding UserInstallLabel}"
                            IsChecked="{Binding !SystemScopeSelected}"
                            FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" />
               <Border Background="{DynamicResource InputBackgroundBrush}" CornerRadius="6" Padding="10,8">
-                <TextBlock Text="Se instala en tu directorio personal. No se necesita contraseña de administrador."
+                <TextBlock Text="{Binding UserInstallDescription}"
                            FontSize="12" Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap" />
               </Border>
             </StackPanel>
@@ -59,11 +59,11 @@
 
           <Border Padding="16,14" CornerRadius="8" Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1">
             <StackPanel Spacing="8">
-              <RadioButton GroupName="Scope" Content="Instalación del sistema (para todos los usuarios)"
+              <RadioButton GroupName="Scope" Content="{Binding SystemInstallLabel}"
                            IsChecked="{Binding SystemScopeSelected}"
                            FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" />
               <Border Background="{DynamicResource InputBackgroundBrush}" CornerRadius="6" Padding="10,8">
-                <TextBlock Text="Se instala en una ubicación del sistema y requiere permisos de administrador (pkexec en Linux / UAC en Windows)."
+                <TextBlock Text="{Binding SystemInstallDescription}"
                            FontSize="12" Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap" />
               </Border>
             </StackPanel>
@@ -74,19 +74,19 @@
         <StackPanel Spacing="10" IsVisible="{Binding IsSummaryStep}">
           <Border Padding="14,10" CornerRadius="8" Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
             <StackPanel Spacing="4">
-              <TextBlock Text="Ejecutable de la aplicación" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" />
+              <TextBlock Text="{Binding BinaryLabel}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" />
               <TextBlock Text="{Binding BinaryPath}" FontSize="13" Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap" />
             </StackPanel>
           </Border>
           <Border Padding="14,10" CornerRadius="8" Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
             <StackPanel Spacing="4">
-              <TextBlock Text="Entrada del menú" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" />
+              <TextBlock Text="{Binding MenuEntryLabel}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" />
               <TextBlock Text="{Binding MenuEntryPath}" FontSize="13" Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap" />
             </StackPanel>
           </Border>
           <Border Background="{DynamicResource WarningBackgroundBrush}" BorderBrush="{DynamicResource WarningBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="10,8"
                   IsVisible="{Binding SystemScopeSelected}">
-            <TextBlock Text="El diálogo de administrador se abrirá durante el proceso de copia."
+            <TextBlock Text="{Binding AdminWarning}"
                        FontSize="12" Foreground="{DynamicResource WarningTextBrush}" TextWrapping="Wrap" />
           </Border>
         </StackPanel>
@@ -94,14 +94,14 @@
         <!-- Installing -->
         <StackPanel Spacing="16" VerticalAlignment="Center" IsVisible="{Binding IsInstallingStep}">
           <ProgressBar IsIndeterminate="True" MinHeight="6" Foreground="{DynamicResource BrandBrush}" Background="{DynamicResource InputBorderBrush}" />
-          <TextBlock Text="Espera; la instalación puede solicitar permisos…"
+          <TextBlock Text="{Binding InstallingMessage}"
                      FontSize="12" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Center" />
         </StackPanel>
 
         <!-- Complete -->
         <StackPanel Spacing="14" VerticalAlignment="Center" IsVisible="{Binding IsCompleteStep}">
           <TextBlock Text="✓" FontSize="40" Foreground="{DynamicResource SuccessTextBrush}" HorizontalAlignment="Center" />
-          <TextBlock Text="La instalación terminó correctamente. Haz clic en Listo para abrir la pantalla de inicio de sesión."
+          <TextBlock Text="{Binding CompleteMessage}"
                      FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" HorizontalAlignment="Center" />
         </StackPanel>
 
@@ -118,7 +118,7 @@
         <Grid ColumnDefinitions="*,Auto" HorizontalAlignment="Stretch">
           <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8"
                       IsVisible="{Binding IsNavVisible}">
-            <Button Content="Atrás" Command="{Binding BackCommand}"
+            <Button Content="{Binding BackButtonText}" Command="{Binding BackCommand}"
                     IsVisible="{Binding IsBackVisible}"
                     Background="{DynamicResource ButtonSecondaryBackgroundBrush}" Foreground="{DynamicResource ButtonSecondaryForegroundBrush}" CornerRadius="20"
                     Padding="18,8" FontSize="13" BorderThickness="0" />
