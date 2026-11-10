@@ -1,4 +1,5 @@
 # learn-Assist
+![CI](https://github.com/Joeldev0208/learn-Assist/actions/workflows/dotnet-desktop.yml/badge.svg)
 
 AI-powered desktop learning assistant built with **Avalonia 12.1.0** and **.NET 10**.
 
