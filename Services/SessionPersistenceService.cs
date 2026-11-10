@@ -22,6 +22,18 @@ public class SessionPersistenceService
 
     public string? SessionsDirectory => string.IsNullOrEmpty(_sessionsDir) ? null : _sessionsDir;
 
+    public static SessionPersistenceService ForUser(string? configuredDirectory, string userId)
+    {
+        var baseDirectory = string.IsNullOrWhiteSpace(configuredDirectory)
+            ? Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "learn-assist",
+                "sessions")
+            : configuredDirectory;
+        return new SessionPersistenceService(
+            Path.Combine(baseDirectory, SanitizeFileName(userId)));
+    }
+
     public async Task SaveSessionAsync(ChatSession session)
     {
         if (string.IsNullOrEmpty(_sessionsDir))
@@ -29,6 +41,7 @@ public class SessionPersistenceService
 
         var fileName = session.StorageFileName ?? GetSessionFileName(session);
         var filePath = Path.Combine(_sessionsDir, fileName);
+        session.StorageFileName = fileName;
 
         var sb = new StringBuilder();
         sb.AppendLine($"# {session.Title}");
@@ -162,6 +175,17 @@ public class SessionPersistenceService
         var sessions = await LoadSessionsAsync();
         return sessions.FirstOrDefault(session =>
             string.Equals(session.Title, title, StringComparison.OrdinalIgnoreCase));
+    }
+
+    public Task MoveSessionToTrashAsync(ChatSession session)
+    {
+        if (string.IsNullOrWhiteSpace(_sessionsDir)
+            || string.IsNullOrWhiteSpace(session.StorageFileName))
+            return Task.CompletedTask;
+
+        var path = Path.Combine(_sessionsDir, session.StorageFileName);
+        FileTrashService.MoveToTrash(path);
+        return Task.CompletedTask;
     }
 
     public string GetSessionFilePath(string title)

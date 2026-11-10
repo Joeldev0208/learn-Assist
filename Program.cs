@@ -4,6 +4,7 @@ using Avalonia;
 using DotNetEnv;
 using DotNetEnv.Configuration;
 using learn_Assist.Models;
+using learn_Assist.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -27,6 +28,18 @@ sealed class Program
         if (args.Length >= 2 && args[0] == "--uninstall-elevated")
         {
             RunElevatedUninstall(args[1]);
+            return;
+        }
+
+        if (args.Length >= 2 && args[0] == "--uninstall-elevated-trash")
+        {
+            RunElevatedTrash(args[1]);
+            return;
+        }
+
+        if (args.Length >= 4 && args[0] == "--trash-after-pid")
+        {
+            RunTrashAfterProcessExit(args[1], args[2], args[3]);
             return;
         }
 
@@ -59,24 +72,70 @@ sealed class Program
         }
     }
 
-        /// <summary>
-        /// Elevated worker mode (invoked on Windows by <c>UninstallService</c>
-        /// via a UAC "runas" relaunch): deletes the file at <c>path</c>
-        /// without opening any window, then exits.
-        /// </summary>
-        private static void RunElevatedUninstall(string path)
+    /// <summary>
+    /// Elevated worker mode retained for compatibility with older installers.
+    /// </summary>
+    private static void RunElevatedUninstall(string path)
+    {
+        try
         {
-            try
-            {
-                if (System.IO.File.Exists(path))
-                    System.IO.File.Delete(path);
-                Environment.Exit(0);
-            }
-            catch
-            {
-                Environment.Exit(1);
-            }
+            if (File.Exists(path))
+                FileTrashService.MoveToTrash(path);
+            Environment.Exit(0);
         }
+        catch
+        {
+            Environment.Exit(1);
+        }
+    }
+
+    private static void RunElevatedTrash(string path)
+    {
+        try
+        {
+            if (File.Exists(path))
+                FileTrashService.MoveToTrash(path);
+            Environment.Exit(0);
+        }
+        catch
+        {
+            Environment.Exit(1);
+        }
+    }
+
+    private static void RunTrashAfterProcessExit(string processId, string kind, string path)
+    {
+        try
+        {
+            if (int.TryParse(processId, out var pid))
+            {
+                try
+                {
+                    using var process = System.Diagnostics.Process.GetProcessById(pid);
+                    process.WaitForExit();
+                }
+                catch (ArgumentException)
+                {
+                    // The parent already exited.
+                }
+            }
+
+            if (kind == "directory")
+            {
+                if (Directory.Exists(path))
+                    FileTrashService.MoveDirectoryToTrash(path);
+            }
+            else if (File.Exists(path))
+            {
+                FileTrashService.MoveToTrash(path);
+            }
+            Environment.Exit(0);
+        }
+        catch
+        {
+            Environment.Exit(1);
+        }
+    }
 
     /// <summary>
     /// Loads settings from <c>.env</c> (via DotNetEnv) and real environment

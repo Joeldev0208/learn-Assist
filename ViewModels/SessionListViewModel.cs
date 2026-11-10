@@ -1,6 +1,5 @@
 using System;
 using System.Collections.ObjectModel;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -86,18 +85,13 @@ public partial class SessionListViewModel : ViewModelBase
 
         try
         {
-            // 1. Eliminamos el archivo físico del disco si existe
-            if (!string.IsNullOrEmpty(session.StorageFileName) && session.StorageFileName != "New Chat" && File.Exists(session.StorageFileName))
-            {
-                File.Delete(session.StorageFileName);
-            }
+            if (_persistence is not null)
+                await _persistence.MoveSessionToTrashAsync(session);
 
-            // 2. Eliminamos la sesión de la lista de la interfaz gráfica
             Sessions.Remove(session);
         }
-        catch (IOException ex)
+        catch (Exception ex)
         {
-            // Manejar errores aquí (archivo abierto, sin permisos, etc.)
             System.Diagnostics.Debug.WriteLine($"Error al borrar: {ex.Message}");
         }
     }

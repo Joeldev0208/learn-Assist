@@ -51,23 +51,19 @@ public partial class App : Application
 
         installVm.InstallationFinished += () =>
         {
-            FireAndForget(() => ShowLoginAfterInstallAsync(desktop));
-            installView.Close();
-        };
-
-        installVm.InstallationSkipped += () =>
-        {
-            FireAndForget(() => ShowLoginAfterInstallAsync(desktop));
-            installView.Close();
+            FireAndForget(() => CompleteInstallationAsync(desktop, installView));
         };
 
         installView.Show();
     }
 
-    private async Task ShowLoginAfterInstallAsync(IClassicDesktopStyleApplicationLifetime desktop)
+    private async Task CompleteInstallationAsync(
+        IClassicDesktopStyleApplicationLifetime desktop,
+        InstallView installView)
     {
         await _authService.SignOutAsync();
         ShowLoginWindow(desktop);
+        installView.Close();
     }
 
     private void ShowLoginWindow(IClassicDesktopStyleApplicationLifetime desktop)
@@ -87,37 +83,7 @@ public partial class App : Application
             loginView.Close();
         });
 
-        loginVm.GoToRegisterRequested += () =>
-        {
-            ShowRegisterWindow(desktop);
-            loginView.Close();
-        };
-
         loginView.Show();
-    }
-
-    private void ShowRegisterWindow(IClassicDesktopStyleApplicationLifetime desktop)
-    {
-        var registerVm = new RegisterViewModel(_authService);
-        var registerView = new RegisterView { DataContext = registerVm };
-
-        registerVm.RegisterSucceeded += (email, emailAddressId, userId) => FireAndForget(async () =>
-        {
-            if (!string.IsNullOrEmpty(emailAddressId))
-                ShowVerifyEmailWindow(desktop, email, emailAddressId, userId);
-            else
-                await ShowAuthenticatedExperienceAsync(desktop);
-
-            registerView.Close();
-        });
-
-        registerVm.GoToLoginRequested += () =>
-        {
-            ShowLoginWindow(desktop);
-            registerView.Close();
-        };
-
-        registerView.Show();
     }
 
     private async Task ShowAuthenticatedExperienceAsync(IClassicDesktopStyleApplicationLifetime desktop)
@@ -170,14 +136,15 @@ public partial class App : Application
 
         profileVm.ProfileSaved += profile => FireAndForget(async () =>
         {
-            profileView.Close();
             if (mainVm is not null)
             {
+                profileView.Close();
                 mainVm.ApplyLearningProfile(profile);
                 return;
             }
 
             await ShowMainWindowAsync(desktop, profileService, profile, email, userId);
+            profileView.Close();
         });
 
         profileVm.Cancelled += profileView.Close;
@@ -199,13 +166,14 @@ public partial class App : Application
         if (config is not null)
         {
             aiService = AiServiceFactory.Create(config);
-            if (!string.IsNullOrEmpty(config.SessionsDirectory))
-                persistence = new SessionPersistenceService(config.SessionsDirectory);
         }
         else
         {
             aiService = new MockAiService();
         }
+
+        if (!string.IsNullOrWhiteSpace(userId))
+            persistence = SessionPersistenceService.ForUser(config?.SessionsDirectory, userId);
 
         var mainVm = new MainViewModel(
             aiService,
@@ -273,23 +241,4 @@ public partial class App : Application
         }
     }
 
-    private void ShowVerifyEmailWindow(IClassicDesktopStyleApplicationLifetime desktop, string email, string emailAddressId, string userId)
-    {
-        var verifyVm = new VerifyEmailViewModel(_authService, email, emailAddressId, userId);
-        var verifyView = new VerifyEmailView { DataContext = verifyVm };
-
-        verifyVm.VerificationSucceeded += () => FireAndForget(async () =>
-        {
-            await ShowAuthenticatedExperienceAsync(desktop);
-            verifyView.Close();
-        });
-
-        verifyVm.BackToRegisterRequested += () =>
-        {
-            ShowRegisterWindow(desktop);
-            verifyView.Close();
-        };
-
-        verifyView.Show();
-    }
 }

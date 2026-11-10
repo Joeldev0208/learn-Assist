@@ -126,6 +126,37 @@ public static class InstallationService
         }
     }
 
+    public static bool ElevatedTrash(string path)
+    {
+        try
+        {
+            if (OperatingSystem.IsWindows())
+                return ElevatedTrashWindows(path);
+
+            var tool = File.Exists("/usr/bin/gio") || File.Exists("/bin/gio")
+                ? "gio"
+                : "trash-put";
+            var psi = new ProcessStartInfo
+            {
+                FileName = "pkexec",
+                UseShellExecute = false,
+            };
+            psi.ArgumentList.Add(tool);
+            if (tool == "gio")
+                psi.ArgumentList.Add("trash");
+            psi.ArgumentList.Add(path);
+
+            using var process = Process.Start(psi);
+            return process is not null
+                && process.WaitForExit(120_000)
+                && process.ExitCode == 0;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
     private static bool ElevatedDeleteWindows(string path)
     {
         var psi = new ProcessStartInfo
@@ -140,7 +171,7 @@ public static class InstallationService
 
         using var process = Process.Start(psi);
         if (process is null)
-            return false; // user cancelled the UAC prompt
+            return false;
         if (!process.WaitForExit(120_000))
         {
             process.Kill();
@@ -148,6 +179,23 @@ public static class InstallationService
         }
 
         return !File.Exists(path);
+    }
+
+    private static bool ElevatedTrashWindows(string path)
+    {
+        var psi = new ProcessStartInfo
+        {
+            FileName = Environment.ProcessPath!,
+            UseShellExecute = true,
+            Verb = "runas",
+            WorkingDirectory = Path.GetDirectoryName(Environment.ProcessPath!),
+        };
+        psi.ArgumentList.Add("--trash-after-pid");
+        psi.ArgumentList.Add(Environment.ProcessId.ToString());
+        psi.ArgumentList.Add("file");
+        psi.ArgumentList.Add(path);
+
+        return Process.Start(psi) is not null;
     }
 
     /// <summary>

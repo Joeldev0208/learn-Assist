@@ -8,7 +8,7 @@ namespace learn_Assist.Services;
 /// <summary>
 /// Reverse of InstallationService: removes the installed app binary,
 /// menu entry, icon, and marker file for both Windows and Linux.
-/// Also optionally removes user data (config and accounts).
+/// Also moves the application data (config and accounts) to the system trash.
 /// </summary>
 public static class UninstallService
 {
@@ -22,22 +22,11 @@ public static class UninstallService
     /// If true, also removes the config file and users database.
     /// </param>
     /// <returns>True if all removals succeeded.</returns>
-    public static bool Uninstall(bool removeUserData = false)
+    public static bool Uninstall(bool removeUserData = true)
     {
         var info = InstallationService.GetInstallInfo();
-        if (info is null || string.IsNullOrEmpty(info.BinaryPath) || !File.Exists(info.BinaryPath))
+        if (info is null)
         {
-            // Nothing installed; clean up orphan marker if present
-            try
-            {
-                var markerPath = InstallationService.GetMarkerPath();
-                if (File.Exists(markerPath))
-                    File.Delete(markerPath);
-            }
-            catch (Exception ex)
-            {
-                LogUninstallError("cleanup orphan marker", ex);
-            }
             return false;
         }
 
@@ -57,20 +46,17 @@ public static class UninstallService
                 {
                     if (scope == InstallScope.System)
                     {
-                        if (!InstallationService.ElevatedDelete(paths.Binary))
+                        if (!InstallationService.ElevatedTrash(paths.Binary))
                             ok = false;
                     }
                     else
                     {
-                        // User-scope but still running: cannot delete while in use.
-                        LogUninstallError("delete running binary", new InvalidOperationException(
-                            $"Cannot uninstall while the application is running from {paths.Binary}"));
-                        ok = false;
+                        FileTrashService.ScheduleAfterProcessExit(paths.Binary);
                     }
                 }
                 else
                 {
-                    File.Delete(paths.Binary);
+                    FileTrashService.MoveToTrash(paths.Binary);
                 }
             }
         }
@@ -87,12 +73,12 @@ public static class UninstallService
             {
                 if (scope == InstallScope.System && OperatingSystem.IsWindows())
                 {
-                    if (!InstallationService.ElevatedDelete(paths.MenuEntry))
+                    if (!InstallationService.ElevatedTrash(paths.MenuEntry))
                         ok = false;
                 }
                 else
                 {
-                    File.Delete(paths.MenuEntry);
+                    FileTrashService.MoveToTrash(paths.MenuEntry);
                 }
             }
         }
@@ -109,12 +95,12 @@ public static class UninstallService
             {
                 if (scope == InstallScope.System && OperatingSystem.IsWindows())
                 {
-                    if (!InstallationService.ElevatedDelete(paths.Icon))
+                    if (!InstallationService.ElevatedTrash(paths.Icon))
                         ok = false;
                 }
                 else
                 {
-                    File.Delete(paths.Icon);
+                    FileTrashService.MoveToTrash(paths.Icon);
                 }
             }
         }
@@ -124,53 +110,18 @@ public static class UninstallService
             ok = false;
         }
 
-        // 4. Remove the install marker file — only after successful deletion of everything else
-        try
-        {
-            var markerPath = InstallationService.GetMarkerPath();
-            if (File.Exists(markerPath))
-                File.Delete(markerPath);
-        }
-        catch (Exception ex)
-        {
-            LogUninstallError("delete marker file", ex);
-            ok = false;
-        }
-
-        // 5. Optionally remove user data
-        if (removeUserData && ok)
+        // 4. Move all application data, including the marker, database,
+        // encrypted configuration, profiles, documents and sessions.
+        if (removeUserData)
         {
             try
             {
                 var configDir = InstallationService.GetConfigDir();
-
-                // Remove config.enc
-                var configPath = Path.Combine(configDir, "config.enc");
-                if (File.Exists(configPath))
-                    File.Delete(configPath);
-
-                // Remove users.json
-                var usersPath = Path.Combine(configDir, "users.json");
-                if (File.Exists(usersPath))
-                    File.Delete(usersPath);
+                FileTrashService.ScheduleAfterProcessExit(configDir, directory: true);
             }
             catch (Exception ex)
             {
-                LogUninstallError("delete user data", ex);
-                ok = false;
-            }
-        }
-
-        // Clear the install info marker only if uninstall fully succeeded
-        if (ok)
-        {
-            try
-            {
-                InstallationService.SaveInstallInfo(InstallScope.User, string.Empty);
-            }
-            catch (Exception ex)
-            {
-                LogUninstallError("clear install info", ex);
+                LogUninstallError("move user data to trash", ex);
                 ok = false;
             }
         }

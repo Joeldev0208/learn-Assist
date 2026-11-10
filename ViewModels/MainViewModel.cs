@@ -150,7 +150,7 @@ public partial class MainViewModel : ViewModelBase
     [RelayCommand]
     private void Uninstall()
     {
-        var ok = UninstallService.Uninstall(removeUserData: false);
+        var ok = UninstallService.Uninstall(removeUserData: true);
         if (ok)
         {
             UninstallRequested?.Invoke();
@@ -515,9 +515,9 @@ public partial class MainViewModel : ViewModelBase
         var aiService = AiServiceFactory.Create(config);
 
         SessionPersistenceService? persistence = null;
-        if (!string.IsNullOrEmpty(config.SessionsDirectory))
+        if (!string.IsNullOrWhiteSpace(_userKey))
         {
-            persistence = new SessionPersistenceService(config.SessionsDirectory);
+            persistence = SessionPersistenceService.ForUser(config?.SessionsDirectory, _userKey);
             _persistence = persistence;
             await SessionList.SetPersistenceAsync(persistence);
         }

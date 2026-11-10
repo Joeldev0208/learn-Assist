@@ -26,7 +26,10 @@
     <Border Background="{DynamicResource SurfaceBrush}" Grid.Column="0"
             BoxShadow="4 0 12 #0A000000">
       <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-      <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="8" MaxWidth="320" Margin="32">
+      <TabControl Margin="32" MaxWidth="320" HorizontalAlignment="Center"
+                  SelectedIndex="{Binding SelectedTabIndex, Mode=TwoWay}">
+        <TabItem Header="Sign in">
+        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="8">
 
         <Button Command="{Binding ToggleThemeCommand}"
                 HorizontalAlignment="Right" Width="32" Height="32" Padding="0"
@@ -99,8 +102,92 @@
           </Button.Styles>
         </Button>
 
-        <Button Content="Don't have an account? Sign up" Command="{Binding GoToRegisterCommand}" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Center" FontSize="12" Margin="0,2,0,0" />
+        <Button Content="Create a new local account" Command="{Binding ShowRegisterCommand}" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Center" FontSize="12" Margin="0,2,0,0" />
       </StackPanel>
+        </TabItem>
+
+        <TabItem Header="Create account">
+          <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="8">
+            <TextBlock Text="Create your local account" FontSize="24" FontWeight="Bold"
+                       Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Center" />
+            <TextBlock Text="Only an email and password are required."
+                       FontSize="12" Foreground="{DynamicResource TextMutedBrush}"
+                       HorizontalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center" />
+
+            <Button Command="{Binding Register.SignUpWithGoogleCommand}"
+                    IsVisible="{Binding Register.IsGoogleOAuthConfigured}"
+                    HorizontalAlignment="Stretch" Padding="10,9"
+                    Background="Transparent" BorderBrush="{DynamicResource InputBorderBrush}"
+                    BorderThickness="1" CornerRadius="20"
+                    Foreground="{DynamicResource TextSecondaryBrush}" FontSize="13">
+              <TextBlock Text="Sign up with Google" HorizontalAlignment="Center" />
+            </Button>
+
+            <TextBlock Text="Email" FontSize="11" FontWeight="SemiBold"
+                       Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0" />
+            <Border CornerRadius="20" BorderBrush="{DynamicResource InputBorderBrush}"
+                    BorderThickness="1" Background="{DynamicResource InputBackgroundBrush}">
+              <DockPanel LastChildFill="True" Margin="14,0">
+                <TextBlock DockPanel.Dock="Left" Text="📧" FontSize="13" VerticalAlignment="Center" />
+                <TextBox Text="{Binding Register.Email}" PlaceholderText="Enter your email"
+                         BorderThickness="0" Padding="8,10" FontSize="13" />
+              </DockPanel>
+            </Border>
+
+            <TextBlock Text="Password" FontSize="11" FontWeight="SemiBold"
+                       Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0" />
+            <Border CornerRadius="20" BorderBrush="{DynamicResource InputBorderBrush}"
+                    BorderThickness="1" Background="{DynamicResource InputBackgroundBrush}">
+              <DockPanel LastChildFill="True" Margin="14,0">
+                <TextBlock DockPanel.Dock="Left" Text="🔒" FontSize="13" VerticalAlignment="Center" />
+                <Grid>
+                  <TextBox Text="{Binding Register.Password}" PlaceholderText="Create a password"
+                           BorderThickness="0" Padding="8,10" FontSize="13"
+                           IsVisible="{Binding Register.IsPasswordVisible, Converter={x:Static BoolConverters.Not}}"
+                           PasswordChar="*" />
+                  <TextBox Text="{Binding Register.Password}" PlaceholderText="Create a password"
+                           BorderThickness="0" Padding="8,10" FontSize="13"
+                           IsVisible="{Binding Register.IsPasswordVisible}" />
+                </Grid>
+              </DockPanel>
+            </Border>
+
+            <TextBlock Text="Confirm Password" FontSize="11" FontWeight="SemiBold"
+                       Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0" />
+            <Border CornerRadius="20" BorderBrush="{DynamicResource InputBorderBrush}"
+                    BorderThickness="1" Background="{DynamicResource InputBackgroundBrush}">
+              <DockPanel LastChildFill="True" Margin="14,0">
+                <TextBlock DockPanel.Dock="Left" Text="🔒" FontSize="13" VerticalAlignment="Center" />
+                <Grid>
+                  <TextBox Text="{Binding Register.ConfirmPassword}" PlaceholderText="Confirm your password"
+                           BorderThickness="0" Padding="8,10" FontSize="13"
+                           IsVisible="{Binding Register.IsConfirmPasswordVisible, Converter={x:Static BoolConverters.Not}}"
+                           PasswordChar="*" />
+                  <TextBox Text="{Binding Register.ConfirmPassword}" PlaceholderText="Confirm your password"
+                           BorderThickness="0" Padding="8,10" FontSize="13"
+                           IsVisible="{Binding Register.IsConfirmPasswordVisible}" />
+                </Grid>
+              </DockPanel>
+            </Border>
+
+            <Border CornerRadius="10" Background="{DynamicResource ErrorBackgroundBrush}" Padding="10,8"
+                    IsVisible="{Binding Register.ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+              <TextBlock Text="{Binding Register.ErrorMessage}" Foreground="{DynamicResource ErrorTextBrush}"
+                         FontSize="12" TextWrapping="Wrap" />
+            </Border>
+
+            <Button Command="{Binding Register.RegisterCommand}" HorizontalAlignment="Stretch"
+                    Padding="12,9" Background="{DynamicResource ButtonPrimaryBackgroundBrush}"
+                    Foreground="{DynamicResource ButtonPrimaryForegroundBrush}" CornerRadius="20"
+                    Margin="0,2,0,0" FontSize="13" FontWeight="SemiBold">
+              <TextBlock Text="Create account" />
+            </Button>
+            <Button Content="Back to sign in" Command="{Binding ShowLoginCommand}"
+                    Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Center"
+                    FontSize="12" Margin="0,2,0,0" />
+          </StackPanel>
+        </TabItem>
+      </TabControl>
       </ScrollViewer>
     </Border>
 

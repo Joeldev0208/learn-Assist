@@ -18,7 +18,12 @@ public partial class LoginViewModel : ViewModelBase
         _authService = authService;
         _oauth = new OAuthFlow(authService);
         _googleOAuth = new GoogleOAuthService(AppSettings.Current);
+        Register = new RegisterViewModel(authService);
+        Register.RegisterSucceeded += (_, _, _) => LoginSucceeded?.Invoke();
+        Register.GoToLoginRequested += () => SelectedTabIndex = 0;
     }
+
+    public RegisterViewModel Register { get; }
 
     public bool IsOAuthConfigured => _oauth.IsConfigured;
 
@@ -54,7 +59,16 @@ public partial class LoginViewModel : ViewModelBase
     {
         IsPasswordVisible = !IsPasswordVisible;
     }
-    public event Action? GoToRegisterRequested;
+    [ObservableProperty]
+    public partial bool IsRegisterMode { get; set; }
+
+    [ObservableProperty]
+    public partial int SelectedTabIndex { get; set; }
+
+    partial void OnSelectedTabIndexChanged(int value)
+    {
+        IsRegisterMode = value == 1;
+    }
 
     [RelayCommand]
     private async Task LoginAsync()
@@ -137,8 +151,16 @@ public partial class LoginViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void GoToRegister()
+    private void ShowRegister()
     {
-        GoToRegisterRequested?.Invoke();
+        SelectedTabIndex = 1;
+        ErrorMessage = null;
+    }
+
+    [RelayCommand]
+    private void ShowLogin()
+    {
+        SelectedTabIndex = 0;
+        ErrorMessage = null;
     }
 }

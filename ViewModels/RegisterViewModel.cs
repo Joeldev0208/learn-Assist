@@ -34,9 +34,6 @@ public partial class RegisterViewModel : ViewModelBase
     }
 
     [ObservableProperty]
-    public partial string FullName { get; set; } = string.Empty;
-
-    [ObservableProperty]
     public partial string Email { get; set; } = string.Empty;
 
     [ObservableProperty]

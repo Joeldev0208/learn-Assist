@@ -110,12 +110,8 @@
 
       <!-- Footer -->
       <Border Grid.Row="2" Padding="32,14" Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0">
-        <Grid ColumnDefinitions="Auto,*,Auto" HorizontalAlignment="Stretch">
-          <Button Grid.Column="0" Content="Skip" Command="{Binding SkipCommand}"
-                  IsVisible="{Binding IsNavVisible}"
-                  Background="Transparent" Foreground="{DynamicResource TextMutedBrush}"
-                  FontSize="13" Padding="10,7" />
-          <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8"
+        <Grid ColumnDefinitions="*,Auto" HorizontalAlignment="Stretch">
+          <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8"
                       IsVisible="{Binding IsNavVisible}">
             <Button Content="Back" Command="{Binding BackCommand}"
                     IsVisible="{Binding IsBackVisible}"

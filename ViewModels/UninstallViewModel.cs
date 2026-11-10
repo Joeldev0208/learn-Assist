@@ -9,7 +9,7 @@ namespace learn_Assist.ViewModels;
 public partial class UninstallViewModel : ViewModelBase
 {
     [ObservableProperty]
-    public partial bool RemoveUserData { get; set; }
+    public partial bool RemoveUserData { get; set; } = true;
 
     [ObservableProperty]
     public partial string StatusMessage { get; set; } = string.Empty;

@@ -23,7 +23,6 @@ public partial class InstallViewModel : ViewModelBase
     public partial string? ErrorMessage { get; set; }
 
     public event Action? InstallationFinished;
-    public event Action? InstallationSkipped;
 
     private InstallScope Scope => SystemScopeSelected ? InstallScope.System : InstallScope.User;
     private InstallPaths InstallPaths => InstallationService.GetInstallPaths(Scope);
@@ -51,7 +50,7 @@ public partial class InstallViewModel : ViewModelBase
     public bool IsSummaryStep => CurrentStep == 2;
     public bool IsInstallingStep => CurrentStep == 3;
     public bool IsCompleteStep => CurrentStep == 4;
-    public bool IsNavVisible => CurrentStep is >= 0 and <= 2;
+    public bool IsNavVisible => CurrentStep is >= 0 and <= 4;
     public bool IsBackVisible => CurrentStep is 1 or 2;
     public string NextButtonText => CurrentStep switch
     {
@@ -110,12 +109,6 @@ public partial class InstallViewModel : ViewModelBase
             CurrentStep--;
     }
 
-    [RelayCommand]
-    private void Skip()
-    {
-        InstallationSkipped?.Invoke();
-    }
-
     private async Task InstallAsync()
     {
         if (IsWorking)
@@ -135,7 +128,7 @@ public partial class InstallViewModel : ViewModelBase
         }
         else
         {
-            ErrorMessage = "Installation failed. You can try again or skip the setup.";
+            ErrorMessage = "Installation failed. You can try again.";
             CurrentStep = 2;
         }
     }
