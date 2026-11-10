@@ -66,11 +66,11 @@ public partial class VerifyEmailViewModel : ViewModelBase
         if (result.Success)
         {
             CodeSent = true;
-            StatusMessage = "Verification code sent to your email";
+            StatusMessage = "Código de verificación enviado a tu correo";
         }
         else
         {
-            ErrorMessage = result.Error ?? "Failed to send verification code";
+            ErrorMessage = result.Error ?? "No se pudo enviar el código de verificación";
         }
     }
 
@@ -79,7 +79,7 @@ public partial class VerifyEmailViewModel : ViewModelBase
         {
             if (string.IsNullOrWhiteSpace(Code))
             {
-                ErrorMessage = "Please enter the verification code";
+                ErrorMessage = "Introduce el código de verificación";
                 return;
             }
 
@@ -101,12 +101,12 @@ public partial class VerifyEmailViewModel : ViewModelBase
                 }
                 else
                 {
-                    ErrorMessage = sessionResult.Error ?? "Failed to create session after verification";
+                    ErrorMessage = sessionResult.Error ?? "No se pudo crear la sesión después de la verificación";
                 }
             }
             else
             {
-                ErrorMessage = result.Error ?? "Invalid verification code";
+                ErrorMessage = result.Error ?? "Código de verificación no válido";
             }
         }
 

@@ -109,7 +109,7 @@ public partial class SessionListViewModel : ViewModelBase
     {
         var session = new ChatSession
         {
-            Title = "New Chat",
+            Title = "Nuevo chat",
         };
         Sessions.Insert(0, session);
         ActiveSession = session;

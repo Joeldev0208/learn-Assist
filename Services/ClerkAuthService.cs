@@ -49,7 +49,7 @@ public class ClerkAuthService : IAuthService
             var response = await _api.Users.CreateAsync(body);
 
             if (response.User is null || string.IsNullOrEmpty(response.User.Id))
-                return new AuthResult { Success = false, Error = "Failed to create user" };
+                return new AuthResult { Success = false, Error = "No se pudo crear el usuario" };
 
             var emailAddressId = response.User.PrimaryEmailAddressId
                  ?? response.User.EmailAddresses?.FirstOrDefault()?.Id;
@@ -76,7 +76,7 @@ public class ClerkAuthService : IAuthService
             else if (message.Contains("password", StringComparison.OrdinalIgnoreCase)
                 && (message.Contains("weak", StringComparison.OrdinalIgnoreCase)
                     || message.Contains("strength", StringComparison.OrdinalIgnoreCase)))
-                message = "Password is too weak. Use at least 8 characters with uppercase, lowercase, and numbers.";
+                message = "La contraseña es demasiado débil. Usa al menos 8 caracteres con mayúsculas, minúsculas y números.";
 
             return new AuthResult { Success = false, Error = message };
         }
@@ -89,7 +89,7 @@ public class ClerkAuthService : IAuthService
             var response = await _api.EmailAddresses.PrepareVerificationAsync(emailAddressId);
 
             if (response?.VerificationResponse is null)
-                return new AuthResult { Success = false, Error = "Failed to send verification code" };
+                return new AuthResult { Success = false, Error = "No se pudo enviar el código de verificación" };
 
             return new AuthResult
             {
@@ -119,7 +119,7 @@ public class ClerkAuthService : IAuthService
 
             if (response.VerificationResponse.Status != "verified"
                 && response.VerificationResponse.Status != "completed")
-                return new AuthResult { Success = false, Error = "Invalid verification code" };
+                return new AuthResult { Success = false, Error = "Código de verificación no válido" };
 
             return new AuthResult { Success = true };
         }
@@ -151,7 +151,7 @@ public class ClerkAuthService : IAuthService
             var verifyResponse = await _api.Users.VerifyPasswordAsync(user.Id, verifyBody);
 
             if (verifyResponse?.Object?.Verified != true)
-                return new AuthResult { Success = false, Error = "Invalid password" };
+                return new AuthResult { Success = false, Error = "Contraseña no válida" };
 
             var sessionBody = new CreateSessionRequestBody
             {
@@ -266,7 +266,7 @@ public class ClerkAuthService : IAuthService
 
                 var created = await _api.Users.CreateAsync(createBody);
                 if (created?.User is null || string.IsNullOrEmpty(created.User.Id))
-                    return new AuthResult { Success = false, Error = "Failed to create Clerk user from Google account" };
+                    return new AuthResult { Success = false, Error = "No se pudo crear el usuario de Clerk desde la cuenta de Google" };
 
                 user = created.User;
             }

@@ -90,7 +90,7 @@ public class GoogleOAuthService
     {
         if (!IsConfigured)
             throw new InvalidOperationException(
-                "Google OAuth is not configured. Set GOOGLE_CLIENT_ID/GOOGLE_CLIENT_SECRET, or GOOGLE_CLIENT_SECRET_FILE pointing to the client_secret_*.json you downloaded from the Google Cloud Console.");
+                "Google OAuth no está configurado. Define GOOGLE_CLIENT_ID/GOOGLE_CLIENT_SECRET o GOOGLE_CLIENT_SECRET_FILE apuntando al archivo client_secret_*.json descargado desde Google Cloud Console.");
 
         using var listener = new OAuthLoopbackListener(redirectPort);
         var redirectUri = listener.RedirectUrl;
@@ -103,12 +103,12 @@ public class GoogleOAuthService
         }
         catch (Exception)
         {
-            throw new InvalidOperationException("Could not open your browser. Please try again.");
+            throw new InvalidOperationException("No se pudo abrir el navegador. Inténtalo de nuevo.");
         }
 
         var callback = await listener.WaitForCallbackAsync();
         if (callback?.Code is null)
-            throw new InvalidOperationException("Sign-in was cancelled or failed. Please try again.");
+            throw new InvalidOperationException("El inicio de sesión se canceló o falló. Inténtalo de nuevo.");
 
         if (callback.State != state)
             throw new InvalidOperationException("OAuth state mismatch. Please try again.");
@@ -146,7 +146,7 @@ public class GoogleOAuthService
         var body = await response.Content.ReadAsStringAsync();
 
         if (!response.IsSuccessStatusCode)
-            throw new InvalidOperationException($"Failed to exchange OAuth code (HTTP {(int)response.StatusCode}). Response: {body}");
+            throw new InvalidOperationException($"No se pudo intercambiar el código OAuth (HTTP {(int)response.StatusCode}). Respuesta: {body}");
 
         using var doc = System.Text.Json.JsonDocument.Parse(body);
         if (!doc.RootElement.TryGetProperty("access_token", out var tokenEl))
@@ -164,7 +164,7 @@ public class GoogleOAuthService
         var body = await response.Content.ReadAsStringAsync();
 
         if (!response.IsSuccessStatusCode)
-            throw new InvalidOperationException($"Failed to fetch Google profile (HTTP {(int)response.StatusCode}). Response: {body}");
+            throw new InvalidOperationException($"No se pudo obtener el perfil de Google (HTTP {(int)response.StatusCode}). Respuesta: {body}");
 
         using var doc = System.Text.Json.JsonDocument.Parse(body);
         var root = doc.RootElement;
@@ -174,10 +174,10 @@ public class GoogleOAuthService
         var verified = root.TryGetProperty("email_verified", out var ve) && ve.ValueKind == System.Text.Json.JsonValueKind.True;
 
         if (string.IsNullOrEmpty(email))
-            throw new InvalidOperationException("Google profile missing email");
+            throw new InvalidOperationException("El perfil de Google no contiene un correo electrónico");
 
         if (!verified)
-            throw new InvalidOperationException("Google email is not verified");
+            throw new InvalidOperationException("El correo de Google no está verificado");
 
         return new GoogleProfile(email, name ?? string.Empty, verified);
     }

@@ -127,13 +127,13 @@ public sealed class UpdateService
             throw new InvalidOperationException("No update is staged to install.");
 
         var info = InstallationService.GetInstallInfo()
-            ?? throw new InvalidOperationException("Could not locate the installed app.");
+            ?? throw new InvalidOperationException("No se pudo localizar la aplicación instalada.");
         if (info.Scope == InstallScope.System)
             throw new InvalidOperationException("System-scope installs must be updated manually with administrator rights.");
 
         var appPath = info.BinaryPath;
         if (string.IsNullOrEmpty(appPath) || Path.GetFileName(appPath).Length == 0)
-            throw new InvalidOperationException("Could not resolve the installed binary path.");
+            throw new InvalidOperationException("No se pudo resolver la ruta del ejecutable instalado.");
 
         var staged = Path.Combine(_installDir, StagedFileName);
         var zipPath = Path.Combine(_installDir, "update.zip");

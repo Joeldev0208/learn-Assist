@@ -10,16 +10,16 @@ public partial class TutorialViewModel : ViewModelBase
 {
     public TutorialStep[] Steps { get; } =
     [
-        new("Welcome to Learn-Assist!",
-            "Your AI-powered learning companion. Let's take a quick tour of the interface."),
-        new("Chat History",
-            "On the left, you'll find all your past conversations. Click any session to pick up where you left off, or start a new one."),
-        new("AI Chat",
-            "This is the main workspace. Ask questions, get code examples, and learn interactively with the help of AI."),
-        new("Resources",
-            "Import documents, images, or videos on the right panel. The AI uses these files to provide more personalized answers."),
-        new("You're all set!",
-            "Start a conversation or import your first resource. Happy learning!"),
+        new("¡Bienvenido a Learn-Assist!",
+            "Tu compañero de aprendizaje con IA. Hagamos un recorrido rápido por la interfaz."),
+        new("Historial de chats",
+            "A la izquierda encontrarás tus conversaciones anteriores. Selecciona una sesión para continuar o inicia una nueva."),
+        new("Chat con IA",
+            "Este es el espacio de trabajo principal. Haz preguntas, obtén ejemplos de código y aprende de forma interactiva con ayuda de la IA."),
+        new("Recursos",
+            "Importa documentos, imágenes o vídeos en el panel derecho. La IA usa estos archivos para ofrecer respuestas más personalizadas."),
+        new("¡Todo listo!",
+            "Inicia una conversación o importa tu primer recurso. ¡Feliz aprendizaje!"),
     ];
 
     [ObservableProperty]
@@ -33,8 +33,8 @@ public partial class TutorialViewModel : ViewModelBase
     public bool IsFirstStep => CurrentStep == 0;
     public bool IsLastStep => CurrentStep == Steps.Length - 1;
     public int TotalSteps => Steps.Length;
-    public string NextButtonText => IsLastStep ? "Let's start!" : "Next";
-    public string StepIndicatorText => $"Step {CurrentStep + 1} of {TotalSteps}";
+    public string NextButtonText => IsLastStep ? "¡Comencemos!" : "Siguiente";
+    public string StepIndicatorText => $"Paso {CurrentStep + 1} de {TotalSteps}";
 
     public event Action? TutorialFinished;
 

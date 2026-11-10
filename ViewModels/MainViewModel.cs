@@ -111,19 +111,19 @@ public partial class MainViewModel : ViewModelBase
 /*     [ObservableProperty]
     public partial bool IsLearningSessionComplete { get; set; }
 
-    public string LearningStepLabel => $"Step {LearningStep} of 3";
+    public string LearningStepLabel => $"Paso {LearningStep} de 3";
     public string LearningProgressText => LearningStep switch
     {
-        1 => "Understand the idea",
-        2 => "Practice with a small example",
-        _ => "Explain it in your own words",
+        1 => "Comprende la idea",
+        2 => "Practica con un ejemplo pequeño",
+        _ => "Explícalo con tus propias palabras",
     };
-    public string LearningActionText => LearningStep == 3 ? "Finish session" : "Next step";
+    public string LearningActionText => LearningStep == 3 ? "Terminar sesión" : "Siguiente paso";
  */
     [ObservableProperty]
     public partial string? UpdateError { get; set; }
 
-    public string UpdateButtonText => IsUpdating ? "Downloading..." : "Update and restart";
+    public string UpdateButtonText => IsUpdating ? "Descargando..." : "Actualizar y reiniciar";
 
     partial void OnIsUpdatingChanged(bool value)
     {
@@ -386,6 +386,7 @@ public partial class MainViewModel : ViewModelBase
                 LearningProfile?.PreferredLanguage,
                 "en",
                 StringComparison.OrdinalIgnoreCase)
+                || (LearningProfile is null && LanguageService.IsEnglish)
                 ? "Idioma de respuesta: English. Answer in natural English."
                 : "Idioma de respuesta: Español. Responde en español estándar y conserva tildes, ñ y signos de puntuación.";
 
@@ -419,7 +420,7 @@ public partial class MainViewModel : ViewModelBase
             if (update is { IsUpdateAvailable: true })
             {
                 IsUpdateAvailable = true;
-                UpdateMessage = $"Update available: v{update.LatestVersion}. Restart the app to install it.";
+                UpdateMessage = $"Actualización disponible: v{update.LatestVersion}. Reinicia la aplicación para instalarla.";
             }
         }
         catch
@@ -440,7 +441,7 @@ public partial class MainViewModel : ViewModelBase
         try
         {
             await _updateService.StageUpdateAsync();
-            UpdateMessage = "Update ready. Restarting to apply it...";
+            UpdateMessage = "Actualización lista. Reiniciando para aplicarla...";
             RestartRequested?.Invoke();
         }
         catch (Exception ex)

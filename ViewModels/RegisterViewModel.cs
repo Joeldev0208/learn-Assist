@@ -78,31 +78,31 @@ public partial class RegisterViewModel : ViewModelBase
     {
         if (string.IsNullOrWhiteSpace(Email))
         {
-            ErrorMessage = "Please enter your email";
+            ErrorMessage = "Introduce tu correo electrónico";
             return;
         }
 
         if (!EmailRegex.IsMatch(Email.Trim()))
         {
-            ErrorMessage = "Please enter a valid email address";
+            ErrorMessage = "Introduce un correo electrónico válido";
             return;
         }
 
         if (string.IsNullOrWhiteSpace(Password))
         {
-            ErrorMessage = "Please enter a password";
+            ErrorMessage = "Introduce una contraseña";
             return;
         }
 
         if (Password.Length < 8)
         {
-            ErrorMessage = "Password must be at least 8 characters";
+            ErrorMessage = "La contraseña debe tener al menos 8 caracteres";
             return;
         }
 
         if (Password != ConfirmPassword)
         {
-            ErrorMessage = "Passwords do not match";
+            ErrorMessage = "Las contraseñas no coinciden";
             return;
         }
 
@@ -119,7 +119,7 @@ public partial class RegisterViewModel : ViewModelBase
             }
         else
         {
-            ErrorMessage = result.Error ?? "Registration failed";
+            ErrorMessage = result.Error ?? "El registro falló";
         }
     }
 
@@ -158,7 +158,7 @@ public partial class RegisterViewModel : ViewModelBase
         }
         else
         {
-            ErrorMessage = result.Error ?? "Google sign-up failed";
+            ErrorMessage = result.Error ?? "El registro con Google falló";
         }
     }
 
@@ -181,7 +181,7 @@ public partial class RegisterViewModel : ViewModelBase
         }
         else
         {
-            ErrorMessage = result.Error ?? "Sign-up failed";
+            ErrorMessage = result.Error ?? "El registro falló";
         }
 
         return result;

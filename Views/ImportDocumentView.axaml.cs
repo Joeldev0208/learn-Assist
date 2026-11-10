@@ -168,40 +168,40 @@ public partial class ImportDocumentView : Window
         {
             DocumentContentType.Document => new[]
             {
-                new FilePickerFileType("Documents")
+                new FilePickerFileType("Documentos")
                 {
                     Patterns = new[] { "*.pdf", "*.doc", "*.docx", "*.txt", "*.md", "*.xls", "*.xlsx", "*.ppt", "*.pptx" },
                 },
-                new FilePickerFileType("All Files")
+                new FilePickerFileType("Todos los archivos")
                 {
                     Patterns = new[] { "*" },
                 },
             },
             DocumentContentType.Image => new[]
             {
-                new FilePickerFileType("Images")
+                new FilePickerFileType("Imágenes")
                 {
                     Patterns = new[] { "*.jpg", "*.jpeg", "*.png", "*.gif", "*.bmp", "*.svg", "*.webp" },
                 },
-                new FilePickerFileType("All Files")
+                new FilePickerFileType("Todos los archivos")
                 {
                     Patterns = new[] { "*" },
                 },
             },
             DocumentContentType.Video => new[]
             {
-                new FilePickerFileType("Videos")
+                new FilePickerFileType("Vídeos")
                 {
                     Patterns = new[] { "*.mp4", "*.avi", "*.mkv", "*.mov", "*.wmv", "*.webm" },
                 },
-                new FilePickerFileType("All Files")
+                new FilePickerFileType("Todos los archivos")
                 {
                     Patterns = new[] { "*" },
                 },
             },
             _ => new[]
             {
-                new FilePickerFileType("All Files")
+                new FilePickerFileType("Todos los archivos")
                 {
                     Patterns = new[] { "*" },
                 },

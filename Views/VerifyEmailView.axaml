@@ -7,7 +7,7 @@
         x:Class="learn_Assist.Views.VerifyEmailView"
         x:DataType="vm:VerifyEmailViewModel"
         Icon="/Assets/learn-assist.ico"
-        Title="learn_Assist - Verify Email"
+        Title="learn_Assist - Verificar correo"
         WindowStartupLocation="CenterScreen"
         CanResize="False"
         Width="800" Height="500" MinWidth="640" MinHeight="420"
@@ -28,30 +28,30 @@
           <Button Command="{Binding ToggleThemeCommand}"
                   HorizontalAlignment="Right" Width="32" Height="32" Padding="0"
                   Background="Transparent" BorderThickness="0" FontSize="15"
-                  ToolTip.Tip="Toggle light/dark theme"
+                  ToolTip.Tip="Cambiar tema claro/oscuro"
                   HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
             <TextBlock Text="{Binding ThemeGlyph}" HorizontalAlignment="Center" VerticalAlignment="Center" />
           </Button>
-          <TextBlock Text="Verify your email" FontSize="26" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Center" />
+          <TextBlock Text="Verifica tu correo electrónico" FontSize="26" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Center" />
           <TextBlock FontSize="13" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center">
-            <Run Text="We sent a code to " />
+            <Run Text="Enviamos un código a " />
             <Run Text="{Binding DisplayEmail}" FontWeight="Bold" />
           </TextBlock>
 
           <TextBlock Text="{Binding StatusMessage}" Foreground="{DynamicResource SuccessTextBrush}" FontSize="12" IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
 
-          <TextBlock Text="Verification Code" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,4,0,0" />
-          <TextBox PlaceholderText="Enter verification code" Text="{Binding Code}" MaxLength="10" />
+          <TextBlock Text="Código de verificación" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,4,0,0" />
+          <TextBox PlaceholderText="Introduce el código de verificación" Text="{Binding Code}" MaxLength="10" />
 
           <TextBlock Text="{Binding ErrorMessage}" Foreground="{DynamicResource ErrorTextBrush}" FontSize="12" IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
 
           <Button Command="{Binding SendCodeCommand}" HorizontalAlignment="Stretch" Padding="12,10" Background="{DynamicResource ButtonPrimaryBackgroundBrush}" Foreground="{DynamicResource ButtonPrimaryForegroundBrush}" CornerRadius="22" Margin="0,4,0,0" IsVisible="{Binding CodeSent, Converter={x:Static BoolConverters.Not}}">
             <Button.Styles>
               <Style Selector="Button">
-                <Setter Property="Content" Value="Send Code" />
+                <Setter Property="Content" Value="Enviar código" />
               </Style>
               <Style Selector="Button:disabled">
-                <Setter Property="Content" Value="Sending..." />
+                <Setter Property="Content" Value="Enviando..." />
               </Style>
             </Button.Styles>
           </Button>
@@ -60,18 +60,18 @@
             <Button Command="{Binding VerifyCodeCommand}" HorizontalAlignment="Stretch" Padding="12,10" Background="{DynamicResource ButtonPrimaryBackgroundBrush}" Foreground="{DynamicResource ButtonPrimaryForegroundBrush}" CornerRadius="22">
               <Button.Styles>
                 <Style Selector="Button">
-                  <Setter Property="Content" Value="Verify Code" />
+                  <Setter Property="Content" Value="Verificar código" />
                 </Style>
                 <Style Selector="Button:disabled">
-                  <Setter Property="Content" Value="Verifying..." />
+                  <Setter Property="Content" Value="Verificando..." />
                 </Style>
               </Button.Styles>
             </Button>
 
-            <Button Command="{Binding SendCodeCommand}" Background="Transparent" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Center" FontSize="13" Content="Resend Code" />
+            <Button Command="{Binding SendCodeCommand}" Background="Transparent" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Center" FontSize="13" Content="Reenviar código" />
           </StackPanel>
 
-          <Button Content="Back to registration" Command="{Binding BackToRegisterCommand}" Background="Transparent" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Center" FontSize="13" />
+          <Button Content="Volver al registro" Command="{Binding BackToRegisterCommand}" Background="Transparent" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Center" FontSize="13" />
         </StackPanel>
       </ScrollViewer>
     </Border>

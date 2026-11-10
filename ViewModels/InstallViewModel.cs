@@ -1,4 +1,5 @@
 using System;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -24,14 +25,20 @@ public partial class InstallViewModel : ViewModelBase
 
     public event Action? InstallationFinished;
 
+    public ObservableCollection<string> Languages { get; } =
+        ["Español", "English"];
+
+    [ObservableProperty]
+    public partial string SelectedLanguage { get; set; } = LanguageService.Current;
+
     private InstallScope Scope => SystemScopeSelected ? InstallScope.System : InstallScope.User;
     private InstallPaths InstallPaths => InstallationService.GetInstallPaths(Scope);
 
     public string StepTitle => CurrentStep switch
     {
-        0 => "Welcome",
-        1 => "Install scope",
-        2 => "Ready to install",
+        0 => "Bienvenido",
+        1 => "Tipo de instalación",
+        2 => "Listo para instalar",
         3 => "Installing…",
         _ => "Done!",
     };
@@ -54,9 +61,9 @@ public partial class InstallViewModel : ViewModelBase
     public bool IsBackVisible => CurrentStep is 1 or 2;
     public string NextButtonText => CurrentStep switch
     {
-        2 => "Install",
-        4 => "Done",
-        _ => "Next",
+        2 => "Instalar",
+        4 => "Listo",
+        _ => "Siguiente",
     };
 
     public string BinaryPath => InstallPaths.Binary;
@@ -135,6 +142,7 @@ public partial class InstallViewModel : ViewModelBase
 
     private void Finish()
     {
+        LanguageService.Set(SelectedLanguage);
         InstallationFinished?.Invoke();
     }
 }

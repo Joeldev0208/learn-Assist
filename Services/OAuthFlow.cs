@@ -63,12 +63,12 @@ public class OAuthFlow
         }
         catch (Exception)
         {
-            return new AuthResult { Success = false, Error = "Could not open your browser. Please try again." };
+            return new AuthResult { Success = false, Error = "No se pudo abrir el navegador. Inténtalo de nuevo." };
         }
 
         var callback = await listener.WaitForCallbackAsync(cancellationToken);
         if (callback?.SessionId is null)
-            return new AuthResult { Success = false, Error = "Sign-in was cancelled or timed out." };
+            return new AuthResult { Success = false, Error = "El inicio de sesión se canceló o agotó el tiempo de espera." };
 
         return await _auth.AdoptOAuthSessionAsync(callback.SessionId);
     }

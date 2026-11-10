@@ -37,15 +37,15 @@ public partial class LearningProfileViewModel : ViewModelBase
     public bool IsPreferencesStep => CurrentStep == 3;
     public bool IsLastStep => CurrentStep == 3;
     public bool IsBackVisible => CurrentStep > 1;
-    public string NextButtonText => IsLastStep ? "Save profile" : "Next";
-    public string StepLabel => $"Step {CurrentStep} of 3";
-    public string WindowTitle => IsEditing ? "Edit learning profile" : "Set up your learning profile";
+    public string NextButtonText => IsLastStep ? "Guardar perfil" : "Siguiente";
+    public string StepLabel => $"Paso {CurrentStep} de 3";
+    public string WindowTitle => IsEditing ? "Editar perfil de aprendizaje" : "Configura tu perfil de aprendizaje";
     public string WindowDescription => IsEditing
-        ? "Update the context Learn-Assist uses to support your learning."
-        : "Tell Learn-Assist how you want to learn before starting a conversation.";
+        ? "Actualiza el contexto que Learn-Assist usa para ayudarte a aprender."
+        : "Indica cómo quieres aprender antes de comenzar una conversación.";
 
     public ObservableCollection<string> Levels { get; } =
-        ["Beginner", "Intermediate", "Advanced"];
+        ["Principiante", "Intermedio", "Avanzado"];
 
     public ObservableCollection<string> Languages { get; } =
         ["Español", "English"];
@@ -87,7 +87,7 @@ public partial class LearningProfileViewModel : ViewModelBase
     public partial string? SemesterImportFeedback { get; set; }
 
     [ObservableProperty]
-    public partial string? SelectedLanguage { get; set; } = "Español";
+    public partial string? SelectedLanguage { get; set; } = LanguageService.Current;
 
     [ObservableProperty]
     public partial int SessionMinutes { get; set; } = 15;
@@ -178,7 +178,7 @@ public partial class LearningProfileViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Could not save the learning profile: {ex.Message}";
+            ErrorMessage = $"No se pudo guardar el perfil de aprendizaje: {ex.Message}";
         }
         finally
         {
@@ -190,7 +190,7 @@ public partial class LearningProfileViewModel : ViewModelBase
     {
         if (CurrentStep == 1 && !IsStudent && !IsUniversity)
         {
-            ErrorMessage = "Select the profile that best describes your learning context.";
+            ErrorMessage = "Selecciona el perfil que mejor describa tu contexto de aprendizaje.";
             return false;
         }
 
@@ -198,19 +198,19 @@ public partial class LearningProfileViewModel : ViewModelBase
         {
             if (IsStudent && string.IsNullOrWhiteSpace(Course))
             {
-                ErrorMessage = "Enter the course or level you are currently studying.";
+                ErrorMessage = "Introduce el curso o nivel que estás estudiando actualmente.";
                 return false;
             }
 
             if (IsStudent && string.IsNullOrWhiteSpace(SubjectsText))
             {
-                ErrorMessage = "Add at least one current subject.";
+                ErrorMessage = "Agrega al menos una materia actual.";
                 return false;
             }
 
             if (IsUniversity && string.IsNullOrWhiteSpace(Career))
             {
-                ErrorMessage = "Enter your university career.";
+                ErrorMessage = "Introduce tu carrera universitaria.";
                 return false;
             }
         }
@@ -219,13 +219,13 @@ public partial class LearningProfileViewModel : ViewModelBase
         {
             if (LearningGoal.Trim().Length < 3)
             {
-                ErrorMessage = "Describe what you want to learn in at least 3 characters.";
+                ErrorMessage = "Describe qué quieres aprender con al menos 3 caracteres.";
                 return false;
             }
 
             if (SessionMinutes is < 5 or > 120)
             {
-                ErrorMessage = "Session duration must be between 5 and 120 minutes.";
+                ErrorMessage = "La duración de la sesión debe estar entre 5 y 120 minutos.";
                 return false;
             }
         }

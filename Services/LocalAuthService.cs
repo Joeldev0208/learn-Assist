@@ -35,7 +35,7 @@ public class LocalAuthService : IAuthService
         lock (_lock)
         {
             if (_database.FindUserByEmail(email) is not null)
-                return Task.FromResult(new AuthResult { Success = false, Error = "An account with this email already exists" });
+                return Task.FromResult(new AuthResult { Success = false, Error = "Ya existe una cuenta con este correo electrónico" });
 
             var user = new UserDatabase.UserRecord(
                 Guid.NewGuid().ToString("N"),
@@ -59,7 +59,7 @@ public class LocalAuthService : IAuthService
             var user = _database.FindUserByEmail(email);
 
             if (user is null || !user.HasPassword || !VerifyPassword(password, user.PasswordHash))
-                return Task.FromResult(new AuthResult { Success = false, Error = "Invalid email or password" });
+                return Task.FromResult(new AuthResult { Success = false, Error = "Correo electrónico o contraseña no válidos" });
 
             return Task.FromResult(ToSessionResult(user));
         }
@@ -93,7 +93,7 @@ public class LocalAuthService : IAuthService
         {
             var user = _database.FindUserById(userId);
             if (user is null)
-                return Task.FromResult(new AuthResult { Success = false, Error = "Account not found" });
+                return Task.FromResult(new AuthResult { Success = false, Error = "No se encontró la cuenta" });
 
             return Task.FromResult(ToSessionResult(user));
         }

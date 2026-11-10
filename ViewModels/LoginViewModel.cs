@@ -75,7 +75,7 @@ public partial class LoginViewModel : ViewModelBase
     {
         if (string.IsNullOrWhiteSpace(Email) || string.IsNullOrWhiteSpace(Password))
         {
-            ErrorMessage = "Please enter email and password";
+            ErrorMessage = "Introduce tu correo electrónico y contraseña";
             return;
         }
 
@@ -92,7 +92,7 @@ public partial class LoginViewModel : ViewModelBase
         }
         else
         {
-            ErrorMessage = result.Error ?? "Login failed";
+            ErrorMessage = result.Error ?? "El inicio de sesión falló";
         }
     }
 
@@ -124,7 +124,7 @@ public partial class LoginViewModel : ViewModelBase
         }
         else
         {
-            ErrorMessage = result.Error ?? "Google sign-in failed";
+            ErrorMessage = result.Error ?? "El inicio de sesión con Google falló";
         }
     }
 
@@ -146,7 +146,7 @@ public partial class LoginViewModel : ViewModelBase
         }
         else
         {
-            ErrorMessage = result.Error ?? "Sign-in failed";
+            ErrorMessage = result.Error ?? "El inicio de sesión falló";
         }
     }
 

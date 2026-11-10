@@ -151,19 +151,19 @@ public partial class ApiConfigViewModel : ViewModelBase
         var isLocalOpenCode = SelectedProvider == nameof(AiProvider.OpenCode);
         if (!isOllama && !isLocalOpenCode && string.IsNullOrWhiteSpace(ApiKey))
         {
-            ErrorMessage = "Please enter an API key.";
+            ErrorMessage = "Introduce una clave de API.";
             return;
         }
 
         if (!isLocalOpenCode && string.IsNullOrWhiteSpace(BaseUrl))
         {
-            ErrorMessage = "Please enter a base URL.";
+            ErrorMessage = "Introduce una URL base.";
             return;
         }
 
         if (!Enum.TryParse<AiProvider>(SelectedProvider, out var provider))
         {
-            ErrorMessage = "Invalid provider selected.";
+            ErrorMessage = "El proveedor seleccionado no es válido.";
             return;
         }
 
@@ -187,7 +187,7 @@ public partial class ApiConfigViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Failed to save configuration: {ex.Message}";
+            ErrorMessage = $"No se pudo guardar la configuración: {ex.Message}";
         }
     }
 

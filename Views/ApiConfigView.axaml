@@ -7,7 +7,7 @@
         x:Class="learn_Assist.Views.ApiConfigView"
         x:DataType="vm:ApiConfigViewModel"
         Icon="/Assets/learn-assist.ico"
-        Title="Configure AI"
+        Title="Configurar IA"
         WindowStartupLocation="CenterScreen"
         CanResize="False"
         Width="520" Height="700"
@@ -28,26 +28,26 @@
   <Border Background="{DynamicResource SurfaceBrush}" Padding="32">
     <ScrollViewer>
     <StackPanel Spacing="14" VerticalAlignment="Center">
-      <TextBlock Text="Configure AI Provider" FontSize="22" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Center" />
-      <TextBlock Text="Connect your AI API to start learning." FontSize="12" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Center" Margin="0,0,0,4" />
+      <TextBlock Text="Configurar proveedor de IA" FontSize="22" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Center" />
+      <TextBlock Text="Conecta tu API de IA para comenzar a aprender." FontSize="12" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Center" Margin="0,0,0,4" />
 
-      <TextBlock Text="Provider" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" />
+      <TextBlock Text="Proveedor" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" />
       <ComboBox ItemsSource="{Binding ProviderNames}"
                 SelectedItem="{Binding SelectedProvider}"
                 Padding="10,8" FontSize="13" CornerRadius="8" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" />
 
-      <TextBlock Text="Base URL" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"
+      <TextBlock Text="URL base" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"
                  IsVisible="{Binding IsOpenCode, Converter={x:Static BoolConverters.Not}}" />
       <Border CornerRadius="8" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" Background="{DynamicResource InputBackgroundBrush}">
         <TextBox Text="{Binding BaseUrl}" PlaceholderText="https://api.openai.com"
                  BorderThickness="0" Padding="10,8" FontSize="13"
                  IsVisible="{Binding IsOpenCode, Converter={x:Static BoolConverters.Not}}" />
       </Border>
-      <TextBlock Text="OpenCode runs locally through the terminal. Install OpenCode separately and authenticate it with opencode auth login; Learn-Assist does not store an API key."
+      <TextBlock Text="OpenCode se ejecuta localmente mediante la terminal. Instala OpenCode por separado y autentícate con opencode auth login; Learn-Assist no guarda una clave de API."
                  FontSize="11" Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap"
                  IsVisible="{Binding IsOpenCode}" />
 
-      <TextBlock Text="API Key" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"
+      <TextBlock Text="Clave de API" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"
                  IsVisible="{Binding IsOpenCode, Converter={x:Static BoolConverters.Not}}" />
       <Border CornerRadius="8" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" Background="{DynamicResource InputBackgroundBrush}">
         <TextBox Text="{Binding ApiKey}" PlaceholderText="sk-..."
@@ -55,7 +55,7 @@
                  IsVisible="{Binding IsOpenCode, Converter={x:Static BoolConverters.Not}}" />
       </Border>
 
-      <TextBlock Text="OpenCode model" FontSize="11" FontWeight="SemiBold"
+      <TextBlock Text="Modelo de OpenCode" FontSize="11" FontWeight="SemiBold"
                  Foreground="{DynamicResource TextSecondaryBrush}"
                  IsVisible="{Binding IsOpenCode}" />
       <ComboBox ItemsSource="{Binding OpenCodeModels}"
@@ -64,7 +64,7 @@
                 Padding="10,8" FontSize="13"
                 CornerRadius="8" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" />
 
-      <TextBlock Text="Model" FontSize="11" FontWeight="SemiBold"
+      <TextBlock Text="Modelo" FontSize="11" FontWeight="SemiBold"
                  Foreground="{DynamicResource TextSecondaryBrush}"
                  IsVisible="{Binding IsOpenCode, Converter={x:Static BoolConverters.Not}}" />
       <Border CornerRadius="8" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1"
@@ -75,19 +75,19 @@
       </Border>
 
       <StackPanel Spacing="8" IsVisible="{Binding IsOpenCode}">
-        <TextBlock Text="OpenCode executable (optional)" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" />
+        <TextBlock Text="Ejecutable de OpenCode (opcional)" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" />
         <Border CornerRadius="8" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" Background="{DynamicResource InputBackgroundBrush}">
           <TextBox Text="{Binding OpenCodeExecutablePath}" PlaceholderText="opencode" BorderThickness="0" Padding="10,8" FontSize="13" />
         </Border>
-        <TextBlock Text="Workspace directory (optional)" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" />
+        <TextBlock Text="Directorio de trabajo (opcional)" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" />
         <Border CornerRadius="8" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" Background="{DynamicResource InputBackgroundBrush}">
-          <TextBox Text="{Binding OpenCodeWorkspaceDirectory}" PlaceholderText="Current project directory" BorderThickness="0" Padding="10,8" FontSize="13" />
+          <TextBox Text="{Binding OpenCodeWorkspaceDirectory}" PlaceholderText="Directorio del proyecto actual" BorderThickness="0" Padding="10,8" FontSize="13" />
         </Border>
       </StackPanel>
 
-      <TextBlock Text="Sessions Directory" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" />
+      <TextBlock Text="Directorio de sesiones" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" />
       <DockPanel LastChildFill="True">
-        <Button DockPanel.Dock="Right" Content="Browse" Margin="6,0,0,0"
+        <Button DockPanel.Dock="Right" Content="Examinar" Margin="6,0,0,0"
                 Command="{Binding BrowseSessionsDirectoryCommand}"
                 Padding="12,7" FontSize="12" CornerRadius="6"
                 Background="{DynamicResource ButtonSecondaryBackgroundBrush}" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1"
@@ -107,11 +107,11 @@
         <Button Grid.Column="0" Command="{Binding SkipCommand}"
                 Padding="12,9" Background="Transparent" Foreground="{DynamicResource TextMutedBrush}"
                 CornerRadius="20" FontSize="13"
-                Content="Skip" HorizontalAlignment="Stretch" Margin="0,0,6,0" />
+                Content="Omitir" HorizontalAlignment="Stretch" Margin="0,0,6,0" />
         <Button Grid.Column="1" Command="{Binding SaveCommand}"
                 Padding="12,9" Background="{DynamicResource ButtonPrimaryBackgroundBrush}" Foreground="{DynamicResource ButtonPrimaryForegroundBrush}"
                 CornerRadius="20" FontSize="13" FontWeight="SemiBold"
-                Content="Accept" HorizontalAlignment="Stretch" Margin="6,0,0,0" />
+                Content="Aceptar" HorizontalAlignment="Stretch" Margin="6,0,0,0" />
       </Grid>
     </StackPanel>
     </ScrollViewer>

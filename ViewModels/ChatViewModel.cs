@@ -74,7 +74,7 @@ public partial class ChatViewModel : ViewModelBase
     public bool IsResourceModeBlocked => _resourcesOnly && !_hasSelectedResources;
 
     public string? ResourceModeHint => IsResourceModeBlocked
-        ? "Modo Solo recursos: marca al menos un recurso en el panel Resources para poder enviar."
+        ? "Modo Solo recursos: marca al menos un recurso en el panel Recursos para poder enviar."
         : null;
 
     public bool CanSendMessage => !IsLoading && !IsResourceModeBlocked;
@@ -176,7 +176,7 @@ public partial class ChatViewModel : ViewModelBase
             {
                 try
                 {
-                    if (string.Equals(_currentSession.Title, "New Chat", StringComparison.OrdinalIgnoreCase))
+                    if (string.Equals(_currentSession.Title, "Nuevo chat", StringComparison.OrdinalIgnoreCase))
                     {
                         _currentSession.Title = CreateSessionTitle(text);
                     }
@@ -186,7 +186,7 @@ public partial class ChatViewModel : ViewModelBase
                 }
                 catch (Exception ex)
                 {
-                    ErrorMessage = $"Failed to save conversation: {ex.Message}";
+                    ErrorMessage = $"No se pudo guardar la conversación: {ex.Message}";
                 }
             }
         }

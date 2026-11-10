@@ -102,12 +102,12 @@
                         Background="{DynamicResource ButtonPrimaryBackgroundBrush}"
                         Foreground="{DynamicResource ButtonPrimaryForegroundBrush}"
                         CornerRadius="15" BorderThickness="0" Padding="0"
-                        ToolTip.Tip="Start a new chat">
+                        ToolTip.Tip="Iniciar un chat nuevo">
                   <TextBlock Text="+" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center" />
                 </Button>
                 <StackPanel>
-                  <TextBlock Text="Your workspace" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" />
-                  <TextBlock Text="Chat history" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" />
+                  <TextBlock Text="Tu espacio de trabajo" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" />
+                  <TextBlock Text="Historial de chats" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" />
                 </StackPanel>
               </DockPanel>
               <Border Height="1" Background="{DynamicResource DividerBrush}" Margin="0,2,0,0" />
@@ -178,7 +178,7 @@
                       IsVisible="{Binding IsCompactLayout}"
                       Background="Transparent" BorderThickness="0" Padding="0"
                       Foreground="{DynamicResource TextMutedBrush}"
-                      ToolTip.Tip="Show chat history">
+                      ToolTip.Tip="Mostrar historial de chats">
                 <TextBlock Text="☰" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center" />
               </Button>
               <Button Width="30" Height="30"
@@ -186,14 +186,14 @@
                       IsVisible="{Binding IsCompactLayout}"
                       Background="Transparent" BorderThickness="0" Padding="0"
                       Foreground="{DynamicResource TextMutedBrush}"
-                      ToolTip.Tip="Show resources">
+                      ToolTip.Tip="Mostrar recursos">
                 <TextBlock Text="▣" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center" />
               </Button>
               <Button Width="30" Height="30"
                       Command="{Binding ToggleThemeCommand}"
                       Background="Transparent" BorderThickness="0"
                       FontSize="15" Padding="0"
-                      ToolTip.Tip="Toggle light/dark theme"
+                      ToolTip.Tip="Cambiar tema claro/oscuro"
                       HorizontalAlignment="Center" VerticalAlignment="Center">
                 <TextBlock Text="{Binding ThemeGlyph}" HorizontalAlignment="Center" VerticalAlignment="Center" />
               </Button>
@@ -201,7 +201,7 @@
                       Command="{Binding ReconfigureAiCommand}"
                       Background="Transparent" BorderThickness="0"
                       FontSize="16" Foreground="{DynamicResource TextMutedBrush}" Padding="0"
-                      ToolTip.Tip="Configure AI provider"
+                      ToolTip.Tip="Configurar proveedor de IA"
                       HorizontalAlignment="Center" VerticalAlignment="Center">
                 <TextBlock Text="⚙" HorizontalAlignment="Center" VerticalAlignment="Center" />
               </Button>
@@ -217,7 +217,7 @@
                       Command="{Binding SignOutCommand}"
                       Background="Transparent" BorderThickness="0"
                       FontSize="15" Foreground="{DynamicResource TextMutedBrush}" Padding="0"
-                      ToolTip.Tip="Sign out"
+                      ToolTip.Tip="Cerrar sesión"
                       HorizontalAlignment="Center" VerticalAlignment="Center">
                 <TextBlock Text="⇥" HorizontalAlignment="Center" VerticalAlignment="Center" />
               </Button>
@@ -225,7 +225,7 @@
                       Command="{Binding UninstallCommand}"
                       Background="Transparent" BorderThickness="0"
                       FontSize="16" Foreground="{DynamicResource ErrorTextBrush}" Padding="0"
-                      ToolTip.Tip="Uninstall application"
+                      ToolTip.Tip="Desinstalar aplicación"
                       HorizontalAlignment="Center" VerticalAlignment="Center">
                 <TextBlock Text="🗑️" HorizontalAlignment="Center" VerticalAlignment="Center" />
               </Button>
@@ -248,12 +248,12 @@
               </StackPanel>
               <StackPanel Orientation="Horizontal" Spacing="5"
                           IsVisible="{Binding IsLearningSessionActive}">
-                <TextBlock Text="Learning workspace ·" FontSize="11"
+                <TextBlock Text="Espacio de aprendizaje ·" FontSize="11"
                            Foreground="{DynamicResource TextMutedBrush}" />
                 <TextBlock Text="{Binding LearningGoal}" FontSize="11"
                            Foreground="{DynamicResource TextMutedBrush}" />
               </StackPanel>
-              <TextBlock Text="One clear step at a time"
+              <TextBlock Text="Un paso claro a la vez"
                          FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
                          IsVisible="{Binding IsLearningSessionActive, Converter={x:Static BoolConverters.Not}}" />
             </StackPanel>
@@ -269,9 +269,9 @@
                       IsVisible="{Binding IsLearningSessionActive, Converter={x:Static BoolConverters.Not}}">
           <StackPanel MaxWidth="700" HorizontalAlignment="Center" Spacing="20">
             <StackPanel Spacing="8">
-              <TextBlock Text="Continue learning" FontSize="28" FontWeight="Bold"
+              <TextBlock Text="Continúa aprendiendo" FontSize="28" FontWeight="Bold"
                          Foreground="{DynamicResource TextPrimaryBrush}" />
-              <TextBlock Text="Choose one goal. Learn it, practice it, and leave with a clear next step."
+              <TextBlock Text="Elige un objetivo. Apréndelo, practícalo y termina con un siguiente paso claro."
                          FontSize="15" Foreground="{DynamicResource TextSecondaryBrush}"
                          TextWrapping="Wrap" />
             </StackPanel>
@@ -281,15 +281,15 @@
                     BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
               <StackPanel Spacing="16">
                 <StackPanel Spacing="5">
-                  <TextBlock Text="What do you want to understand?"
+                  <TextBlock Text="¿Qué quieres comprender?"
                              FontSize="16" FontWeight="SemiBold"
                              Foreground="{DynamicResource TextPrimaryBrush}" />
-                  <TextBlock Text="Keep it specific. The app will guide you through one focused session."
+                  <TextBlock Text="Sé específico. La aplicación te guiará en una sesión enfocada."
                              FontSize="12" Foreground="{DynamicResource TextMutedBrush}"
                              TextWrapping="Wrap" />
                 </StackPanel>
                 <TextBox Text="{Binding LearningGoal}"
-                         PlaceholderText="For example: React component state"
+                         PlaceholderText="Por ejemplo: estado de un componente de React"
                          FontSize="15" Padding="14,11" CornerRadius="10"
                          Background="{DynamicResource InputBackgroundBrush}"
                          BorderBrush="{DynamicResource InputBorderBrush}"
@@ -299,7 +299,7 @@
                         Foreground="{DynamicResource ButtonPrimaryForegroundBrush}"
                         CornerRadius="10" Padding="18,11"
                         HorizontalAlignment="Left" BorderThickness="0">
-                  <TextBlock Text="Start learning session" FontSize="14" FontWeight="SemiBold" />
+                  <TextBlock Text="Iniciar sesión de aprendizaje" FontSize="14" FontWeight="SemiBold" />
                 </Button>
               </StackPanel>
             </Border>
@@ -308,7 +308,7 @@
                     Background="Transparent" BorderThickness="0"
                     Foreground="{DynamicResource BrandBrush}"
                     HorizontalAlignment="Center" Padding="10,6">
-              <TextBlock Text="Start a quick 5-minute session" FontSize="13" />
+              <TextBlock Text="Iniciar una sesión rápida de 5 minutos" FontSize="13" />
             </Button>
 
             <Grid ColumnDefinitions="*,*,*" ColumnSpacing="10">
@@ -316,9 +316,9 @@
                       Background="{DynamicResource SurfaceBrush}"
                       BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
                 <StackPanel Spacing="6">
-                  <TextBlock Text="1  Understand" FontWeight="SemiBold"
+                  <TextBlock Text="1  Comprender" FontWeight="SemiBold"
                              Foreground="{DynamicResource TextPrimaryBrush}" />
-                  <TextBlock Text="A short explanation without the noise."
+                  <TextBlock Text="Una explicación breve y directa."
                              FontSize="12" TextWrapping="Wrap"
                              Foreground="{DynamicResource TextMutedBrush}" />
                 </StackPanel>
@@ -327,9 +327,9 @@
                       Background="{DynamicResource SurfaceBrush}"
                       BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
                 <StackPanel Spacing="6">
-                  <TextBlock Text="2  Practice" FontWeight="SemiBold"
+                  <TextBlock Text="2  Practicar" FontWeight="SemiBold"
                              Foreground="{DynamicResource TextPrimaryBrush}" />
-                  <TextBlock Text="A small task that makes it stick."
+                  <TextBlock Text="Una pequeña tarea para fijarlo."
                              FontSize="12" TextWrapping="Wrap"
                              Foreground="{DynamicResource TextMutedBrush}" />
                 </StackPanel>
@@ -338,9 +338,9 @@
                       Background="{DynamicResource SurfaceBrush}"
                       BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
                 <StackPanel Spacing="6">
-                  <TextBlock Text="3  Explain" FontWeight="SemiBold"
+                  <TextBlock Text="3  Explicar" FontWeight="SemiBold"
                              Foreground="{DynamicResource TextPrimaryBrush}" />
-                  <TextBlock Text="Say it back and know what comes next."
+                  <TextBlock Text="Explícalo con tus palabras y descubre qué sigue."
                              FontSize="12" TextWrapping="Wrap"
                              Foreground="{DynamicResource TextMutedBrush}" />
                 </StackPanel>
@@ -374,7 +374,7 @@
                         Background="{DynamicResource ButtonSecondaryBackgroundBrush}"
                         Foreground="{DynamicResource ButtonSecondaryForegroundBrush}"
                         BorderThickness="0" CornerRadius="8" Padding="10,7">
-                  <TextBlock Text="Make it simpler" FontSize="12" />
+                  <TextBlock Text="Hazlo más sencillo" FontSize="12" />
                 </Button>
                 <Button Grid.Column="2" Command="{Binding CompleteLearningStepCommand}"
                         Background="{DynamicResource ButtonPrimaryBackgroundBrush}"
@@ -406,7 +406,7 @@
               <!--               <Border MaxWidth="720" HorizontalAlignment="Center" Padding="14,12"
                       CornerRadius="12" Background="{DynamicResource SuccessTextBrush}"
                       IsVisible="{Binding IsLearningSessionComplete}">
-                <TextBlock Text="Nice work. You completed this focused session. Return when you are ready for the next idea."
+                <TextBlock Text="Buen trabajo. Completaste esta sesión enfocada. Regresa cuando estés listo para la siguiente idea."
                            Foreground="{DynamicResource BrandTextBrush}" TextWrapping="Wrap" FontSize="13" />
               </Border> -->
               <ItemsControl ItemsSource="{Binding Chat.Messages}"
@@ -482,7 +482,7 @@
                   <ProgressBar Width="72" Height="5" IsIndeterminate="True"
                                Foreground="{DynamicResource BrandBrush}"
                                Background="{DynamicResource InputBorderBrush}" />
-                  <TextBlock Text="Thinking..." FontSize="12"
+                  <TextBlock Text="Pensando..." FontSize="12"
                              Foreground="{DynamicResource TextMutedBrush}" />
                 </StackPanel>
               </Border>
@@ -504,7 +504,7 @@
                 </Button>
                 <TextBox Text="{Binding Chat.MessageText}"
                          x:Name="MessageTextBox"
-                         PlaceholderText="What's up with the learning?"
+                         PlaceholderText="¿Qué quieres aprender?"
                          FontSize="13" Padding="12,7" CornerRadius="18"
                          AcceptsReturn="True" TextWrapping="Wrap"
                          MinHeight="40" MaxHeight="48"
@@ -541,7 +541,7 @@
                         HorizontalAlignment="Center" VerticalAlignment="Center">
                   <TextBlock Text="+" HorizontalAlignment="Center" VerticalAlignment="Center" />
                 </Button>
-                <TextBlock Text="Resources" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                <TextBlock Text="Recursos" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
               </DockPanel>
               <Border Height="1" Background="{DynamicResource DividerBrush}" Margin="0,2,0,0" />
 
@@ -681,7 +681,7 @@
                       Background="Transparent"
                       Foreground="{DynamicResource TextMutedBrush}"
                       FontSize="13"
-                      Content="Skip"
+                      Content="Omitir"
                       Padding="8,6" />
 
               <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
@@ -693,7 +693,7 @@
                         FontSize="13"
                         BorderThickness="0"
                         IsVisible="{Binding Tutorial.IsFirstStep, Converter={x:Static BoolConverters.Not}}">
-                  <TextBlock Text="Back" />
+                  <TextBlock Text="Atrás" />
                 </Button>
 
                 <Button Command="{Binding Tutorial.NextCommand}"

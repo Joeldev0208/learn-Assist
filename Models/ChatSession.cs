@@ -10,7 +10,7 @@ public partial class ChatSession : ObservableObject
     public partial Guid Id { get; set; } = Guid.NewGuid();
 
     [ObservableProperty]
-    public partial string Title { get; set; } = "New Chat";
+    public partial string Title { get; set; } = "Nuevo chat";
 
     public ObservableCollection<ChatMessage> Messages { get; set; } = [];
 
