@@ -8,7 +8,7 @@
         x:Class="learn_Assist.Views.RegisterView"
         x:DataType="vm:RegisterViewModel"
         Icon="/Assets/learn-assist.ico"
-        Title="learn_Assist - Registro"
+        Title="{Binding WindowTitle}"
         WindowStartupLocation="CenterScreen"
         CanResize="False"
         Width="800" Height="600" MinWidth="640" MinHeight="480"
@@ -31,39 +31,39 @@
         <Button Command="{Binding ToggleThemeCommand}"
                 HorizontalAlignment="Right" Width="32" Height="32" Padding="0"
                 Background="Transparent" BorderThickness="0" FontSize="15"
-                ToolTip.Tip="Cambiar tema claro/oscuro"
+                ToolTip.Tip="{Binding ThemeTip}"
                 HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
           <TextBlock Text="{Binding ThemeGlyph}" HorizontalAlignment="Center" VerticalAlignment="Center" />
         </Button>
 
-        <TextBlock Text="¡Crea tu cuenta!" FontSize="24" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Center" Margin="0,0,0,2" />
-        <TextBlock Text="todo lo necesario para aprender, en un solo lugar" FontSize="12" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center" Margin="0,0,0,6" />
+        <TextBlock Text="{Binding CreateAccount}" FontSize="24" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Center" Margin="0,0,0,2" />
+        <TextBlock Text="{Binding CreateAccountSubtitle}" FontSize="12" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center" Margin="0,0,0,6" />
 
         <Button Command="{Binding SignUpWithGoogleCommand}"
                 IsVisible="{Binding IsGoogleOAuthConfigured}" HorizontalAlignment="Stretch" Padding="10,9" Background="Transparent" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" CornerRadius="20" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="13">
           <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center">
             <Image Source="/Assets/GoogleG_FullColor_RGB.png" Width="20" Height="20" Margin="0,0,8,0"/>
-            <TextBlock Text="Registrarse con Google" VerticalAlignment="Center"/>
+            <TextBlock Text="{Binding SignUpWithGoogle}" VerticalAlignment="Center"/>
           </StackPanel>
         </Button>
 
         <Grid ColumnDefinitions="*,Auto,*" Margin="0,2">
           <Border Height="1" Background="{DynamicResource DividerBrush}" VerticalAlignment="Center" Grid.Column="0" />
-          <TextBlock Text="O" Grid.Column="1" Margin="12,0" Foreground="{DynamicResource TextMutedBrush}" FontSize="11" VerticalAlignment="Center" />
+          <TextBlock Text="{Binding OrSeparator}" Grid.Column="1" Margin="12,0" Foreground="{DynamicResource TextMutedBrush}" FontSize="11" VerticalAlignment="Center" />
           <Border Height="1" Background="{DynamicResource DividerBrush}" VerticalAlignment="Center" Grid.Column="2" />
         </Grid>
 
-        <TextBlock Text="Cuenta local: no se requiere verificación por correo" FontSize="10" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Center" Margin="0,0,0,4" TextWrapping="Wrap" TextAlignment="Center" />
+        <TextBlock Text="{Binding LocalAccountNote}" FontSize="10" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Center" Margin="0,0,0,4" TextWrapping="Wrap" TextAlignment="Center" />
 
-        <TextBlock Text="Correo electrónico" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0" />
+        <TextBlock Text="{Binding EmailLabel}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0" />
         <Border CornerRadius="20" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" Background="{DynamicResource InputBackgroundBrush}">
           <DockPanel LastChildFill="True" Margin="14,0">
             <TextBlock DockPanel.Dock="Left" Text="📧" FontSize="13" VerticalAlignment="Center" />
-            <TextBox Text="{Binding Email}" PlaceholderText="Introduce tu correo electrónico" BorderThickness="0" Padding="8,10" FontSize="13" />
+            <TextBox Text="{Binding Email}" PlaceholderText="{Binding EmailPlaceholder}" BorderThickness="0" Padding="8,10" FontSize="13" />
           </DockPanel>
         </Border>
 
-        <TextBlock Text="Contraseña" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0" />
+        <TextBlock Text="{Binding PasswordLabel}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0" />
         <Border CornerRadius="20" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" Background="{DynamicResource InputBackgroundBrush}">
           <DockPanel LastChildFill="True" Margin="14,0">
             <TextBlock DockPanel.Dock="Left" Text="🔒" FontSize="13" VerticalAlignment="Center" />
@@ -72,18 +72,18 @@
               <TextBlock Text="👁" FontSize="13" VerticalAlignment="Center" />
             </Button>
             <Grid>
-              <TextBox Text="{Binding Password}" PlaceholderText="Crea una contraseña"
+              <TextBox Text="{Binding Password}" PlaceholderText="{Binding PasswordPlaceholder}"
                        BorderThickness="0" Padding="8,10" FontSize="13"
                        IsVisible="{Binding IsPasswordVisible, Converter={x:Static BoolConverters.Not}}"
                        PasswordChar="*" />
-              <TextBox Text="{Binding Password}" PlaceholderText="Crea una contraseña"
+              <TextBox Text="{Binding Password}" PlaceholderText="{Binding PasswordPlaceholder}"
                        BorderThickness="0" Padding="8,10" FontSize="13"
                        IsVisible="{Binding IsPasswordVisible}" />
             </Grid>
           </DockPanel>
         </Border>
 
-        <TextBlock Text="Confirmar contraseña" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0" />
+        <TextBlock Text="{Binding ConfirmPasswordLabel}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0" />
         <Border CornerRadius="20" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" Background="{DynamicResource InputBackgroundBrush}">
           <DockPanel LastChildFill="True" Margin="14,0">
             <TextBlock DockPanel.Dock="Left" Text="🔒" FontSize="13" VerticalAlignment="Center" />
@@ -92,11 +92,11 @@
               <TextBlock Text="👁" FontSize="13" VerticalAlignment="Center" />
             </Button>
             <Grid>
-              <TextBox Text="{Binding ConfirmPassword}" PlaceholderText="Confirma tu contraseña"
+              <TextBox Text="{Binding ConfirmPassword}" PlaceholderText="{Binding ConfirmPasswordPlaceholder}"
                        BorderThickness="0" Padding="8,10" FontSize="13"
                        IsVisible="{Binding IsConfirmPasswordVisible, Converter={x:Static BoolConverters.Not}}"
                        PasswordChar="*" />
-              <TextBox Text="{Binding ConfirmPassword}" PlaceholderText="Confirma tu contraseña"
+              <TextBox Text="{Binding ConfirmPassword}" PlaceholderText="{Binding ConfirmPasswordPlaceholder}"
                        BorderThickness="0" Padding="8,10" FontSize="13"
                        IsVisible="{Binding IsConfirmPasswordVisible}" />
             </Grid>
@@ -111,15 +111,15 @@
         <Button Command="{Binding RegisterCommand}" HorizontalAlignment="Stretch" Padding="12,9" Background="{DynamicResource ButtonPrimaryBackgroundBrush}" Foreground="{DynamicResource ButtonPrimaryForegroundBrush}" CornerRadius="20" Margin="0,2,0,0" FontSize="13" FontWeight="SemiBold">
           <Button.Styles>
             <Style Selector="Button">
-              <Setter Property="Content" Value="Crear cuenta" />
+              <Setter Property="Content" Value="{Binding RegisterButton}" />
             </Style>
             <Style Selector="Button:disabled">
-              <Setter Property="Content" Value="Creando cuenta..." />
+              <Setter Property="Content" Value="{Binding RegisterButtonLoading}" />
             </Style>
           </Button.Styles>
         </Button>
 
-        <Button Content="¿Ya tienes una cuenta? Inicia sesión" Command="{Binding GoToLoginCommand}" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Center" FontSize="12" Margin="0,2,0,0" />
+        <Button Content="{Binding AlreadyHaveAccount}" Command="{Binding GoToLoginCommand}" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Center" FontSize="12" Margin="0,2,0,0" />
       </StackPanel>
       </ScrollViewer>
     </Border>

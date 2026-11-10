@@ -21,6 +21,30 @@ public partial class LoginViewModel : ViewModelBase
         Register = new RegisterViewModel(authService);
         Register.RegisterSucceeded += (_, _, _) => LoginSucceeded?.Invoke();
         Register.GoToLoginRequested += () => SelectedTabIndex = 0;
+        LanguageService.LanguageChanged += OnLanguageChanged;
+    }
+
+    private void OnLanguageChanged()
+    {
+        OnPropertyChanged(nameof(WindowTitle));
+        OnPropertyChanged(nameof(TabLogin));
+        OnPropertyChanged(nameof(TabRegister));
+        OnPropertyChanged(nameof(WelcomeBack));
+        OnPropertyChanged(nameof(WelcomeSubtitle));
+        OnPropertyChanged(nameof(SignInWithGoogle));
+        OnPropertyChanged(nameof(OrSeparator));
+        OnPropertyChanged(nameof(LocalAccountNote));
+        OnPropertyChanged(nameof(EmailLabel));
+        OnPropertyChanged(nameof(EmailPlaceholder));
+        OnPropertyChanged(nameof(PasswordLabel));
+        OnPropertyChanged(nameof(PasswordPlaceholder));
+        OnPropertyChanged(nameof(CreateAccountLink));
+        OnPropertyChanged(nameof(SignInButton));
+        OnPropertyChanged(nameof(SignInButtonLoading));
+        OnPropertyChanged(nameof(SignInWithGoogleFailed));
+        OnPropertyChanged(nameof(SignInFailed));
+        OnPropertyChanged(nameof(MissingCredentials));
+        OnPropertyChanged(nameof(ThemeTip));
     }
 
     public RegisterViewModel Register { get; }
@@ -54,6 +78,28 @@ public partial class LoginViewModel : ViewModelBase
 
     public event Action? LoginSucceeded;
 
+    private bool IsEnglish => LanguageService.IsEnglish;
+
+    public string WindowTitle => IsEnglish ? "learn_Assist - Sign in" : "learn_Assist - Iniciar sesión";
+    public string TabLogin => IsEnglish ? "Sign in" : "Iniciar sesión";
+    public string TabRegister => IsEnglish ? "Create account" : "Crear cuenta";
+    public string WelcomeBack => IsEnglish ? "Welcome back!" : "¡Bienvenido de nuevo!";
+    public string WelcomeSubtitle => IsEnglish ? "Everything you need to learn, in one place" : "todo lo necesario para aprender, en un solo lugar";
+    public string SignInWithGoogle => IsEnglish ? "Sign in with Google" : "Iniciar sesión con Google";
+    public string OrSeparator => IsEnglish ? "Or" : "O";
+    public string LocalAccountNote => IsEnglish ? "Local account: no email verification required" : "Cuenta local: no se requiere verificación por correo";
+    public string EmailLabel => IsEnglish ? "Email address" : "Correo electrónico";
+    public string EmailPlaceholder => IsEnglish ? "Enter your email address" : "Introduce tu correo electrónico";
+    public string PasswordLabel => IsEnglish ? "Password" : "Contraseña";
+    public string PasswordPlaceholder => IsEnglish ? "Enter your password" : "Introduce tu contraseña";
+    public string CreateAccountLink => IsEnglish ? "Create a local account" : "Crear una cuenta local";
+    public string SignInButton => IsEnglish ? "Sign in" : "Iniciar sesión";
+    public string SignInButtonLoading => IsEnglish ? "Signing in..." : "Iniciando sesión...";
+    public string SignInWithGoogleFailed => IsEnglish ? "Sign in with Google failed" : "El inicio de sesión con Google falló";
+    public string SignInFailed => IsEnglish ? "Sign in failed" : "El inicio de sesión falló";
+    public string MissingCredentials => IsEnglish ? "Enter your email address and password" : "Introduce tu correo electrónico y contraseña";
+    public string ThemeTip => IsEnglish ? "Switch light/dark theme" : "Cambiar tema claro/oscuro";
+
     [RelayCommand]
     private void TogglePasswordVisibility()
     {
@@ -75,7 +121,7 @@ public partial class LoginViewModel : ViewModelBase
     {
         if (string.IsNullOrWhiteSpace(Email) || string.IsNullOrWhiteSpace(Password))
         {
-            ErrorMessage = "Introduce tu correo electrónico y contraseña";
+            ErrorMessage = MissingCredentials;
             return;
         }
 
@@ -92,7 +138,7 @@ public partial class LoginViewModel : ViewModelBase
         }
         else
         {
-            ErrorMessage = result.Error ?? "El inicio de sesión falló";
+            ErrorMessage = result.Error ?? SignInFailed;
         }
     }
 
@@ -124,7 +170,7 @@ public partial class LoginViewModel : ViewModelBase
         }
         else
         {
-            ErrorMessage = result.Error ?? "El inicio de sesión con Google falló";
+            ErrorMessage = result.Error ?? SignInWithGoogleFailed;
         }
     }
 
@@ -146,7 +192,7 @@ public partial class LoginViewModel : ViewModelBase
         }
         else
         {
-            ErrorMessage = result.Error ?? "El inicio de sesión falló";
+            ErrorMessage = result.Error ?? SignInFailed;
         }
     }
 
