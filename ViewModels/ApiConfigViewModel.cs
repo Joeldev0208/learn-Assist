@@ -38,6 +38,29 @@ public partial class ApiConfigViewModel : ViewModelBase
     [ObservableProperty]
     public partial string? ErrorMessage { get; set; }
 
+    private bool IsEnglish => LanguageService.IsEnglish;
+
+    public string WindowTitle => IsEnglish ? "Configure AI Provider" : "Configurar proveedor de IA";
+    public string IntroText => IsEnglish ? "Connect your AI provider to start learning." : "Conecta tu API de IA para comenzar a aprender.";
+    public string ProviderLabel => IsEnglish ? "Provider" : "Proveedor";
+    public string BaseUrlLabel => IsEnglish ? "Base URL" : "URL base";
+    public string BaseUrlPlaceholder => IsEnglish ? "https://api.openai.com" : "https://api.openai.com";
+    public string OpenCodeInfo => IsEnglish ? "OpenCode runs locally via the terminal. Install OpenCode separately and authenticate with opencode auth login; Learn-Assist does not store an API key." : "OpenCode se ejecuta localmente mediante la terminal. Instala OpenCode por separado y autentícate con opencode auth login; Learn-Assist no guarda una clave de API.";
+    public string ApiKeyLabel => IsEnglish ? "API Key" : "Clave de API";
+    public string ApiKeyPlaceholder => IsEnglish ? "sk-..." : "sk-...";
+    public string OpenCodeModelLabel => IsEnglish ? "OpenCode Model" : "Modelo de OpenCode";
+    public string ModelLabel => IsEnglish ? "Model" : "Modelo";
+    public string ModelPlaceholder => IsEnglish ? "gpt-4o-mini" : "gpt-4o-mini";
+    public string OpenCodeExecutableLabel => IsEnglish ? "OpenCode Executable (optional)" : "Ejecutable de OpenCode (opcional)";
+    public string OpenCodeExecutablePlaceholder => IsEnglish ? "opencode" : "opencode";
+    public string OpenCodeWorkspaceLabel => IsEnglish ? "Working Directory (optional)" : "Directorio de trabajo (opcional)";
+    public string OpenCodeWorkspacePlaceholder => IsEnglish ? "Current project directory" : "Directorio del proyecto actual";
+    public string SessionsDirectoryLabel => IsEnglish ? "Sessions Directory" : "Directorio de sesiones";
+    public string BrowseButtonContent => IsEnglish ? "Browse" : "Examinar";
+    public string SessionsDirectoryPlaceholder => IsEnglish ? "~/.config/learn-assist/sessions" : "~/.config/learn-assist/sessions";
+    public string SkipButtonContent => IsEnglish ? "Skip" : "Omitir";
+    public string SaveButtonContent => IsEnglish ? "Save" : "Aceptar";
+
     public string[] ProviderNames { get; } = Enum.GetNames<AiProvider>();
     public string[] OpenCodeModels { get; } =
     [
@@ -55,12 +78,37 @@ public partial class ApiConfigViewModel : ViewModelBase
     public event Action? ConfigSkipped;
     public event Action? BrowseDirectoryRequested;
 
+    private void OnLanguageChanged()
+    {
+        OnPropertyChanged(nameof(WindowTitle));
+        OnPropertyChanged(nameof(IntroText));
+        OnPropertyChanged(nameof(ProviderLabel));
+        OnPropertyChanged(nameof(BaseUrlLabel));
+        OnPropertyChanged(nameof(BaseUrlPlaceholder));
+        OnPropertyChanged(nameof(OpenCodeInfo));
+        OnPropertyChanged(nameof(ApiKeyLabel));
+        OnPropertyChanged(nameof(ApiKeyPlaceholder));
+        OnPropertyChanged(nameof(OpenCodeModelLabel));
+        OnPropertyChanged(nameof(ModelLabel));
+        OnPropertyChanged(nameof(ModelPlaceholder));
+        OnPropertyChanged(nameof(OpenCodeExecutableLabel));
+        OnPropertyChanged(nameof(OpenCodeExecutablePlaceholder));
+        OnPropertyChanged(nameof(OpenCodeWorkspaceLabel));
+        OnPropertyChanged(nameof(OpenCodeWorkspacePlaceholder));
+        OnPropertyChanged(nameof(SessionsDirectoryLabel));
+        OnPropertyChanged(nameof(BrowseButtonContent));
+        OnPropertyChanged(nameof(SessionsDirectoryPlaceholder));
+        OnPropertyChanged(nameof(SkipButtonContent));
+        OnPropertyChanged(nameof(SaveButtonContent));
+    }
+
     public ApiConfigViewModel()
     {
         var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
         SessionsDirectory = Path.Combine(appData, "learn-assist", "sessions");
         _activeProvider = SelectedProvider;
         UpdateDefaults();
+        LanguageService.LanguageChanged += OnLanguageChanged;
     }
 
     public ApiConfigViewModel(ApiConfig existing)
@@ -151,19 +199,19 @@ public partial class ApiConfigViewModel : ViewModelBase
         var isLocalOpenCode = SelectedProvider == nameof(AiProvider.OpenCode);
         if (!isOllama && !isLocalOpenCode && string.IsNullOrWhiteSpace(ApiKey))
         {
-            ErrorMessage = "Introduce una clave de API.";
+            ErrorMessage = IsEnglish ? "Enter an API key." : "Introduce una clave de API.";
             return;
         }
 
         if (!isLocalOpenCode && string.IsNullOrWhiteSpace(BaseUrl))
         {
-            ErrorMessage = "Introduce una URL base.";
+            ErrorMessage = IsEnglish ? "Enter a base URL." : "Introduce una URL base.";
             return;
         }
 
         if (!Enum.TryParse<AiProvider>(SelectedProvider, out var provider))
         {
-            ErrorMessage = "El proveedor seleccionado no es válido.";
+            ErrorMessage = IsEnglish ? "The selected provider is not valid." : "El proveedor seleccionado no es válido.";
             return;
         }
 
@@ -187,7 +235,9 @@ public partial class ApiConfigViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"No se pudo guardar la configuración: {ex.Message}";
+            ErrorMessage = IsEnglish
+                ? $"Could not save configuration: {ex.Message}"
+                : $"No se pudo guardar la configuración: {ex.Message}";
         }
     }
 

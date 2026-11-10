@@ -29,10 +29,15 @@ public partial class InstallViewModel : ViewModelBase
         ["Español", "English"];
 
     [ObservableProperty]
-    public partial string SelectedLanguage { get; set; } = "English";
+    public partial string SelectedLanguage { get; set; } = LanguageService.Current;
 
     private InstallScope Scope => SystemScopeSelected ? InstallScope.System : InstallScope.User;
     private InstallPaths InstallPaths => InstallationService.GetInstallPaths(Scope);
+
+    public InstallViewModel()
+    {
+        LanguageService.LanguageChanged += OnLanguageChanged;
+    }
     private bool IsEnglish => !string.Equals(SelectedLanguage, "Español", StringComparison.OrdinalIgnoreCase);
 
     public string WindowTitle => IsEnglish ? "Install learn-Assistant" : "Instalar learn-Assistant";
@@ -150,6 +155,12 @@ public partial class InstallViewModel : ViewModelBase
         OnPropertyChanged(nameof(CompleteMessage));
         OnPropertyChanged(nameof(BackButtonText));
         OnPropertyChanged(nameof(NextButtonText));
+    }
+
+    private void OnLanguageChanged()
+    {
+        OnPropertyChanged(nameof(IsEnglish));
+        NotifyLocalizedProperties();
     }
 
     partial void OnSystemScopeSelectedChanged(bool value)

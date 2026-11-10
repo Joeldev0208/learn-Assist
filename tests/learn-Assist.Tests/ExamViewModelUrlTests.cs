@@ -55,6 +55,7 @@ public class ExamViewModelUrlTests
     {
         var webReader = new MockWebContentReader { Result = "Contenido de la página web." };
         var vm = CreateVm(webReader);
+        LanguageService.Set("Español");
         vm.UseUrls = true;
         vm.NewUrl = "https://ejemplo.com/articulo";
 
@@ -103,6 +104,7 @@ public class ExamViewModelUrlTests
     {
         var webReader = new MockWebContentReader { Result = "contenido" };
         var vm = CreateVm(webReader);
+        LanguageService.Set("Español");
         vm.UseUrls = true;
         vm.NewUrl = "https://ejemplo.com/articulo";
         vm.AddUrlCommand.Execute(null);
@@ -122,6 +124,7 @@ public class ExamViewModelUrlTests
     {
         var webReader = new MockWebContentReader { Result = "contenido" };
         var vm = CreateVm(webReader);
+        LanguageService.Set("Español");
         vm.UseUrls = true;
         vm.NewUrl = "https://ejemplo.com/articulo";
         vm.AddUrlCommand.Execute(null);

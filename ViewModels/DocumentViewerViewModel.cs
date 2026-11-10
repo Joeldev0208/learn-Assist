@@ -45,9 +45,18 @@ public partial class DocumentViewerViewModel : ViewModelBase
     public bool CanGoPrevious => CurrentPage > 1;
     public bool CanGoNext => CurrentPage < _pages.Count;
 
+    private bool IsEnglish => LanguageService.IsEnglish;
+
+    public string BackToChatContent => IsEnglish ? "← Back to Chat" : "← Volver al chat";
+    public string PreviousButtonContent => IsEnglish ? "Previous" : "Anterior";
+    public string NextButtonContent => IsEnglish ? "Next" : "Siguiente";
+    public string PdfNotFoundError => IsEnglish ? "The PDF file no longer exists at the saved path." : "El archivo PDF ya no existe en la ruta guardada.";
+    public string NoContentError => IsEnglish ? "This resource does not contain a PDF or text available to display." : "Este recurso no contiene un PDF ni texto disponible para mostrar.";
+
     public DocumentViewerViewModel()
     {
         Pages = new ReadOnlyObservableCollection<string>(_pages);
+        LanguageService.LanguageChanged += OnLanguageChanged;
     }
 
     public async Task OpenAsync(UserDocument document)
@@ -71,7 +80,7 @@ public partial class DocumentViewerViewModel : ViewModelBase
             var normalizedPath = FileContentReader.NormalizePath(path);
             if (!File.Exists(normalizedPath))
             {
-                ErrorMessage = "El archivo PDF ya no existe en la ruta guardada.";
+                ErrorMessage = PdfNotFoundError;
                 NotifyStateChanged();
                 return;
             }
@@ -89,7 +98,7 @@ public partial class DocumentViewerViewModel : ViewModelBase
             if (!string.IsNullOrWhiteSpace(document.Content))
                 _pages.Add(document.Content);
             else
-                ErrorMessage = "Este recurso no contiene un PDF ni texto disponible para mostrar.";
+                ErrorMessage = NoContentError;
 
             UpdatePage();
             return;
@@ -154,7 +163,9 @@ public partial class DocumentViewerViewModel : ViewModelBase
             : _pages[CurrentPage - 1];
         PageIndicator = _pages.Count == 0
             ? string.Empty
-            : $"Página {CurrentPage} de {_pages.Count}";
+            : IsEnglish
+                ? $"Page {CurrentPage} of {_pages.Count}"
+                : $"Página {CurrentPage} de {_pages.Count}";
         NotifyStateChanged();
     }
 
@@ -164,5 +175,13 @@ public partial class DocumentViewerViewModel : ViewModelBase
         OnPropertyChanged(nameof(HasError));
         OnPropertyChanged(nameof(CanGoPrevious));
         OnPropertyChanged(nameof(CanGoNext));
+    }
+
+    private void OnLanguageChanged()
+    {
+        OnPropertyChanged(nameof(BackToChatContent));
+        OnPropertyChanged(nameof(PreviousButtonContent));
+        OnPropertyChanged(nameof(NextButtonContent));
+        OnPropertyChanged(nameof(PageIndicator));
     }
 }

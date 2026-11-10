@@ -37,6 +37,7 @@ public partial class ExamViewModel : ViewModelBase
         _learningProfile = learningProfile;
         _documents = documentos;
         _webContentReader = webContentReader ?? WebContentReader.Instance;
+        LanguageService.LanguageChanged += OnLanguageChanged;
     }
 
     /// <summary>
@@ -80,6 +81,57 @@ public partial class ExamViewModel : ViewModelBase
     [ObservableProperty]
     public partial string? NewUrl { get; set; }
 
+    private bool IsEnglish => LanguageService.IsEnglish;
+
+    public string WindowTitle => IsEnglish ? "Create Exam" : "Crear Examen";
+    public string ExamSectionTitle => IsEnglish ? "Create Exam" : "Crear examen";
+    public string ExamTitleLabel => IsEnglish ? "Exam Title" : "Título del examen";
+    public string QuestionCountLabel => IsEnglish ? "Number of Questions" : "Número de preguntas";
+    public string QuestionTypeLabel => IsEnglish ? "Question Type" : "Tipo de pregunta";
+    public string UseProgramContentContent => IsEnglish ? "Use study program" : "Usar programa de estudios";
+    public string UseDocumentsContent => IsEnglish ? "Use imported documents" : "Usar documentos importados";
+    public string IncludeSolutionsContent => IsEnglish ? "Include solutions" : "Incluir soluciones";
+    public string UseUrlsContent => IsEnglish ? "Use web pages (URL)" : "Usar páginas web (URL)";
+    public string AddUrlSectionTitle => IsEnglish ? "Add URL" : "Agregar URL";
+    public string NewUrlPlaceholder => IsEnglish ? "https://example.com/article" : "https://ejemplo.com/artículo";
+    public string AddUrlButtonContent => IsEnglish ? "Add" : "Agregar";
+    public string UrlsAddedLabel => IsEnglish ? "Added URLs:" : "URLs agregadas:";
+    public string RemoveUrlButtonContent => "×";
+    public string GenerateButtonContent => IsEnglish ? "Generate Exam" : "Generar examen";
+    public string ClearButtonContent => IsEnglish ? "Clear" : "Limpiar";
+    public string SaveExamButtonContent => IsEnglish ? "Save Exam" : "Guardar examen";
+    public string LoadExamSectionTitle => IsEnglish ? "Load Existing Exam" : "Cargar examen existente";
+    public string LoadExamButtonContent => IsEnglish ? "Load" : "Cargar";
+    public string ExamQuestionsFallback => IsEnglish ? "Exam Questions" : "Preguntas del examen";
+    public string QuestionsCountFormat => IsEnglish ? "({0} questions)" : "({0} preguntas)";
+
+    /// <summary>
+    /// Texto formateado del conteo de preguntas, traducido según el idioma.
+    /// </summary>
+    public string QuestionsCountText =>
+        CurrentExam is null || CurrentExam.Questions.Count == 0
+            ? string.Empty
+            : string.Format(QuestionsCountFormat, CurrentExam.Questions.Count);
+    public string CorrectFeedback => IsEnglish ? "Correct!" : "¡Correcto!";
+    public string IncorrectPrefix => IsEnglish ? "Incorrect. Correct answer: " : "Incorrecto. Respuesta correcta: ";
+    public string SolutionPrefix => IsEnglish ? "Correct answer: " : "Respuesta correcta: ";
+    public string ScoreSectionTitle => IsEnglish ? "Result" : "Resultado";
+    public string VerifyButtonContent => IsEnglish ? "Verify Answers" : "Verificar respuestas";
+    public string ScoreNoQuestions => IsEnglish ? "No questions" : "Sin preguntas";
+    public string VerifyExcellent => IsEnglish ? "Excellent! You answered all {0} questions correctly." : "¡Excelente! Respondiste correctamente todas las {0} preguntas.";
+    public string VerifyProgress => IsEnglish ? "You have {0} of {1} correct answers." : "Llevas {0} de {1} respuestas correctas.";
+    public string GenerateNoSource => IsEnglish ? "Select at least one source: the program, the documents, or at least one URL." : "Seleccione al menos una fuente: el programa, los documentos o al menos una URL.";
+    public string GenerateNoProgramContent => IsEnglish ? "No study program content available to generate the exam." : "No hay contenido de programa disponible para generar el examen.";
+    public string GenerateNoDocuments => IsEnglish ? "No documents available to generate the exam." : "No hay documentos disponibles para generar el examen.";
+    public string GenerateFailed => IsEnglish ? "Could not generate the exam: {0}" : "No se pudo generar el examen: {0}";
+    public string SaveFailed => IsEnglish ? "Could not save the exam: {0}" : "No se pudo guardar el examen: {0}";
+    public string LoadNotFound => IsEnglish ? "The requested exam was not found." : "No se encontró el examen solicitado.";
+    public string LoadFailed => IsEnglish ? "Could not load the exam: {0}" : "No se pudo cargar el examen: {0}";
+    public string AddUrlInvalid => IsEnglish ? "Enter a valid URL." : "Ingrese una URL válida.";
+    public string AddUrlScheme => IsEnglish ? "The URL must start with http:// or https://" : "La URL debe comenzar con http:// o https://";
+    public string AddUrlDuplicate => IsEnglish ? "This URL was already added." : "Esta URL ya fue agregada.";
+    public string GeneratingOverlay => IsEnglish ? "Generating exam..." : "Generando examen...";
+
     /// <summary>
     /// URLs agregadas como fuentes adicionales para el examen.
     /// El contenido se descarga al generar el examen.
@@ -110,6 +162,50 @@ public partial class ExamViewModel : ViewModelBase
 
     private bool CanSaveExam => CurrentExam is not null && !IsLoading;
 
+    private void OnLanguageChanged()
+    {
+        OnPropertyChanged(nameof(WindowTitle));
+        OnPropertyChanged(nameof(ExamSectionTitle));
+        OnPropertyChanged(nameof(ExamTitleLabel));
+        OnPropertyChanged(nameof(QuestionCountLabel));
+        OnPropertyChanged(nameof(QuestionTypeLabel));
+        OnPropertyChanged(nameof(UseProgramContentContent));
+        OnPropertyChanged(nameof(UseDocumentsContent));
+        OnPropertyChanged(nameof(IncludeSolutionsContent));
+        OnPropertyChanged(nameof(UseUrlsContent));
+        OnPropertyChanged(nameof(AddUrlSectionTitle));
+        OnPropertyChanged(nameof(NewUrlPlaceholder));
+        OnPropertyChanged(nameof(AddUrlButtonContent));
+        OnPropertyChanged(nameof(UrlsAddedLabel));
+        OnPropertyChanged(nameof(GenerateButtonContent));
+        OnPropertyChanged(nameof(ClearButtonContent));
+        OnPropertyChanged(nameof(SaveExamButtonContent));
+        OnPropertyChanged(nameof(LoadExamSectionTitle));
+        OnPropertyChanged(nameof(LoadExamButtonContent));
+        OnPropertyChanged(nameof(ExamQuestionsFallback));
+        OnPropertyChanged(nameof(QuestionsCountFormat));
+        OnPropertyChanged(nameof(CorrectFeedback));
+        OnPropertyChanged(nameof(IncorrectPrefix));
+        OnPropertyChanged(nameof(SolutionPrefix));
+        OnPropertyChanged(nameof(ScoreSectionTitle));
+        OnPropertyChanged(nameof(VerifyButtonContent));
+        OnPropertyChanged(nameof(ScoreNoQuestions));
+        OnPropertyChanged(nameof(VerifyExcellent));
+        OnPropertyChanged(nameof(VerifyProgress));
+        OnPropertyChanged(nameof(GenerateNoSource));
+        OnPropertyChanged(nameof(GenerateNoProgramContent));
+        OnPropertyChanged(nameof(GenerateNoDocuments));
+        OnPropertyChanged(nameof(GenerateFailed));
+        OnPropertyChanged(nameof(SaveFailed));
+        OnPropertyChanged(nameof(LoadNotFound));
+        OnPropertyChanged(nameof(LoadFailed));
+        OnPropertyChanged(nameof(AddUrlInvalid));
+        OnPropertyChanged(nameof(AddUrlScheme));
+        OnPropertyChanged(nameof(AddUrlDuplicate));
+        OnPropertyChanged(nameof(GeneratingOverlay));
+        OnPropertyChanged(nameof(QuestionsCountText));
+    }
+
     private bool CanLoadExam => !IsLoading;
 
     [RelayCommand(CanExecute = nameof(CanGenerate))]
@@ -122,7 +218,7 @@ public partial class ExamViewModel : ViewModelBase
 
         if (!UseProgramContent && !UseDocuments && !(UseUrls && Urls.Count > 0))
         {
-            ErrorMessage = "Seleccione al menos una fuente: el programa, los documentos o al menos una URL.";
+            ErrorMessage = GenerateNoSource;
             return;
         }
 
@@ -183,13 +279,13 @@ public partial class ExamViewModel : ViewModelBase
 
         if (UseProgramContent && string.IsNullOrWhiteSpace(programContent))
         {
-            ErrorMessage = "No hay contenido de programa disponible para generar el examen.";
+            ErrorMessage = GenerateNoProgramContent;
             return;
         }
 
         if (UseDocuments && documents.Count == 0)
         {
-            ErrorMessage = "No hay documentos disponibles para generar el examen.";
+            ErrorMessage = GenerateNoDocuments;
             return;
         }
 
@@ -210,7 +306,7 @@ public partial class ExamViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"No se pudo generar el examen: {ex.Message}";
+            ErrorMessage = string.Format(GenerateFailed, ex.Message);
         }
         finally
         {
@@ -238,7 +334,7 @@ public partial class ExamViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"No se pudo guardar el examen: {ex.Message}";
+            ErrorMessage = string.Format(SaveFailed, ex.Message);
         }
         finally
         {
@@ -258,11 +354,11 @@ public partial class ExamViewModel : ViewModelBase
         {
             var exam = await _examService.LoadExamAsync(examId);
             CurrentExam = exam;
-            ErrorMessage = exam is null ? "No se encontró el examen solicitado." : null;
+            ErrorMessage = exam is null ? LoadNotFound : null;
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"No se pudo cargar el examen: {ex.Message}";
+            ErrorMessage = string.Format(LoadFailed, ex.Message);
         }
         finally
         {
@@ -284,7 +380,7 @@ public partial class ExamViewModel : ViewModelBase
     /// </summary>
     public string ScoreText =>
         CurrentExam is null || CurrentExam.Questions.Count == 0
-            ? "Sin preguntas"
+            ? ScoreNoQuestions
             : $"{ScorePercentage:F0}% — {CorrectAnswersCount} de {TotalQuestionsCount} correctas";
 
     /// <summary>
@@ -321,8 +417,8 @@ public partial class ExamViewModel : ViewModelBase
         // que se evalúan automáticamente cuando SelectedOptionIndex o UserAnswer cambian.
         // Este comando existe para notificar al usuario que se han evaluado las respuestas.
         ErrorMessage = CorrectAnswersCount == TotalQuestionsCount
-            ? $"¡Excelente! Respondiste correctamente todas las {TotalQuestionsCount} preguntas."
-            : $"Llevas {CorrectAnswersCount} de {TotalQuestionsCount} respuestas correctas.";
+            ? string.Format(VerifyExcellent, TotalQuestionsCount)
+            : string.Format(VerifyProgress, CorrectAnswersCount, TotalQuestionsCount);
     }
 
     [RelayCommand]
@@ -331,20 +427,20 @@ public partial class ExamViewModel : ViewModelBase
         var url = NewUrl?.Trim();
         if (string.IsNullOrWhiteSpace(url))
         {
-            ErrorMessage = "Ingrese una URL válida.";
+            ErrorMessage = AddUrlInvalid;
             return;
         }
 
         if (!url.StartsWith("http://", StringComparison.OrdinalIgnoreCase)
             && !url.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
         {
-            ErrorMessage = "La URL debe comenzar con http:// o https://";
+            ErrorMessage = AddUrlScheme;
             return;
         }
 
         if (Urls.Contains(url))
         {
-            ErrorMessage = "Esta URL ya fue agregada.";
+            ErrorMessage = AddUrlDuplicate;
             return;
         }
 
@@ -422,6 +518,7 @@ public partial class ExamViewModel : ViewModelBase
         OnPropertyChanged(nameof(CorrectAnswersCount));
         OnPropertyChanged(nameof(TotalQuestionsCount));
         OnPropertyChanged(nameof(AllQuestionsAnswered));
+        OnPropertyChanged(nameof(QuestionsCountText));
     }
 
     private void OnQuestionPropertyChanged(object? sender, PropertyChangedEventArgs e)

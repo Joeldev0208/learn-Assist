@@ -34,6 +34,60 @@ public partial class MainViewModel : ViewModelBase
     public ExamViewModel Exam { get; }
     public LearningProfile? LearningProfile { get; private set; }
     public string UserId => _userKey;
+    private bool IsEnglish => LanguageService.IsEnglish;
+
+    public string WorkspaceLabel => IsEnglish ? "Your workspace" : "Tu espacio de trabajo";
+    public string ChatHistoryLabel => IsEnglish ? "Chat history" : "Historial de chats";
+    public string NewChatTip => IsEnglish ? "Start a new chat" : "Iniciar un chat nuevo";
+    public string ShowHistoryTip => IsEnglish ? "Show chat history" : "Mostrar historial de chats";
+    public string ShowResourcesTip => IsEnglish ? "Show resources" : "Mostrar recursos";
+    public string ThemeTip => IsEnglish ? "Toggle light/dark theme" : "Cambiar tema claro/oscuro";
+    public string ConfigureAiTip => IsEnglish ? "Configure AI provider" : "Configurar proveedor de IA";
+    public string SignOutTip => IsEnglish ? "Sign out" : "Cerrar sesión";
+    public string UninstallTip => IsEnglish ? "Uninstall application" : "Desinstalar aplicación";
+    public string LearningWorkspaceLabel => IsEnglish ? "Learning workspace ·" : "Espacio de aprendizaje ·";
+    public string OneStepLabel => IsEnglish ? "One clear step at a time" : "Un paso claro a la vez";
+    public string ContinueLearningLabel => IsEnglish ? "Continue learning" : "Continúa aprendiendo";
+    public string ChooseGoalLabel => IsEnglish
+        ? "Choose one goal. Learn it, practice it, and leave with a clear next step."
+        : "Elige un objetivo. Apréndelo, practícalo y termina con un siguiente paso claro.";
+    public string UnderstandLabel => IsEnglish ? "What do you want to understand?" : "¿Qué quieres comprender?";
+    public string SpecificGoalLabel => IsEnglish
+        ? "Keep it specific. The app will guide you through one focused session."
+        : "Sé específico. La aplicación te guiará en una sesión enfocada.";
+    public string LearningGoalPlaceholder => IsEnglish
+        ? "For example: React component state"
+        : "Por ejemplo: estado de un componente de React";
+    public string StartLearningLabel => IsEnglish ? "Start learning session" : "Iniciar sesión de aprendizaje";
+    public string QuickSessionLabel => IsEnglish
+        ? "Start a quick 5-minute session"
+        : "Iniciar una sesión rápida de 5 minutos";
+    public string UnderstandStepLabel => IsEnglish ? "1  Understand" : "1  Comprender";
+    public string UnderstandDescription => IsEnglish
+        ? "A short explanation without the noise."
+        : "Una explicación breve y directa.";
+    public string PracticeStepLabel => IsEnglish ? "2  Practice" : "2  Practicar";
+    public string PracticeDescription => IsEnglish
+        ? "A small task that makes it stick."
+        : "Una pequeña tarea para fijarlo.";
+    public string ExplainStepLabel => IsEnglish ? "3  Explain" : "3  Explicar";
+    public string ExplainDescription => IsEnglish
+        ? "Say it back and know what comes next."
+        : "Explícalo con tus palabras y descubre qué sigue.";
+    public string ResourcesLabel => IsEnglish ? "Resources" : "Recursos";
+    public string AddUrlLabel => IsEnglish ? "Add URL" : "Agregar URL";
+    public string UseInAiLabel => IsEnglish ? "Use in AI" : "Usar en la IA";
+    public string ThinkingLabel => IsEnglish ? "Thinking..." : "Pensando...";
+    public string MessagePlaceholder => IsEnglish ? "What do you want to learn?" : "¿Qué quieres aprender?";
+    public string CopyLabel => IsEnglish ? "Copy" : "Copiar";
+    public string ResourceOnlyLabel => IsEnglish ? "Resources only" : "Solo recursos";
+    public string SessionCompleteLabel => IsEnglish
+        ? "Nice work. You completed this focused session. Return when you are ready for the next idea."
+        : "Buen trabajo. Completaste esta sesión enfocada. Regresa cuando estés listo para la siguiente idea.";
+    public string DeleteSessionTip => IsEnglish ? "Delete session" : "Eliminar sesión";
+    public string AiPermissionsTip => IsEnglish ? "AI permissions" : "Permisos de la IA";
+    public string CreateExamTip => IsEnglish ? "Create exam" : "Crear examen";
+    public string NewUrlPlaceholder => IsEnglish ? "https://example.com/article" : "https://ejemplo.com/artículo";
 
     public event Action? ConfigureAiRequested
     {
@@ -128,6 +182,49 @@ public partial class MainViewModel : ViewModelBase
     partial void OnIsUpdatingChanged(bool value)
     {
         OnPropertyChanged(nameof(UpdateButtonText));
+    }
+
+    private void OnLanguageChanged()
+    {
+        OnPropertyChanged(nameof(WorkspaceLabel));
+        OnPropertyChanged(nameof(ChatHistoryLabel));
+        OnPropertyChanged(nameof(NewChatTip));
+        OnPropertyChanged(nameof(ShowHistoryTip));
+        OnPropertyChanged(nameof(ShowResourcesTip));
+        OnPropertyChanged(nameof(ThemeTip));
+        OnPropertyChanged(nameof(ConfigureAiTip));
+        OnPropertyChanged(nameof(SignOutTip));
+        OnPropertyChanged(nameof(UninstallTip));
+        OnPropertyChanged(nameof(LearningWorkspaceLabel));
+        OnPropertyChanged(nameof(OneStepLabel));
+        OnPropertyChanged(nameof(ContinueLearningLabel));
+        OnPropertyChanged(nameof(ChooseGoalLabel));
+        OnPropertyChanged(nameof(UnderstandLabel));
+        OnPropertyChanged(nameof(SpecificGoalLabel));
+        OnPropertyChanged(nameof(LearningGoalPlaceholder));
+        OnPropertyChanged(nameof(StartLearningLabel));
+        OnPropertyChanged(nameof(QuickSessionLabel));
+        OnPropertyChanged(nameof(UnderstandStepLabel));
+        OnPropertyChanged(nameof(UnderstandDescription));
+        OnPropertyChanged(nameof(PracticeStepLabel));
+        OnPropertyChanged(nameof(PracticeDescription));
+        OnPropertyChanged(nameof(ExplainStepLabel));
+        OnPropertyChanged(nameof(ExplainDescription));
+        OnPropertyChanged(nameof(ResourcesLabel));
+        OnPropertyChanged(nameof(AddUrlLabel));
+        OnPropertyChanged(nameof(UseInAiLabel));
+        OnPropertyChanged(nameof(ThinkingLabel));
+        OnPropertyChanged(nameof(MessagePlaceholder));
+        OnPropertyChanged(nameof(CopyLabel));
+        OnPropertyChanged(nameof(ResourceOnlyLabel));
+        OnPropertyChanged(nameof(SessionCompleteLabel));
+        OnPropertyChanged(nameof(UpdateButtonText));
+        OnPropertyChanged(nameof(UpdateMessage));
+        OnPropertyChanged(nameof(DeleteSessionTip));
+        OnPropertyChanged(nameof(AiPermissionsTip));
+        OnPropertyChanged(nameof(CreateExamTip));
+        OnPropertyChanged(nameof(NewUrlPlaceholder));
+        Tutorial.RefreshLanguage();
     }
 
     [RelayCommand]
@@ -285,6 +382,7 @@ public partial class MainViewModel : ViewModelBase
         DocumentViewer = new DocumentViewerViewModel();
         Exam = new ExamViewModel(aiService, LearningProfile, DocumentList.Documents);
         Tutorial = new TutorialViewModel();
+        LanguageService.LanguageChanged += OnLanguageChanged;
 
         // Cargar la preferencia sin guardarla de vuelta ni reconstruir el prompt
         // dos veces: el prompt se construye una sola vez al final del constructor.
@@ -420,7 +518,9 @@ public partial class MainViewModel : ViewModelBase
             if (update is { IsUpdateAvailable: true })
             {
                 IsUpdateAvailable = true;
-                UpdateMessage = $"Actualización disponible: v{update.LatestVersion}. Reinicia la aplicación para instalarla.";
+                UpdateMessage = IsEnglish
+                    ? $"Update available: v{update.LatestVersion}. Restart the app to install it."
+                    : $"Actualización disponible: v{update.LatestVersion}. Reinicia la aplicación para instalarla.";
             }
         }
         catch
@@ -441,7 +541,9 @@ public partial class MainViewModel : ViewModelBase
         try
         {
             await _updateService.StageUpdateAsync();
-            UpdateMessage = "Actualización lista. Reiniciando para aplicarla...";
+            UpdateMessage = IsEnglish
+                ? "Update ready. Restarting to apply it..."
+                : "Actualización lista. Reiniciando para aplicarla...";
             RestartRequested?.Invoke();
         }
         catch (Exception ex)
@@ -530,6 +632,7 @@ public partial class MainViewModel : ViewModelBase
     {
         Interlocked.Increment(ref _promptUpdateVersion);
         Chat.Dispose();
+        LanguageService.LanguageChanged -= OnLanguageChanged;
     }
 
     private void OnSessionSelected(Models.ChatSession session)

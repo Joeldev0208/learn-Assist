@@ -7,7 +7,7 @@
         x:Class="learn_Assist.Views.PermissionsView"
         x:DataType="vm:PermissionsViewModel"
         Icon="/Assets/learn-assist.ico"
-        Title="Permisos de la IA"
+        Title="{Binding WindowTitle}"
         WindowStartupLocation="CenterScreen"
         CanResize="False"
         Width="520" Height="620"
@@ -24,12 +24,12 @@
     <ScrollViewer>
       <StackPanel Spacing="14">
 
-        <TextBlock Text="Permisos de la IA"
+        <TextBlock Text="{Binding WindowTitle}"
                    FontSize="22" FontWeight="Bold"
                    Foreground="{DynamicResource TextPrimaryBrush}"
                    HorizontalAlignment="Center" />
 
-        <TextBlock Text="Controla qué fuentes puede usar la IA y qué puede hacer el agente local. Los cambios se aplican al siguiente mensaje."
+        <TextBlock Text="{Binding IntroText}"
                    FontSize="12" Foreground="{DynamicResource TextMutedBrush}"
                    TextWrapping="Wrap" HorizontalAlignment="Center"
                    TextAlignment="Center" Margin="0,0,0,6" />
@@ -39,30 +39,30 @@
                 Background="{DynamicResource InputBackgroundBrush}"
                 BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1">
           <StackPanel Spacing="6">
-            <TextBlock Text="Fuentes de consulta"
+            <TextBlock Text="{Binding SourcesSectionTitle}"
                        FontSize="12" FontWeight="SemiBold"
                        Foreground="{DynamicResource TextSecondaryBrush}" />
 
-            <CheckBox Content="Usar los recursos marcados en el chat"
+            <CheckBox Content="{Binding AllowResourcesContent}"
                       IsChecked="{Binding AllowResources, Mode=TwoWay}"
                       Margin="0,4,0,0" />
-            <TextBlock Text="Si lo desactivas, la IA responde solo con su conocimiento general y el programa del semestre."
+            <TextBlock Text="{Binding AllowResourcesDescription}"
                        FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
                        TextWrapping="Wrap" Margin="28,0,0,4" />
 
-            <CheckBox Content="Incluir recursos web (URL)"
+            <CheckBox Content="{Binding AllowWebResourcesContent}"
                       IsChecked="{Binding AllowWebResources, Mode=TwoWay}"
                       IsEnabled="{Binding CanEditResourceTypes}"
                       Margin="20,0,0,0" />
-            <TextBlock Text="Páginas y artículos agregados desde una dirección web."
+            <TextBlock Text="{Binding AllowWebResourcesDescription}"
                        FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
                        TextWrapping="Wrap" Margin="48,0,0,6" />
 
-            <CheckBox Content="Incluir archivos locales"
+            <CheckBox Content="{Binding AllowLocalFilesContent}"
                       IsChecked="{Binding AllowLocalFiles, Mode=TwoWay}"
                       IsEnabled="{Binding CanEditResourceTypes}"
                       Margin="20,0,0,0" />
-            <TextBlock Text="PDF, DOCX, presentaciones, imágenes y videos importados desde tu equipo."
+            <TextBlock Text="{Binding AllowLocalFilesDescription}"
                        FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
                        TextWrapping="Wrap" Margin="48,0,0,0" />
           </StackPanel>
@@ -73,20 +73,20 @@
                 Background="{DynamicResource InputBackgroundBrush}"
                 BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1">
           <StackPanel Spacing="6">
-            <TextBlock Text="Agente local"
+            <TextBlock Text="{Binding AgentSectionTitle}"
                        FontSize="12" FontWeight="SemiBold"
                        Foreground="{DynamicResource TextSecondaryBrush}" />
 
-            <CheckBox Content="Permitir herramientas del agente"
+            <CheckBox Content="{Binding AllowAgentToolsContent}"
                       IsChecked="{Binding AllowAgentTools, Mode=TwoWay}"
                       Margin="0,4,0,0" />
-            <TextBlock Text="Con OpenCode, permite ejecutar comandos, editar archivos y acceder a la red. Desactivado por defecto: el agente corre con los permisos de tu cuenta."
+            <TextBlock Text="{Binding AllowAgentToolsDescription}"
                        FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
                        TextWrapping="Wrap" Margin="28,0,0,0" />
           </StackPanel>
         </Border>
 
-        <TextBlock Text="Los permisos se guardan en este equipo y no se envían a ningún servidor."
+        <TextBlock Text="{Binding PermissionsNote}"
                    FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
                    TextWrapping="Wrap" Margin="0,2,0,0" />
 
@@ -94,7 +94,7 @@
         <Grid ColumnDefinitions="*,Auto,Auto" Margin="0,8,0,0">
           <Button Grid.Column="0"
                   Command="{Binding ResetDefaultsCommand}"
-                  Content="Restablecer"
+                  Content="{Binding ResetButtonContent}"
                   Padding="12,9" Background="Transparent"
                   Foreground="{DynamicResource TextMutedBrush}"
                   CornerRadius="20" FontSize="12"
@@ -102,7 +102,7 @@
 
           <Button Grid.Column="1"
                   Command="{Binding CancelCommand}"
-                  Content="Cancelar"
+                  Content="{Binding CancelButtonContent}"
                   Padding="16,9" Background="Transparent"
                   Foreground="{DynamicResource TextSecondaryBrush}"
                   CornerRadius="20" FontSize="13"
@@ -110,7 +110,7 @@
 
           <Button Grid.Column="2"
                   Command="{Binding SaveCommand}"
-                  Content="Guardar"
+                  Content="{Binding SaveButtonContent}"
                   Padding="18,9"
                   Background="{DynamicResource ButtonPrimaryBackgroundBrush}"
                   Foreground="{DynamicResource ButtonPrimaryForegroundBrush}"

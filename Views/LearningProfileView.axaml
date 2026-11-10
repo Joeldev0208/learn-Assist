@@ -33,48 +33,45 @@
                      Foreground="{DynamicResource TextMutedBrush}" />
 
           <StackPanel Spacing="12" IsVisible="{Binding IsFirstStep}">
-            <TextBlock Text="¿Qué contexto de aprendizaje te describe mejor?"
-                       FontSize="17" FontWeight="SemiBold"
+            <TextBlock Text="{Binding ProfileTypeLabel}" FontSize="17" FontWeight="SemiBold"
                        Foreground="{DynamicResource TextPrimaryBrush}" />
-            <RadioButton Content="Estudiante" IsChecked="{Binding IsStudent}"
-                         GroupName="ProfileType" FontSize="14" />
-            <RadioButton Content="Estudiante universitario" IsChecked="{Binding IsUniversity}"
-                         GroupName="ProfileType" FontSize="14" />
-            <TextBlock Text="Esta elección determina el contexto inicial que usará el asistente de aprendizaje."
-                       FontSize="12" Foreground="{DynamicResource TextMutedBrush}"
+            <TextBlock Text="{Binding ProfileTypeDescription}" FontSize="12" Foreground="{DynamicResource TextMutedBrush}"
                        TextWrapping="Wrap" />
+            <RadioButton Content="{Binding StudentRadioContent}" IsChecked="{Binding IsStudent}"
+                         GroupName="ProfileType" FontSize="14" />
+            <RadioButton Content="{Binding UniversityRadioContent}" IsChecked="{Binding IsUniversity}"
+                         GroupName="ProfileType" FontSize="14" />
           </StackPanel>
 
           <StackPanel Spacing="12" IsVisible="{Binding IsDetailsStep}">
-            <TextBlock Text="Cuéntanos un poco más"
-                       FontSize="17" FontWeight="SemiBold"
+            <TextBlock Text="{Binding DetailsSectionTitle}" FontSize="17" FontWeight="SemiBold"
                        Foreground="{DynamicResource TextPrimaryBrush}" />
 
             <StackPanel Spacing="5" IsVisible="{Binding IsStudent}">
-              <TextBlock Text="Curso o nivel actual" FontSize="12"
+              <TextBlock Text="{Binding CourseLabel}" FontSize="12"
                          Foreground="{DynamicResource TextSecondaryBrush}" />
-              <TextBox Text="{Binding Course}" PlaceholderText="Por ejemplo: décimo grado"
+              <TextBox Text="{Binding Course}" PlaceholderText="{Binding CoursePlaceholder}"
                        Padding="12,9" />
-              <TextBlock Text="Materias actuales, separadas por comas" FontSize="12"
+              <TextBlock Text="{Binding SubjectsLabel}" FontSize="12"
                          Foreground="{DynamicResource TextSecondaryBrush}" />
               <TextBox Text="{Binding SubjectsText}"
-                       PlaceholderText="Por ejemplo: Matemáticas, Biología"
+                       PlaceholderText="{Binding SubjectsPlaceholder}"
                        Padding="12,9" />
             </StackPanel>
 
             <StackPanel Spacing="5" IsVisible="{Binding IsUniversity}">
-              <TextBlock Text="Carrera" FontSize="12"
+              <TextBlock Text="{Binding CareerLabel}" FontSize="12"
                          Foreground="{DynamicResource TextSecondaryBrush}" />
-              <TextBox Text="{Binding Career}" PlaceholderText="Por ejemplo: Ingeniería de software"
+              <TextBox Text="{Binding Career}" PlaceholderText="{Binding UniversityPlaceholder}"
                        Padding="12,9" />
-              <TextBlock Text="Universidad (opcional)" FontSize="12"
+              <TextBlock Text="{Binding UniversityLabel}" FontSize="12"
                          Foreground="{DynamicResource TextSecondaryBrush}" />
               <TextBox Text="{Binding University}" Padding="12,9" />
-              <TextBlock Text="Semestre (opcional)" FontSize="12"
+              <TextBlock Text="{Binding SemesterLabel}" FontSize="12"
                          Foreground="{DynamicResource TextSecondaryBrush}" />
               <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
                 <TextBox Grid.Column="0" Text="{Binding Semester}" Padding="12,9" />
-                <Button Grid.Column="1" Content="Importar"
+                <Button Grid.Column="1" Content="{Binding ImportButtonContent}"
                         Command="{Binding SemesterImportCommand}"
                         Background="{DynamicResource ButtonSecondaryBackgroundBrush}"
                         Foreground="{DynamicResource ButtonSecondaryForegroundBrush}"
@@ -84,7 +81,7 @@
                          FontSize="12" Foreground="{DynamicResource TextMutedBrush}"
                          TextWrapping="Wrap"
                          IsVisible="{Binding SemesterImportFeedback, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
-              <TextBlock Text="Puedes agregar tu programa más adelante desde Recursos."
+              <TextBlock Text="{Binding SemesterLaterHint}"
                          FontSize="12" Foreground="{DynamicResource TextMutedBrush}"
                          TextWrapping="Wrap"
                          IsVisible="{Binding SemesterImportFeedback, Converter={x:Static StringConverters.IsNullOrEmpty}}" />
@@ -92,19 +89,18 @@
           </StackPanel>
 
           <StackPanel Spacing="12" IsVisible="{Binding IsPreferencesStep}">
-            <TextBlock Text="Shape your learning experience"
-                       FontSize="17" FontWeight="SemiBold"
+            <TextBlock Text="{Binding PreferencesSectionTitle}" FontSize="17" FontWeight="SemiBold"
                        Foreground="{DynamicResource TextPrimaryBrush}" />
-            <TextBlock             Text="¿Qué quieres aprender primero?" FontSize="12"
+            <TextBlock             Text="{Binding LearningGoalQuestion}" FontSize="12"
                        Foreground="{DynamicResource TextSecondaryBrush}" />
             <TextBox Text="{Binding LearningGoal}"
-                     PlaceholderText="Por ejemplo: entender el estado de los componentes de React"
+                     PlaceholderText="{Binding LearningGoalPlaceholder}"
                      Padding="12,9" AcceptsReturn="True" />
-            <TextBlock Text="Nivel actual" FontSize="12"
+            <TextBlock Text="{Binding LevelLabel}" FontSize="12"
                        Foreground="{DynamicResource TextSecondaryBrush}" />
             <ComboBox ItemsSource="{Binding Levels}" SelectedItem="{Binding SelectedLevel}"
-                      PlaceholderText="Selecciona un nivel" />
-            <TextBlock Text="Idioma preferido" FontSize="12"
+                      PlaceholderText="{Binding LevelPlaceholder}" />
+            <TextBlock Text="{Binding PreferredLanguageLabel}" FontSize="12"
                        Foreground="{DynamicResource TextSecondaryBrush}" />
             <ComboBox ItemsSource="{Binding Languages}" SelectedItem="{Binding SelectedLanguage}" />
           </StackPanel>
@@ -123,12 +119,12 @@
               Background="{DynamicResource SurfaceBrush}"
               BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0">
         <Grid ColumnDefinitions="Auto,*,Auto">
-          <Button Grid.Column="0" Content="Cancelar" Command="{Binding CancelCommand}"
+          <Button Grid.Column="0" Content="{Binding CancelButtonContent}" Command="{Binding CancelCommand}"
                   IsVisible="{Binding IsEditing}"
                   Background="Transparent" Foreground="{DynamicResource TextMutedBrush}"
                   Padding="10,7" />
           <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
-            <Button Content="Atrás" Command="{Binding BackCommand}"
+            <Button Content="{Binding BackButtonContent}" Command="{Binding BackCommand}"
                     IsVisible="{Binding IsBackVisible}"
                     Background="{DynamicResource ButtonSecondaryBackgroundBrush}"
                     Foreground="{DynamicResource ButtonSecondaryForegroundBrush}"

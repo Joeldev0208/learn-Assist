@@ -102,12 +102,12 @@
                         Background="{DynamicResource ButtonPrimaryBackgroundBrush}"
                         Foreground="{DynamicResource ButtonPrimaryForegroundBrush}"
                         CornerRadius="15" BorderThickness="0" Padding="0"
-                        ToolTip.Tip="Iniciar un chat nuevo">
+                        ToolTip.Tip="{Binding NewChatTip}">
                   <TextBlock Text="+" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center" />
                 </Button>
                 <StackPanel>
-                  <TextBlock Text="Tu espacio de trabajo" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" />
-                  <TextBlock Text="Historial de chats" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" />
+                  <TextBlock Text="{Binding WorkspaceLabel}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" />
+                  <TextBlock Text="{Binding ChatHistoryLabel}" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" />
                 </StackPanel>
               </DockPanel>
               <Border Height="1" Background="{DynamicResource DividerBrush}" Margin="0,2,0,0" />
@@ -135,7 +135,7 @@
                               Background="Transparent" BorderThickness="0"
                               CornerRadius="6" Padding="0"
                               Foreground="{DynamicResource TextMutedBrush}"
-                              ToolTip.Tip="Eliminar sesión">
+                              ToolTip.Tip="{Binding DataContext.DeleteSessionTip, ElementName=RootWindow}">
                         <TextBlock Text="×" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center" />
                       </Button>
                       <TextBlock Text="{Binding Title}" FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" VerticalAlignment="Center" />
@@ -178,7 +178,7 @@
                       IsVisible="{Binding IsCompactLayout}"
                       Background="Transparent" BorderThickness="0" Padding="0"
                       Foreground="{DynamicResource TextMutedBrush}"
-                      ToolTip.Tip="Mostrar historial de chats">
+                      ToolTip.Tip="{Binding ShowHistoryTip}">
                 <TextBlock Text="☰" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center" />
               </Button>
               <Button Width="30" Height="30"
@@ -186,14 +186,14 @@
                       IsVisible="{Binding IsCompactLayout}"
                       Background="Transparent" BorderThickness="0" Padding="0"
                       Foreground="{DynamicResource TextMutedBrush}"
-                      ToolTip.Tip="Mostrar recursos">
+                      ToolTip.Tip="{Binding ShowResourcesTip}">
                 <TextBlock Text="▣" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center" />
               </Button>
               <Button Width="30" Height="30"
                       Command="{Binding ToggleThemeCommand}"
                       Background="Transparent" BorderThickness="0"
                       FontSize="15" Padding="0"
-                      ToolTip.Tip="Cambiar tema claro/oscuro"
+                      ToolTip.Tip="{Binding ThemeTip}"
                       HorizontalAlignment="Center" VerticalAlignment="Center">
                 <TextBlock Text="{Binding ThemeGlyph}" HorizontalAlignment="Center" VerticalAlignment="Center" />
               </Button>
@@ -201,7 +201,7 @@
                       Command="{Binding ReconfigureAiCommand}"
                       Background="Transparent" BorderThickness="0"
                       FontSize="16" Foreground="{DynamicResource TextMutedBrush}" Padding="0"
-                      ToolTip.Tip="Configurar proveedor de IA"
+                      ToolTip.Tip="{Binding ConfigureAiTip}"
                       HorizontalAlignment="Center" VerticalAlignment="Center">
                 <TextBlock Text="⚙" HorizontalAlignment="Center" VerticalAlignment="Center" />
               </Button>
@@ -209,7 +209,7 @@
                       Command="{Binding EditPermissionsCommand}"
                       Background="Transparent" BorderThickness="0"
                       FontSize="15" Foreground="{DynamicResource TextMutedBrush}" Padding="0"
-                      ToolTip.Tip="Permisos de la IA"
+                      ToolTip.Tip="{Binding AiPermissionsTip}"
                       HorizontalAlignment="Center" VerticalAlignment="Center">
                 <TextBlock Text="🔒" HorizontalAlignment="Center" VerticalAlignment="Center" />
               </Button>
@@ -217,7 +217,7 @@
                       Command="{Binding SignOutCommand}"
                       Background="Transparent" BorderThickness="0"
                       FontSize="15" Foreground="{DynamicResource TextMutedBrush}" Padding="0"
-                      ToolTip.Tip="Cerrar sesión"
+                      ToolTip.Tip="{Binding SignOutTip}"
                       HorizontalAlignment="Center" VerticalAlignment="Center">
                 <TextBlock Text="⇥" HorizontalAlignment="Center" VerticalAlignment="Center" />
               </Button>
@@ -225,14 +225,14 @@
                       Command="{Binding UninstallCommand}"
                       Background="Transparent" BorderThickness="0"
                       FontSize="16" Foreground="{DynamicResource ErrorTextBrush}" Padding="0"
-                      ToolTip.Tip="Desinstalar aplicación"
+                      ToolTip.Tip="{Binding UninstallTip}"
                       HorizontalAlignment="Center" VerticalAlignment="Center">
                 <TextBlock Text="🗑️" HorizontalAlignment="Center" VerticalAlignment="Center" />
               </Button>
               <Button Width="30" Height="30"
                       Command="{Binding OpenExamCommand}"
                       Background="Transparent" BorderThickness="0" Padding="0"
-                      ToolTip.Tip="Crear examen"
+                      ToolTip.Tip="{Binding CreateExamTip}"
                       HorizontalAlignment="Center" VerticalAlignment="Center">
                 <TextBlock Text="📝" HorizontalAlignment="Center" VerticalAlignment="Center" />
               </Button>
@@ -248,12 +248,12 @@
               </StackPanel>
               <StackPanel Orientation="Horizontal" Spacing="5"
                           IsVisible="{Binding IsLearningSessionActive}">
-                <TextBlock Text="Espacio de aprendizaje ·" FontSize="11"
+                <TextBlock Text="{Binding LearningWorkspaceLabel}" FontSize="11"
                            Foreground="{DynamicResource TextMutedBrush}" />
                 <TextBlock Text="{Binding LearningGoal}" FontSize="11"
                            Foreground="{DynamicResource TextMutedBrush}" />
               </StackPanel>
-              <TextBlock Text="Un paso claro a la vez"
+              <TextBlock Text="{Binding OneStepLabel}"
                          FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
                          IsVisible="{Binding IsLearningSessionActive, Converter={x:Static BoolConverters.Not}}" />
             </StackPanel>
@@ -269,9 +269,9 @@
                       IsVisible="{Binding IsLearningSessionActive, Converter={x:Static BoolConverters.Not}}">
           <StackPanel MaxWidth="700" HorizontalAlignment="Center" Spacing="20">
             <StackPanel Spacing="8">
-              <TextBlock Text="Continúa aprendiendo" FontSize="28" FontWeight="Bold"
+              <TextBlock Text="{Binding ContinueLearningLabel}" FontSize="28" FontWeight="Bold"
                          Foreground="{DynamicResource TextPrimaryBrush}" />
-              <TextBlock Text="Elige un objetivo. Apréndelo, practícalo y termina con un siguiente paso claro."
+              <TextBlock Text="{Binding ChooseGoalLabel}"
                          FontSize="15" Foreground="{DynamicResource TextSecondaryBrush}"
                          TextWrapping="Wrap" />
             </StackPanel>
@@ -281,15 +281,15 @@
                     BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
               <StackPanel Spacing="16">
                 <StackPanel Spacing="5">
-                  <TextBlock Text="¿Qué quieres comprender?"
+                  <TextBlock Text="{Binding UnderstandLabel}"
                              FontSize="16" FontWeight="SemiBold"
                              Foreground="{DynamicResource TextPrimaryBrush}" />
-                  <TextBlock Text="Sé específico. La aplicación te guiará en una sesión enfocada."
+                  <TextBlock Text="{Binding SpecificGoalLabel}"
                              FontSize="12" Foreground="{DynamicResource TextMutedBrush}"
                              TextWrapping="Wrap" />
                 </StackPanel>
                 <TextBox Text="{Binding LearningGoal}"
-                         PlaceholderText="Por ejemplo: estado de un componente de React"
+                         PlaceholderText="{Binding LearningGoalPlaceholder}"
                          FontSize="15" Padding="14,11" CornerRadius="10"
                          Background="{DynamicResource InputBackgroundBrush}"
                          BorderBrush="{DynamicResource InputBorderBrush}"
@@ -299,7 +299,7 @@
                         Foreground="{DynamicResource ButtonPrimaryForegroundBrush}"
                         CornerRadius="10" Padding="18,11"
                         HorizontalAlignment="Left" BorderThickness="0">
-                  <TextBlock Text="Iniciar sesión de aprendizaje" FontSize="14" FontWeight="SemiBold" />
+                  <TextBlock Text="{Binding StartLearningLabel}" FontSize="14" FontWeight="SemiBold" />
                 </Button>
               </StackPanel>
             </Border>
@@ -308,7 +308,7 @@
                     Background="Transparent" BorderThickness="0"
                     Foreground="{DynamicResource BrandBrush}"
                     HorizontalAlignment="Center" Padding="10,6">
-              <TextBlock Text="Iniciar una sesión rápida de 5 minutos" FontSize="13" />
+              <TextBlock Text="{Binding QuickSessionLabel}" FontSize="13" />
             </Button>
 
             <Grid ColumnDefinitions="*,*,*" ColumnSpacing="10">
@@ -316,9 +316,9 @@
                       Background="{DynamicResource SurfaceBrush}"
                       BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
                 <StackPanel Spacing="6">
-                  <TextBlock Text="1  Comprender" FontWeight="SemiBold"
+                  <TextBlock Text="{Binding UnderstandStepLabel}" FontWeight="SemiBold"
                              Foreground="{DynamicResource TextPrimaryBrush}" />
-                  <TextBlock Text="Una explicación breve y directa."
+                  <TextBlock Text="{Binding UnderstandDescription}"
                              FontSize="12" TextWrapping="Wrap"
                              Foreground="{DynamicResource TextMutedBrush}" />
                 </StackPanel>
@@ -327,9 +327,9 @@
                       Background="{DynamicResource SurfaceBrush}"
                       BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
                 <StackPanel Spacing="6">
-                  <TextBlock Text="2  Practicar" FontWeight="SemiBold"
+                  <TextBlock Text="{Binding PracticeStepLabel}" FontWeight="SemiBold"
                              Foreground="{DynamicResource TextPrimaryBrush}" />
-                  <TextBlock Text="Una pequeña tarea para fijarlo."
+                  <TextBlock Text="{Binding PracticeDescription}"
                              FontSize="12" TextWrapping="Wrap"
                              Foreground="{DynamicResource TextMutedBrush}" />
                 </StackPanel>
@@ -338,9 +338,9 @@
                       Background="{DynamicResource SurfaceBrush}"
                       BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
                 <StackPanel Spacing="6">
-                  <TextBlock Text="3  Explicar" FontWeight="SemiBold"
+                  <TextBlock Text="{Binding ExplainStepLabel}" FontWeight="SemiBold"
                              Foreground="{DynamicResource TextPrimaryBrush}" />
-                  <TextBlock Text="Explícalo con tus palabras y descubre qué sigue."
+                  <TextBlock Text="{Binding ExplainDescription}"
                              FontSize="12" TextWrapping="Wrap"
                              Foreground="{DynamicResource TextMutedBrush}" />
                 </StackPanel>
@@ -406,7 +406,7 @@
               <!--               <Border MaxWidth="720" HorizontalAlignment="Center" Padding="14,12"
                       CornerRadius="12" Background="{DynamicResource SuccessTextBrush}"
                       IsVisible="{Binding IsLearningSessionComplete}">
-                <TextBlock Text="Buen trabajo. Completaste esta sesión enfocada. Regresa cuando estés listo para la siguiente idea."
+                <TextBlock Text="{Binding SessionCompleteLabel}"
                            Foreground="{DynamicResource BrandTextBrush}" TextWrapping="Wrap" FontSize="13" />
               </Border> -->
               <ItemsControl ItemsSource="{Binding Chat.Messages}"
@@ -423,7 +423,7 @@
                           <controls:MarkdownView x:Name="MarkdownView"
                                                   Markdown="{Binding Content}"
                                                   HorizontalAlignment="Stretch" />
-                          <Button Content="Copiar"
+                          <Button Content="{Binding DataContext.CopyLabel, ElementName=RootWindow}"
                                   Click="OnCopyMessageClick"
                                   HorizontalAlignment="Right"
                                   Padding="8,4"
@@ -482,7 +482,7 @@
                   <ProgressBar Width="72" Height="5" IsIndeterminate="True"
                                Foreground="{DynamicResource BrandBrush}"
                                Background="{DynamicResource InputBorderBrush}" />
-                  <TextBlock Text="Pensando..." FontSize="12"
+                  <TextBlock Text="{Binding ThinkingLabel}" FontSize="12"
                              Foreground="{DynamicResource TextMutedBrush}" />
                 </StackPanel>
               </Border>
@@ -504,7 +504,7 @@
                 </Button>
                 <TextBox Text="{Binding Chat.MessageText}"
                          x:Name="MessageTextBox"
-                         PlaceholderText="¿Qué quieres aprender?"
+                         PlaceholderText="{Binding MessagePlaceholder}"
                          FontSize="13" Padding="12,7" CornerRadius="18"
                          AcceptsReturn="True" TextWrapping="Wrap"
                          MinHeight="40" MaxHeight="48"
@@ -541,7 +541,7 @@
                         HorizontalAlignment="Center" VerticalAlignment="Center">
                   <TextBlock Text="+" HorizontalAlignment="Center" VerticalAlignment="Center" />
                 </Button>
-                <TextBlock Text="Recursos" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                <TextBlock Text="{Binding ResourcesLabel}" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
               </DockPanel>
               <Border Height="1" Background="{DynamicResource DividerBrush}" Margin="0,2,0,0" />
 
@@ -549,7 +549,7 @@
                 Modo estricto: la IA solo responde con los recursos marcados.
                 Se persiste en resource-mode.json y se aplica al prompt.
               -->
-              <CheckBox Content="Solo recursos"
+              <CheckBox Content="{Binding ResourceOnlyLabel}"
                         IsChecked="{Binding UseOnlyResources, Mode=TwoWay}"
                         FontSize="11"
                         Foreground="{DynamicResource TextMutedBrush}"
@@ -559,13 +559,13 @@
               <StackPanel Spacing="6" Margin="0,8,0,0">
                 <DockPanel LastChildFill="True">
                   <TextBox Text="{Binding DocumentList.NewUrl, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                           PlaceholderText="https://ejemplo.com/articulo"
+                           PlaceholderText="{Binding NewUrlPlaceholder}"
                            DockPanel.Dock="Left"
                            Background="{DynamicResource InputBackgroundBrush}"
                            BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" CornerRadius="6"
                            Padding="8,10" FontSize="13" MinHeight="36"
                            KeyDown="OnUrlTextBoxKeyDown" />
-                  <Button Content="Agregar URL" Command="{Binding DocumentList.AddUrlCommand}"
+                  <Button Content="{Binding AddUrlLabel}" Command="{Binding DocumentList.AddUrlCommand}"
                           DockPanel.Dock="Right"
                           Background="{DynamicResource ButtonSecondaryBackgroundBrush}"
                           Foreground="{DynamicResource ButtonSecondaryForegroundBrush}"
@@ -603,7 +603,7 @@
                                  Text="{Binding ContentType, Converter={StaticResource TypeToEmoji}}" />
                       <StackPanel VerticalAlignment="Center">
                         <TextBlock Text="{Binding Name}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" />
-                        <CheckBox Content="Usar en la IA"
+                        <CheckBox Content="{Binding DataContext.UseInAiLabel, ElementName=RootWindow}"
                                   IsChecked="{Binding IsIncludedInContext, Mode=TwoWay}"
                                   FontSize="11"
                                   Foreground="{DynamicResource TextMutedBrush}"
@@ -681,7 +681,7 @@
                       Background="Transparent"
                       Foreground="{DynamicResource TextMutedBrush}"
                       FontSize="13"
-                      Content="Omitir"
+                      Content="{Binding Tutorial.SkipButtonText}"
                       Padding="8,6" />
 
               <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
@@ -693,7 +693,7 @@
                         FontSize="13"
                         BorderThickness="0"
                         IsVisible="{Binding Tutorial.IsFirstStep, Converter={x:Static BoolConverters.Not}}">
-                  <TextBlock Text="Atrás" />
+                  <TextBlock Text="{Binding Tutorial.BackButtonText}" />
                 </Button>
 
                 <Button Command="{Binding Tutorial.NextCommand}"

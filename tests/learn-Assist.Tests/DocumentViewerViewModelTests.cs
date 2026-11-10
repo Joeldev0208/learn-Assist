@@ -11,6 +11,7 @@ public class DocumentViewerViewModelTests
     [Fact]
     public async Task OpenAsync_TextDocument_ShowsImportedContentAsPage()
     {
+        LanguageService.Set("Español");
         var vm = new DocumentViewerViewModel();
         var document = new UserDocument
         {

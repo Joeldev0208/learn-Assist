@@ -24,6 +24,14 @@ public partial class ChatViewModel : ViewModelBase
     {
         _aiService = aiService;
         _persistence = persistence;
+        LanguageService.LanguageChanged += OnLanguageChanged;
+    }
+
+    private void OnLanguageChanged()
+    {
+        OnPropertyChanged(nameof(ResourceModeHint));
+        OnPropertyChanged(nameof(LanguageHint));
+        OnPropertyChanged(nameof(Language));
     }
 
     public ObservableCollection<ChatMessage> Messages { get; } = [];
@@ -74,9 +82,16 @@ public partial class ChatViewModel : ViewModelBase
     public bool IsResourceModeBlocked => _resourcesOnly && !_hasSelectedResources;
 
     public string? ResourceModeHint => IsResourceModeBlocked
-        ? "Modo Solo recursos: marca al menos un recurso en el panel Recursos para poder enviar."
+        ? (LanguageService.IsEnglish
+            ? "Resource-only mode: select at least one resource in the Resources panel to send."
+            : "Modo Solo recursos: marca al menos un recurso en el panel Recursos para poder enviar.")
         : null;
-
+    public bool Language => LanguageService.IsEnglish is true && !IsResourceModeBlocked;
+    public string? LanguageHint => IsResourceModeBlocked
+        ? (LanguageService.IsEnglish
+            ? "Resource-only mode: select at least one resource in the Resources panel to send."
+            : "Modo Solo recursos: marca al menos un recurso en el panel Recursos para poder enviar.")
+        : null;
     public bool CanSendMessage => !IsLoading && !IsResourceModeBlocked;
 
     /// <summary>

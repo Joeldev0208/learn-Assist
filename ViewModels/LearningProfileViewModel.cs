@@ -25,10 +25,58 @@ public partial class LearningProfileViewModel : ViewModelBase
         _userId = userId;
         _isRequired = isRequired;
 
+        LanguageService.LanguageChanged += OnLanguageChanged;
+        PopulateLevels();
+
         if (existingProfile is not null)
             LoadProfile(existingProfile);
         else
             IsStudent = true;
+    }
+
+    private void PopulateLevels()
+    {
+        Levels.Clear();
+        Levels.Add(IsEnglish ? "Beginner" : "Principiante");
+        Levels.Add(IsEnglish ? "Intermediate" : "Intermedio");
+        Levels.Add(IsEnglish ? "Advanced" : "Avanzado");
+    }
+
+    private void OnLanguageChanged()
+    {
+        RefreshLanguage();
+    }
+
+    public void RefreshLanguage()
+    {
+        PopulateLevels();
+        OnPropertyChanged(nameof(NextButtonText));
+        OnPropertyChanged(nameof(StepLabel));
+        OnPropertyChanged(nameof(WindowTitle));
+        OnPropertyChanged(nameof(WindowDescription));
+        OnPropertyChanged(nameof(ProfileTypeLabel));
+        OnPropertyChanged(nameof(ProfileTypeDescription));
+        OnPropertyChanged(nameof(StudentRadioContent));
+        OnPropertyChanged(nameof(UniversityRadioContent));
+        OnPropertyChanged(nameof(DetailsSectionTitle));
+        OnPropertyChanged(nameof(CourseLabel));
+        OnPropertyChanged(nameof(CoursePlaceholder));
+        OnPropertyChanged(nameof(SubjectsLabel));
+        OnPropertyChanged(nameof(SubjectsPlaceholder));
+        OnPropertyChanged(nameof(CareerLabel));
+        OnPropertyChanged(nameof(UniversityLabel));
+        OnPropertyChanged(nameof(UniversityPlaceholder));
+        OnPropertyChanged(nameof(SemesterLabel));
+        OnPropertyChanged(nameof(ImportButtonContent));
+        OnPropertyChanged(nameof(SemesterLaterHint));
+        OnPropertyChanged(nameof(PreferencesSectionTitle));
+        OnPropertyChanged(nameof(LearningGoalQuestion));
+        OnPropertyChanged(nameof(LearningGoalPlaceholder));
+        OnPropertyChanged(nameof(LevelLabel));
+        OnPropertyChanged(nameof(LevelPlaceholder));
+        OnPropertyChanged(nameof(PreferredLanguageLabel));
+        OnPropertyChanged(nameof(CancelButtonContent));
+        OnPropertyChanged(nameof(BackButtonContent));
     }
 
     public bool IsEditing => !_isRequired;
@@ -37,18 +85,56 @@ public partial class LearningProfileViewModel : ViewModelBase
     public bool IsPreferencesStep => CurrentStep == 3;
     public bool IsLastStep => CurrentStep == 3;
     public bool IsBackVisible => CurrentStep > 1;
-    public string NextButtonText => IsLastStep ? "Guardar perfil" : "Siguiente";
-    public string StepLabel => $"Paso {CurrentStep} de 3";
-    public string WindowTitle => IsEditing ? "Editar perfil de aprendizaje" : "Configura tu perfil de aprendizaje";
-    public string WindowDescription => IsEditing
-        ? "Actualiza el contexto que Learn-Assist usa para ayudarte a aprender."
-        : "Indica cómo quieres aprender antes de comenzar una conversación.";
 
-    public ObservableCollection<string> Levels { get; } =
-        ["Principiante", "Intermedio", "Avanzado"];
+    private bool IsEnglish => LanguageService.IsEnglish;
+
+    public string NextButtonText => IsLastStep
+        ? (IsEnglish ? "Save profile" : "Guardar perfil")
+        : (IsEnglish ? "Next" : "Siguiente");
+    public string StepLabel => IsEnglish
+        ? $"Step {CurrentStep} of 3"
+        : $"Paso {CurrentStep} de 3";
+    public string WindowTitle => IsEditing
+        ? (IsEnglish ? "Edit learning profile" : "Editar perfil de aprendizaje")
+        : (IsEnglish ? "Configure your learning profile" : "Configura tu perfil de aprendizaje");
+    public string WindowDescription => IsEditing
+        ? (IsEnglish
+            ? "Update the context Learn-Assist uses to help you learn."
+            : "Actualiza el contexto que Learn-Assist usa para ayudarte a aprender.")
+        : (IsEnglish
+            ? "Indicate how you want to learn before starting a conversation."
+            : "Indica cómo quieres aprender antes de comenzar una conversación.");
+
+    public ObservableCollection<string> Levels { get; } = [];
 
     public ObservableCollection<string> Languages { get; } =
         ["Español", "English"];
+
+    public string ProfileTypeLabel => IsEnglish ? "Learning profile" : "Perfil de aprendizaje";
+    public string ProfileTypeDescription => IsEnglish
+        ? "This choice determines the initial context the learning assistant will use."
+        : "Esta elección determina el contexto inicial que usará el asistente de aprendizaje.";
+    public string StudentRadioContent => IsEnglish ? "Student" : "Estudiante";
+    public string UniversityRadioContent => IsEnglish ? "University student" : "Estudiante universitario";
+    public string DetailsSectionTitle => IsEnglish ? "Tell us a bit more" : "Cuéntanos un poco más";
+    public string CourseLabel => IsEnglish ? "Current course or level" : "Curso o nivel actual";
+    public string CoursePlaceholder => IsEnglish ? "E.g. tenth grade" : "Por ejemplo: décimo grado";
+    public string SubjectsLabel => IsEnglish ? "Current subjects, separated by commas" : "Materias actuales, separadas por comas";
+    public string SubjectsPlaceholder => IsEnglish ? "E.g. Mathematics, Biology" : "Por ejemplo: Matemáticas, Biología";
+    public string CareerLabel => IsEnglish ? "Degree" : "Carrera";
+    public string UniversityLabel => IsEnglish ? "University (optional)" : "Universidad (opcional)";
+    public string UniversityPlaceholder => IsEnglish ? "E.g. Software engineering" : "Por ejemplo: Ingeniería de software";
+    public string SemesterLabel => IsEnglish ? "Semester (optional)" : "Semestre (opcional)";
+    public string ImportButtonContent => IsEnglish ? "Import" : "Importar";
+    public string SemesterLaterHint => IsEnglish ? "You can add your program later from Resources." : "Puedes agregar tu programa más adelante desde Recursos.";
+    public string PreferencesSectionTitle => IsEnglish ? "Shape your learning experience" : "Define tu experiencia de aprendizaje";
+    public string LearningGoalQuestion => IsEnglish ? "What do you want to learn first?" : "¿Qué quieres aprender primero?";
+    public string LearningGoalPlaceholder => IsEnglish ? "E.g. understand React component state" : "Por ejemplo: entender el estado de los componentes de React";
+    public string LevelLabel => IsEnglish ? "Current level" : "Nivel actual";
+    public string LevelPlaceholder => IsEnglish ? "Select a level" : "Selecciona un nivel";
+    public string PreferredLanguageLabel => IsEnglish ? "Preferred language" : "Idioma preferido";
+    public string CancelButtonContent => IsEnglish ? "Cancel" : "Cancelar";
+    public string BackButtonContent => IsEnglish ? "Back" : "Atrás";
 
     [ObservableProperty]
     public partial int CurrentStep { get; set; } = 1;
@@ -174,11 +260,14 @@ public partial class LearningProfileViewModel : ViewModelBase
         {
             var profile = BuildProfile();
             await _profileService.SaveAsync(profile);
+            LanguageService.Set(SelectedLanguage ?? "Español");
             ProfileSaved?.Invoke(profile);
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"No se pudo guardar el perfil de aprendizaje: {ex.Message}";
+            ErrorMessage = IsEnglish
+                ? $"Could not save learning profile: {ex.Message}"
+                : $"No se pudo guardar el perfil de aprendizaje: {ex.Message}";
         }
         finally
         {
@@ -190,7 +279,9 @@ public partial class LearningProfileViewModel : ViewModelBase
     {
         if (CurrentStep == 1 && !IsStudent && !IsUniversity)
         {
-            ErrorMessage = "Selecciona el perfil que mejor describa tu contexto de aprendizaje.";
+            ErrorMessage = IsEnglish
+                ? "Select the profile that best describes your learning context."
+                : "Selecciona el perfil que mejor describa tu contexto de aprendizaje.";
             return false;
         }
 
@@ -198,19 +289,25 @@ public partial class LearningProfileViewModel : ViewModelBase
         {
             if (IsStudent && string.IsNullOrWhiteSpace(Course))
             {
-                ErrorMessage = "Introduce el curso o nivel que estás estudiando actualmente.";
+                ErrorMessage = IsEnglish
+                    ? "Enter the course or level you are currently studying."
+                    : "Introduce el curso o nivel que estás estudiando actualmente.";
                 return false;
             }
 
             if (IsStudent && string.IsNullOrWhiteSpace(SubjectsText))
             {
-                ErrorMessage = "Agrega al menos una materia actual.";
+                ErrorMessage = IsEnglish
+                    ? "Add at least one current subject."
+                    : "Agrega al menos una materia actual.";
                 return false;
             }
 
             if (IsUniversity && string.IsNullOrWhiteSpace(Career))
             {
-                ErrorMessage = "Introduce tu carrera universitaria.";
+                ErrorMessage = IsEnglish
+                    ? "Enter your university degree."
+                    : "Introduce tu carrera universitaria.";
                 return false;
             }
         }
@@ -219,13 +316,17 @@ public partial class LearningProfileViewModel : ViewModelBase
         {
             if (LearningGoal.Trim().Length < 3)
             {
-                ErrorMessage = "Describe qué quieres aprender con al menos 3 caracteres.";
+                ErrorMessage = IsEnglish
+                    ? "Describe what you want to learn with at least 3 characters."
+                    : "Describe qué quieres aprender con al menos 3 caracteres.";
                 return false;
             }
 
             if (SessionMinutes is < 5 or > 120)
             {
-                ErrorMessage = "La duración de la sesión debe estar entre 5 y 120 minutos.";
+                ErrorMessage = IsEnglish
+                    ? "Session duration must be between 5 and 120 minutes."
+                    : "La duración de la sesión debe estar entre 5 y 120 minutos.";
                 return false;
             }
         }

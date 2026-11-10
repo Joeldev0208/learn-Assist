@@ -12,7 +12,7 @@
             BorderThickness="0,0,0,1">
       <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
         <Button Grid.Column="0"
-                Content="← Volver al chat"
+                Content="{Binding BackToChatContent}"
                 Command="{Binding CloseCommand}"
                 Background="Transparent"
                 BorderThickness="0"
@@ -45,11 +45,11 @@
                   Spacing="8"
                   IsVisible="{Binding HasPages}"
                   ZIndex="1">
-        <Button Content="Anterior"
+        <Button Content="{Binding PreviousButtonContent}"
                 Command="{Binding PreviousPageCommand}"
                 IsEnabled="{Binding CanGoPrevious}"
                 Padding="10,5" />
-        <Button Content="Siguiente"
+        <Button Content="{Binding NextButtonContent}"
                 Command="{Binding NextPageCommand}"
                 IsEnabled="{Binding CanGoNext}"
                 Padding="10,5" />
